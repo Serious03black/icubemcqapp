@@ -1,40 +1,15 @@
 const mongoose = require('mongoose');
 
 const questionSchema = new mongoose.Schema({
-  questionText: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  optionA: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  optionB: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  optionC: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  optionD: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  correctOption: {
-    type: String,
-    required: true,
-    enum: ['A', 'B', 'C', 'D']
-  },
-  marks: {
-    type: Number,
-    default: 1
-  }
+  questionText: { type: String, required: true, trim: true },
+  optionA:       { type: String, required: true, trim: true },
+  optionB:       { type: String, required: true, trim: true },
+  optionC:       { type: String, required: true, trim: true },
+  optionD:       { type: String, required: true, trim: true },
+  correctOption: { type: String, required: true, enum: ['A','B','C','D'] },
+  marks:         { type: Number, default: 1 },
+  // 'mcq' for multiple‑choice, 'code' for programming / code answer
+  type:          { type: String, enum: ['mcq','code'], default: 'mcq' }
 });
 
 const testSchema = new mongoose.Schema({

@@ -68,9 +68,35 @@ router.get('/test/:id', async (req, res) => {
       return res.redirect('/student/dashboard');
     }
 
+    // ---- NEW LOGIC START ----
+    // Determine how many questions to present. Client may pass ?count=30; fallback to 30 or test.questionCount if defined.
+    const requestedCount = parseInt(req.query.count) || test.questionCount || 30;
+    const totalAvailable = test.questions.length;
+    const count = (requestedCount > 0 && requestedCount < totalAvailable) ? requestedCount : totalAvailable;
+
+    // Fisher‑Yates shuffle for true randomness
+    function shuffle(array) {
+      let current = array.length, random;
+      while (current !== 0) {
+        random = Math.floor(Math.random() * current);
+        current--;
+        [array[current], array[random]] = [array[random], array[current]];
+      }
+      return array;
+    }
+
+    const shuffled = shuffle([...test.questions]);
+    const selectedQuestions = shuffled.slice(0, count);
+    // Store selected question IDs in session for later submission verification
+    req.session.currentTest = {
+      testId: test._id.toString(),
+      questionIds: selectedQuestions.map(q => q._id.toString())
+    };
+    // ---- NEW LOGIC END ----
+
     res.render('student/take-test', {
       title: `${test.title} - TechMinds`,
-      test
+      test: { ...test.toObject(), questions: selectedQuestions }
     });
   } catch (err) {
     console.error(err);
@@ -82,19 +108,23 @@ router.get('/test/:id', async (req, res) => {
 // Submit test
 router.post('/test/:id/submit', async (req, res) => {
   try {
-    const test = await Test.findById(req.params.id);
+    // Validate that the student is submitting the same test they were given
+    if (!req.session.currentTest || req.session.currentTest.testId !== req.params.id) {
+      req.flash('error', 'Session mismatch. Please restart the test.');
+      return res.redirect('/student/dashboard');
+    }
 
+    const test = await Test.findById(req.params.id);
     if (!test) {
       req.flash('error', 'Test not found');
       return res.redirect('/student/dashboard');
     }
 
-    // Check if already submitted
+    // Check if already submitted (defensive, though route should be blocked)
     const existingResult = await Result.findOne({
       student: req.session.user.id,
       test: test._id
     });
-
     if (existingResult) {
       req.flash('error', 'You have already submitted this test');
       return res.redirect(`/student/results/${existingResult._id}`);
@@ -103,12 +133,17 @@ router.post('/test/:id/submit', async (req, res) => {
     const { timeTaken } = req.body;
     const answers = [];
     let obtainedMarks = 0;
+    let totalMarks = 0;
 
-    for (const question of test.questions) {
+    // Use only the question IDs that were stored in the session
+    const selectedIds = req.session.currentTest.questionIds;
+    const selectedQuestions = test.questions.filter(q => selectedIds.includes(q._id.toString()));
+
+    for (const question of selectedQuestions) {
       const selectedOption = req.body[`q_${question._id}`] || '';
       const isCorrect = selectedOption === question.correctOption;
       const marks = isCorrect ? (question.marks || 1) : 0;
-
+      totalMarks += question.marks || 1;
       if (isCorrect) obtainedMarks += marks;
 
       answers.push({
@@ -119,13 +154,13 @@ router.post('/test/:id/submit', async (req, res) => {
       });
     }
 
-    const percentage = test.totalMarks > 0 ? Math.round((obtainedMarks / test.totalMarks) * 100) : 0;
+    const percentage = totalMarks > 0 ? Math.round((obtainedMarks / totalMarks) * 100) : 0;
 
     const result = new Result({
       student: req.session.user.id,
       test: test._id,
       answers,
-      totalMarks: test.totalMarks,
+      totalMarks,
       obtainedMarks,
       percentage,
       isPassed: obtainedMarks >= test.passingMarks,
@@ -133,6 +168,8 @@ router.post('/test/:id/submit', async (req, res) => {
     });
 
     await result.save();
+    // Clean up session data for this test
+    delete req.session.currentTest;
     req.flash('success', 'Test submitted successfully!');
     res.redirect(`/student/results/${result._id}`);
   } catch (err) {
