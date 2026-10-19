@@ -1,0 +1,58 @@
+<!-- Admin Sidebar -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <div class="logo-sm">📝</div>
+    <div class="sidebar-brand-text">
+      <h2>TechMinds</h2>
+      <span>MCQ Test Platform</span>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-section-title">Main</div>
+      <a href="/admin/dashboard" class="nav-link <%= typeof active !== 'undefined' && active === 'dashboard' ? 'active' : '' %>">
+        <span class="nav-icon">📊</span> Dashboard
+      </a>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-section-title">Management</div>
+      <a href="/admin/students" class="nav-link <%= typeof active !== 'undefined' && active === 'students' ? 'active' : '' %>">
+        <span class="nav-icon">👥</span> Students
+      </a>
+      <a href="/admin/tests" class="nav-link <%= typeof active !== 'undefined' && active === 'tests' ? 'active' : '' %>">
+        <span class="nav-icon">📋</span> Tests
+      </a>
+      <a href="/admin/results" class="nav-link <%= typeof active !== 'undefined' && active === 'results' ? 'active' : '' %>">
+        <span class="nav-icon">📈</span> Results
+      </a>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-section-title">Quick Actions</div>
+      <a href="/admin/students/create" class="nav-link">
+        <span class="nav-icon">➕</span> Add Student
+      </a>
+      <a href="/admin/tests/create" class="nav-link">
+        <span class="nav-icon">✏️</span> Create Test
+      </a>
+    </div>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="user-info">
+      <div class="user-avatar"><%= currentUser ? currentUser.name.charAt(0).toUpperCase() : 'A' %></div>
+      <div class="user-details">
+        <div class="user-name"><%= currentUser ? currentUser.name : 'Admin' %></div>
+        <div class="user-role">Administrator</div>
+      </div>
+    </div>
+    <a href="/logout" class="nav-link">
+      <span class="nav-icon">🚪</span> Logout
+    </a>
+  </div>
+</div>
+
+<!-- Mobile Toggle -->
+<button class="sidebar-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>

@@ -1,0 +1,104 @@
+<%- include('../partials/header') %>
+
+<div class="dashboard-layout">
+  <%- include('../partials/admin-sidebar', { active: 'results' }) %>
+
+  <div class="main-content">
+    <div class="page-header">
+      <div class="page-header-actions">
+        <div>
+          <h1>📊 Result Details</h1>
+          <p><%= result.student ? result.student.name : 'Student' %> — <%= result.test ? result.test.title : 'Test' %></p>
+        </div>
+        <a href="/admin/results" class="btn btn-outline">← Back to Results</a>
+      </div>
+    </div>
+
+    <div class="page-body">
+      <!-- Result Summary -->
+      <div class="card" style="margin-bottom: 24px;">
+        <div class="card-body">
+          <div class="result-summary">
+            <div class="result-circle <%= result.isPassed ? 'passed' : 'failed' %>" style="--percentage: <%= result.percentage %>">
+              <div class="result-percentage"><%= result.percentage %>%</div>
+              <small style="color: var(--text-muted); font-size: 0.8rem;"><%= result.isPassed ? 'PASSED' : 'FAILED' %></small>
+            </div>
+
+            <div class="result-status" style="color: <%= result.isPassed ? 'var(--success)' : 'var(--danger)' %>">
+              <%= result.isPassed ? '🎉 Congratulations! Passed' : '❌ Not Passed' %>
+            </div>
+
+            <div class="result-stats">
+              <div class="result-stat">
+                <div class="value"><%= result.obtainedMarks %></div>
+                <div class="label">Obtained</div>
+              </div>
+              <div class="result-stat">
+                <div class="value"><%= result.totalMarks %></div>
+                <div class="label">Total Marks</div>
+              </div>
+              <div class="result-stat">
+                <div class="value"><%= result.test ? result.test.passingMarks : 'N/A' %></div>
+                <div class="label">Passing Marks</div>
+              </div>
+              <div class="result-stat">
+                <div class="value">
+                  <% if (result.timeTaken) { %>
+                    <%= Math.floor(result.timeTaken / 60) %>m <%= result.timeTaken % 60 %>s
+                  <% } else { %>
+                    N/A
+                  <% } %>
+                </div>
+                <div class="label">Time Taken</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Answer Details -->
+      <% if (result.test && result.test.questions) { %>
+        <div class="card">
+          <div class="card-header">
+            <h3>📋 Answer Details</h3>
+          </div>
+          <div class="card-body">
+            <% result.test.questions.forEach((q, index) => { %>
+              <% const answer = result.answers.find(a => a.questionId.toString() === q._id.toString()); %>
+              <div class="question-card">
+                <div style="margin-bottom: 12px;">
+                  <span class="question-number"><%= index + 1 %></span>
+                  <span class="question-text"><%= q.questionText %></span>
+                  <% if (answer) { %>
+                    <span class="badge <%= answer.isCorrect ? 'badge-success' : 'badge-danger' %>" style="margin-left: 8px;">
+                      <%= answer.isCorrect ? '✅ Correct' : '❌ Wrong' %>
+                    </span>
+                  <% } %>
+                </div>
+
+                <div class="options-grid">
+                  <% ['A', 'B', 'C', 'D'].forEach(opt => { %>
+                    <%
+                      let optClass = '';
+                      if (q.correctOption === opt) optClass = 'correct';
+                      if (answer && answer.selectedOption === opt && !answer.isCorrect) optClass = 'wrong';
+                      if (answer && answer.selectedOption === opt && answer.isCorrect) optClass = 'correct';
+                    %>
+                    <div class="option-item <%= optClass %>">
+                      <span class="option-label"><%= opt %></span>
+                      <span><%= q['option' + opt] %></span>
+                      <% if (q.correctOption === opt) { %><small style="margin-left: auto; opacity: 0.7;">✓</small><% } %>
+                      <% if (answer && answer.selectedOption === opt && answer.selectedOption !== q.correctOption) { %><small style="margin-left: auto; opacity: 0.7;">✗</small><% } %>
+                    </div>
+                  <% }) %>
+                </div>
+              </div>
+            <% }) %>
+          </div>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

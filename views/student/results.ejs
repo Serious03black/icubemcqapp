@@ -1,0 +1,73 @@
+<%- include('../partials/header') %>
+
+<div class="dashboard-layout">
+  <%- include('../partials/student-sidebar', { active: 'results' }) %>
+
+  <div class="main-content">
+    <div class="page-header">
+      <h1>📈 My Results</h1>
+      <p>View all your test results</p>
+    </div>
+
+    <div class="page-body">
+      <%- include('../partials/alerts') %>
+
+      <div class="card">
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Test</th>
+                <th>Course</th>
+                <th>Score</th>
+                <th>Percentage</th>
+                <th>Result</th>
+                <th>Date</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (results.length === 0) { %>
+                <tr>
+                  <td colspan="7">
+                    <div class="empty-state">
+                      <span class="empty-icon">📈</span>
+                      <h3>No results yet</h3>
+                      <p>Complete your assigned tests to see results here.</p>
+                      <br>
+                      <a href="/student/dashboard" class="btn btn-primary">Go to Dashboard</a>
+                    </div>
+                  </td>
+                </tr>
+              <% } else { %>
+                <% results.forEach(result => { %>
+                  <tr>
+                    <td><strong style="color: var(--text-primary)"><%= result.test ? result.test.title : 'Deleted' %></strong></td>
+                    <td><span class="badge badge-info"><%= result.test ? result.test.course : 'N/A' %></span></td>
+                    <td><%= result.obtainedMarks %> / <%= result.totalMarks %></td>
+                    <td>
+                      <span style="color: <%= result.percentage >= 70 ? 'var(--success)' : result.percentage >= 40 ? 'var(--warning)' : 'var(--danger)' %>; font-weight: 700;">
+                        <%= result.percentage %>%
+                      </span>
+                    </td>
+                    <td>
+                      <span class="badge <%= result.isPassed ? 'badge-success' : 'badge-danger' %>">
+                        <%= result.isPassed ? '✅ Passed' : '❌ Failed' %>
+                      </span>
+                    </td>
+                    <td><%= new Date(result.submittedAt).toLocaleDateString('en-IN') %></td>
+                    <td>
+                      <a href="/student/results/<%= result._id %>" class="btn btn-sm btn-outline">👁️ Details</a>
+                    </td>
+                  </tr>
+                <% }) %>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

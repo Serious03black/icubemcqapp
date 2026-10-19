@@ -1,0 +1,126 @@
+<%- include('../partials/header') %>
+
+<div class="dashboard-layout">
+  <%- include('../partials/student-sidebar', { active: 'dashboard' }) %>
+
+  <div class="main-content">
+    <div class="page-header">
+      <h1>🏠 Welcome, <%= currentUser.name %>!</h1>
+      <p>Your tests and progress overview</p>
+    </div>
+
+    <div class="page-body">
+      <%- include('../partials/alerts') %>
+
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon purple">📋</div>
+          <div class="stat-value"><%= totalAssigned %></div>
+          <div class="stat-label">Assigned Tests</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon orange">⏳</div>
+          <div class="stat-value"><%= totalPending %></div>
+          <div class="stat-label">Pending Tests</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green">✅</div>
+          <div class="stat-value"><%= totalCompleted %></div>
+          <div class="stat-label">Completed Tests</div>
+        </div>
+      </div>
+
+      <!-- Pending Tests -->
+      <div class="card" style="margin-bottom: 24px;">
+        <div class="card-header">
+          <h3>⏳ Pending Tests</h3>
+        </div>
+        <div class="card-body">
+          <% if (pendingTests.length === 0) { %>
+            <div class="empty-state">
+              <span class="empty-icon">🎉</span>
+              <h3>All caught up!</h3>
+              <p>You have no pending tests. Check back later for new assignments.</p>
+            </div>
+          <% } else { %>
+            <div class="test-grid">
+              <% pendingTests.forEach(test => { %>
+                <div class="test-card">
+                  <div class="test-card-header">
+                    <div class="test-card-title"><%= test.title %></div>
+                    <span class="badge badge-success">Active</span>
+                  </div>
+                  <% if (test.description) { %>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
+                      <%= test.description.substring(0, 100) %><%= test.description.length > 100 ? '...' : '' %>
+                    </p>
+                  <% } %>
+                  <div class="test-card-meta">
+                    <span>📚 <%= test.course %></span>
+                    <span>❓ <%= test.questions.length %> Questions</span>
+                    <span>⏱️ <%= test.duration %> mins</span>
+                    <span>🏆 <%= test.totalMarks %> marks</span>
+                  </div>
+                  <div class="test-card-actions">
+                    <a href="/student/test/<%= test._id %>" class="btn btn-primary">▶️ Start Test</a>
+                  </div>
+                </div>
+              <% }) %>
+            </div>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- Completed Tests -->
+      <div class="card">
+        <div class="card-header">
+          <h3>✅ Completed Tests</h3>
+          <a href="/student/results" class="btn btn-sm btn-outline">View All Results</a>
+        </div>
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Test</th>
+                <th>Score</th>
+                <th>Percentage</th>
+                <th>Result</th>
+                <th>Date</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (completedResults.length === 0) { %>
+                <tr><td colspan="6" style="text-align:center; padding:24px; color:var(--text-muted);">No completed tests yet</td></tr>
+              <% } else { %>
+                <% completedResults.forEach(result => { %>
+                  <tr>
+                    <td><strong style="color: var(--text-primary)"><%= result.test ? result.test.title : 'Deleted' %></strong></td>
+                    <td><%= result.obtainedMarks %> / <%= result.totalMarks %></td>
+                    <td>
+                      <span style="color: <%= result.percentage >= 70 ? 'var(--success)' : result.percentage >= 40 ? 'var(--warning)' : 'var(--danger)' %>; font-weight: 700;">
+                        <%= result.percentage %>%
+                      </span>
+                    </td>
+                    <td>
+                      <span class="badge <%= result.isPassed ? 'badge-success' : 'badge-danger' %>">
+                        <%= result.isPassed ? '✅ Passed' : '❌ Failed' %>
+                      </span>
+                    </td>
+                    <td><%= new Date(result.submittedAt).toLocaleDateString('en-IN') %></td>
+                    <td>
+                      <a href="/student/results/<%= result._id %>" class="btn btn-sm btn-outline">👁️ View</a>
+                    </td>
+                  </tr>
+                <% }) %>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

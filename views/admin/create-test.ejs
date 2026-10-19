@@ -1,0 +1,70 @@
+<%- include('../partials/header') %>
+
+<div class="dashboard-layout">
+  <%- include('../partials/admin-sidebar', { active: 'tests' }) %>
+
+  <div class="main-content">
+    <div class="page-header">
+      <h1>✏️ Create New Test</h1>
+      <p>Set up a new MCQ test for students</p>
+    </div>
+
+    <div class="page-body">
+      <%- include('../partials/alerts') %>
+
+      <div class="card" style="max-width: 640px;">
+        <div class="card-body">
+          <form action="/admin/tests/create" method="POST">
+            <div class="form-group">
+              <label class="form-label" for="title">Test Title *</label>
+              <input type="text" class="form-input" id="title" name="title" placeholder="e.g., MERN Stack Final Assessment" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="description">Description</label>
+              <textarea class="form-input" id="description" name="description" placeholder="Brief description of the test..." rows="3"></textarea>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="course">Course / Category *</label>
+              <select class="form-select" id="course" name="course" required>
+                <option value="">Select a course</option>
+                <option value="MERN Stack">MERN Stack</option>
+                <option value="Data Science">Data Science</option>
+                <option value="Python Full Stack">Python Full Stack</option>
+                <option value="Java Full Stack">Java Full Stack</option>
+                <option value="DevOps">DevOps</option>
+                <option value="Cloud Computing">Cloud Computing</option>
+                <option value="Machine Learning">Machine Learning</option>
+                <option value="Digital Marketing">Digital Marketing</option>
+                <option value="UI/UX Design">UI/UX Design</option>
+              </select>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="duration">Duration (minutes) *</label>
+                <input type="number" class="form-input" id="duration" name="duration" value="30" min="5" max="180" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="passingMarks">Passing Marks</label>
+                <input type="number" class="form-input" id="passingMarks" name="passingMarks" value="0" min="0" placeholder="Auto: 40% of total">
+              </div>
+            </div>
+
+            <div class="alert alert-info" style="margin-top: 4px;">
+              <span>ℹ️</span> After creating the test, you'll be able to add questions manually or upload them via Excel.
+            </div>
+
+            <div style="display: flex; gap: 12px; margin-top: 16px;">
+              <button type="submit" class="btn btn-primary btn-lg">Create Test & Add Questions</button>
+              <a href="/admin/tests" class="btn btn-outline btn-lg">Cancel</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

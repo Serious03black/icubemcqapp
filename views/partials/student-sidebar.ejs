@@ -1,0 +1,42 @@
+<!-- Student Sidebar -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <div class="logo-sm">📝</div>
+    <div class="sidebar-brand-text">
+      <h2>TechMinds</h2>
+      <span>MCQ Test Platform</span>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-section-title">Main</div>
+      <a href="/student/dashboard" class="nav-link <%= typeof active !== 'undefined' && active === 'dashboard' ? 'active' : '' %>">
+        <span class="nav-icon">🏠</span> Dashboard
+      </a>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-section-title">My Progress</div>
+      <a href="/student/results" class="nav-link <%= typeof active !== 'undefined' && active === 'results' ? 'active' : '' %>">
+        <span class="nav-icon">📈</span> My Results
+      </a>
+    </div>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="user-info">
+      <div class="user-avatar"><%= currentUser ? currentUser.name.charAt(0).toUpperCase() : 'S' %></div>
+      <div class="user-details">
+        <div class="user-name"><%= currentUser ? currentUser.name : 'Student' %></div>
+        <div class="user-role"><%= currentUser && currentUser.course ? currentUser.course : 'Student' %></div>
+      </div>
+    </div>
+    <a href="/logout" class="nav-link">
+      <span class="nav-icon">🚪</span> Logout
+    </a>
+  </div>
+</div>
+
+<!-- Mobile Toggle -->
+<button class="sidebar-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>

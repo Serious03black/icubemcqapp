@@ -1,0 +1,14 @@
+<% if (typeof success_msg !== 'undefined' && success_msg.length > 0) { %>
+  <% success_msg.forEach(msg => { %>
+    <div class="alert alert-success fade-in">
+      <span>✅</span> <%= msg %>
+    </div>
+  <% }) %>
+<% } %>
+<% if (typeof error_msg !== 'undefined' && error_msg.length > 0) { %>
+  <% error_msg.forEach(msg => { %>
+    <div class="alert alert-error fade-in">
+      <span>❌</span> <%= msg %>
+    </div>
+  <% }) %>
+<% } %>

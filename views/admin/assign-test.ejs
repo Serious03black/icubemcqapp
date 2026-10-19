@@ -1,0 +1,86 @@
+<%- include('../partials/header') %>
+
+<div class="dashboard-layout">
+  <%- include('../partials/admin-sidebar', { active: 'tests' }) %>
+
+  <div class="main-content">
+    <div class="page-header">
+      <div class="page-header-actions">
+        <div>
+          <h1>👥 Assign Test</h1>
+          <p>Assign "<%= test.title %>" to students</p>
+        </div>
+        <a href="/admin/tests" class="btn btn-outline">← Back to Tests</a>
+      </div>
+    </div>
+
+    <div class="page-body">
+      <%- include('../partials/alerts') %>
+
+      <div class="card" style="max-width: 700px;">
+        <div class="card-header">
+          <h3>Select Students</h3>
+          <span class="badge badge-info"><%= test.course %></span>
+        </div>
+        <div class="card-body">
+          <% if (students.length === 0) { %>
+            <div class="empty-state">
+              <span class="empty-icon">👥</span>
+              <h3>No active students found</h3>
+              <p>Create student accounts first to assign tests.</p>
+              <br>
+              <a href="/admin/students/create" class="btn btn-primary">➕ Add Student</a>
+            </div>
+          <% } else { %>
+            <form action="/admin/tests/<%= test._id %>/assign" method="POST">
+              <div style="margin-bottom: 16px; display: flex; gap: 12px;">
+                <button type="button" class="btn btn-sm btn-outline" onclick="selectAll()">Select All</button>
+                <button type="button" class="btn btn-sm btn-outline" onclick="deselectAll()">Deselect All</button>
+                <button type="button" class="btn btn-sm btn-outline" onclick="selectByCourse('<%= test.course %>')">Select <%= test.course %> Students</button>
+              </div>
+
+              <div class="student-list">
+                <% students.forEach(student => { %>
+                  <label class="student-list-item" data-course="<%= student.course %>">
+                    <input type="checkbox" name="studentIds" value="<%= student._id %>"
+                      <%= test.assignedTo && test.assignedTo.some(s => s._id ? s._id.toString() === student._id.toString() : s.toString() === student._id.toString()) ? 'checked' : '' %>
+                    >
+                    <div class="student-info">
+                      <div class="student-name"><%= student.name %></div>
+                      <div class="student-email"><%= student.email %></div>
+                      <div class="student-course"><%= student.course || 'No course' %></div>
+                    </div>
+                  </label>
+                <% }) %>
+              </div>
+
+              <div style="margin-top: 20px; display: flex; gap: 12px;">
+                <button type="submit" class="btn btn-primary btn-lg">💾 Save Assignment</button>
+                <a href="/admin/tests" class="btn btn-outline btn-lg">Cancel</a>
+              </div>
+            </form>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function selectAll() {
+  document.querySelectorAll('.student-list-item input[type="checkbox"]').forEach(cb => cb.checked = true);
+}
+
+function deselectAll() {
+  document.querySelectorAll('.student-list-item input[type="checkbox"]').forEach(cb => cb.checked = false);
+}
+
+function selectByCourse(course) {
+  document.querySelectorAll('.student-list-item').forEach(item => {
+    const cb = item.querySelector('input[type="checkbox"]');
+    cb.checked = item.dataset.course === course;
+  });
+}
+</script>
+
+<%- include('../partials/footer') %>

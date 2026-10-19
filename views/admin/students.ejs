@@ -1,0 +1,86 @@
+<%- include('../partials/header') %>
+
+<div class="dashboard-layout">
+  <%- include('../partials/admin-sidebar', { active: 'students' }) %>
+
+  <div class="main-content">
+    <div class="page-header">
+      <div class="page-header-actions">
+        <div>
+          <h1>👥 Students</h1>
+          <p>Manage all student accounts</p>
+        </div>
+        <a href="/admin/students/create" class="btn btn-primary">➕ Add Student</a>
+      </div>
+    </div>
+
+    <div class="page-body">
+      <%- include('../partials/alerts') %>
+
+      <div class="card">
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>Course</th>
+                <th>Phone</th>
+                <th>Tests Assigned</th>
+                <th>Status</th>
+                <th>Joined</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (students.length === 0) { %>
+                <tr>
+                  <td colspan="7">
+                    <div class="empty-state">
+                      <span class="empty-icon">👥</span>
+                      <h3>No students yet</h3>
+                      <p>Create your first student account to get started.</p>
+                      <br>
+                      <a href="/admin/students/create" class="btn btn-primary">➕ Add Student</a>
+                    </div>
+                  </td>
+                </tr>
+              <% } else { %>
+                <% students.forEach(student => { %>
+                  <tr>
+                    <td>
+                      <strong style="color: var(--text-primary)"><%= student.name %></strong>
+                      <br><small style="color: var(--text-muted)"><%= student.email %></small>
+                    </td>
+                    <td><span class="badge badge-info"><%= student.course || 'N/A' %></span></td>
+                    <td><%= student.phone || 'N/A' %></td>
+                    <td>
+                      <span class="badge badge-primary">
+                        <%= student.assignedTests ? student.assignedTests.length : 0 %> tests
+                      </span>
+                    </td>
+                    <td>
+                      <span class="badge <%= student.isActive ? 'badge-success' : 'badge-danger' %>">
+                        <%= student.isActive ? 'Active' : 'Inactive' %>
+                      </span>
+                    </td>
+                    <td><%= new Date(student.createdAt).toLocaleDateString('en-IN') %></td>
+                    <td>
+                      <div style="display: flex; gap: 6px;">
+                        <a href="/admin/students/<%= student._id %>/edit" class="btn btn-sm btn-outline" title="Edit">✏️</a>
+                        <form action="/admin/students/<%= student._id %>/delete" method="POST" onsubmit="return confirm('Delete this student? This action cannot be undone.')">
+                          <button type="submit" class="btn btn-sm btn-danger" title="Delete">🗑️</button>
+                        </form>
+                      </div>
+                    </td>
+                  </tr>
+                <% }) %>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

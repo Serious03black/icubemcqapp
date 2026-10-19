@@ -1,0 +1,165 @@
+<%- include('../partials/header') %>
+
+<div class="dashboard-layout">
+  <%- include('../partials/admin-sidebar', { active: 'dashboard' }) %>
+
+  <div class="main-content">
+    <div class="page-header">
+      <h1>📊 Dashboard</h1>
+      <p>Welcome back, <%= currentUser.name %>! Here's your overview.</p>
+    </div>
+
+    <div class="page-body">
+      <%- include('../partials/alerts') %>
+
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon purple">👥</div>
+          <div class="stat-value"><%= totalStudents %></div>
+          <div class="stat-label">Total Students</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green">📋</div>
+          <div class="stat-value"><%= totalTests %></div>
+          <div class="stat-label">Total Tests</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon blue">✅</div>
+          <div class="stat-value"><%= activeTests %></div>
+          <div class="stat-label">Active Tests</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon orange">📈</div>
+          <div class="stat-value"><%= totalResults %></div>
+          <div class="stat-label">Submissions</div>
+        </div>
+      </div>
+
+      <!-- Recent Data -->
+      <div class="section-grid">
+        <!-- Recent Tests -->
+        <div class="card">
+          <div class="card-header">
+            <h3>📋 Recent Tests</h3>
+            <a href="/admin/tests" class="btn btn-sm btn-outline">View All</a>
+          </div>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Course</th>
+                  <th>Questions</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% if (recentTests.length === 0) { %>
+                  <tr><td colspan="4" style="text-align:center; padding:24px; color:var(--text-muted);">No tests yet</td></tr>
+                <% } else { %>
+                  <% recentTests.forEach(test => { %>
+                    <tr>
+                      <td><strong style="color:var(--text-primary)"><%= test.title %></strong></td>
+                      <td><span class="badge badge-primary"><%= test.course %></span></td>
+                      <td><%= test.questions.length %></td>
+                      <td>
+                        <span class="badge <%= test.isActive ? 'badge-success' : 'badge-danger' %>">
+                          <%= test.isActive ? 'Active' : 'Inactive' %>
+                        </span>
+                      </td>
+                    </tr>
+                  <% }) %>
+                <% } %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Recent Students -->
+        <div class="card">
+          <div class="card-header">
+            <h3>👥 Recent Students</h3>
+            <a href="/admin/students" class="btn btn-sm btn-outline">View All</a>
+          </div>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Course</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% if (recentStudents.length === 0) { %>
+                  <tr><td colspan="3" style="text-align:center; padding:24px; color:var(--text-muted);">No students yet</td></tr>
+                <% } else { %>
+                  <% recentStudents.forEach(student => { %>
+                    <tr>
+                      <td>
+                        <strong style="color:var(--text-primary)"><%= student.name %></strong>
+                        <br><small style="color:var(--text-muted)"><%= student.email %></small>
+                      </td>
+                      <td><span class="badge badge-info"><%= student.course || 'N/A' %></span></td>
+                      <td>
+                        <span class="badge <%= student.isActive ? 'badge-success' : 'badge-danger' %>">
+                          <%= student.isActive ? 'Active' : 'Inactive' %>
+                        </span>
+                      </td>
+                    </tr>
+                  <% }) %>
+                <% } %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Results -->
+      <div style="margin-top: 24px;">
+        <div class="card">
+          <div class="card-header">
+            <h3>📈 Recent Submissions</h3>
+            <a href="/admin/results" class="btn btn-sm btn-outline">View All</a>
+          </div>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Test</th>
+                  <th>Score</th>
+                  <th>Result</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% if (recentResults.length === 0) { %>
+                  <tr><td colspan="5" style="text-align:center; padding:24px; color:var(--text-muted);">No submissions yet</td></tr>
+                <% } else { %>
+                  <% recentResults.forEach(result => { %>
+                    <tr>
+                      <td><strong style="color:var(--text-primary)"><%= result.student ? result.student.name : 'Deleted' %></strong></td>
+                      <td><%= result.test ? result.test.title : 'Deleted' %></td>
+                      <td><%= result.obtainedMarks %>/<%= result.totalMarks %> (<%= result.percentage %>%)</td>
+                      <td>
+                        <span class="badge <%= result.isPassed ? 'badge-success' : 'badge-danger' %>">
+                          <%= result.isPassed ? 'Passed' : 'Failed' %>
+                        </span>
+                      </td>
+                      <td><%= new Date(result.submittedAt).toLocaleDateString('en-IN') %></td>
+                    </tr>
+                  <% }) %>
+                <% } %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

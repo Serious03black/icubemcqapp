@@ -1,0 +1,75 @@
+<%- include('../partials/header') %>
+
+<div class="dashboard-layout">
+  <%- include('../partials/admin-sidebar', { active: 'tests' }) %>
+
+  <div class="main-content">
+    <div class="page-header">
+      <div class="page-header-actions">
+        <div>
+          <h1>📋 Tests</h1>
+          <p>Manage all MCQ tests</p>
+        </div>
+        <a href="/admin/tests/create" class="btn btn-primary">✏️ Create Test</a>
+      </div>
+    </div>
+
+    <div class="page-body">
+      <%- include('../partials/alerts') %>
+
+      <% if (tests.length === 0) { %>
+        <div class="card">
+          <div class="empty-state">
+            <span class="empty-icon">📋</span>
+            <h3>No tests created yet</h3>
+            <p>Create your first test and add questions to it.</p>
+            <br>
+            <a href="/admin/tests/create" class="btn btn-primary">✏️ Create Test</a>
+          </div>
+        </div>
+      <% } else { %>
+        <div class="test-grid">
+          <% tests.forEach(test => { %>
+            <div class="test-card scale-in">
+              <div class="test-card-header">
+                <div>
+                  <div class="test-card-title"><%= test.title %></div>
+                  <% if (test.description) { %>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;"><%= test.description.substring(0, 80) %><%= test.description.length > 80 ? '...' : '' %></p>
+                  <% } %>
+                </div>
+                <span class="badge <%= test.isActive ? 'badge-success' : 'badge-danger' %>">
+                  <%= test.isActive ? 'Active' : 'Inactive' %>
+                </span>
+              </div>
+
+              <div class="test-card-meta">
+                <span>📚 <%= test.course %></span>
+                <span>❓ <%= test.questions.length %> Questions</span>
+                <span>⏱️ <%= test.duration %> mins</span>
+                <span>🏆 <%= test.totalMarks %> marks</span>
+                <span>👥 <%= test.assignedTo ? test.assignedTo.length : 0 %> students</span>
+              </div>
+
+              <div class="test-card-actions">
+                <a href="/admin/tests/<%= test._id %>/questions" class="btn btn-sm btn-primary">📝 Questions</a>
+                <a href="/admin/tests/<%= test._id %>/assign" class="btn btn-sm btn-success">👥 Assign</a>
+                <a href="/admin/tests/<%= test._id %>/edit" class="btn btn-sm btn-outline">✏️ Edit</a>
+                <form action="/admin/tests/<%= test._id %>/toggle" method="POST" style="display:inline;">
+                  <button type="submit" class="btn btn-sm btn-warning">
+                    <%= test.isActive ? '⏸️ Disable' : '▶️ Enable' %>
+                  </button>
+                </form>
+                <form action="/admin/tests/<%= test._id %>/delete" method="POST" style="display:inline;" onsubmit="return confirm('Delete this test? All related results will also be deleted.')">
+                  <button type="submit" class="btn btn-sm btn-danger">🗑️</button>
+                </form>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,72 @@
+<%- include('../partials/header') %>
+
+<div class="dashboard-layout">
+  <%- include('../partials/admin-sidebar', { active: 'tests' }) %>
+
+  <div class="main-content">
+    <div class="page-header">
+      <h1>✏️ Edit Question</h1>
+      <p>Update question for "<%= test.title %>"</p>
+    </div>
+
+    <div class="page-body">
+      <%- include('../partials/alerts') %>
+
+      <div class="card" style="max-width: 640px;">
+        <div class="card-body">
+          <form action="/admin/tests/<%= test._id %>/questions/<%= question._id %>/edit" method="POST">
+            <div class="form-group">
+              <label class="form-label">Question Text *</label>
+              <textarea class="form-input" name="questionText" rows="3" required><%= question.questionText %></textarea>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Option A *</label>
+                <input type="text" class="form-input" name="optionA" value="<%= question.optionA %>" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Option B *</label>
+                <input type="text" class="form-input" name="optionB" value="<%= question.optionB %>" required>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Option C *</label>
+                <input type="text" class="form-input" name="optionC" value="<%= question.optionC %>" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Option D *</label>
+                <input type="text" class="form-input" name="optionD" value="<%= question.optionD %>" required>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Correct Option *</label>
+                <select class="form-select" name="correctOption" required>
+                  <option value="A" <%= question.correctOption === 'A' ? 'selected' : '' %>>A</option>
+                  <option value="B" <%= question.correctOption === 'B' ? 'selected' : '' %>>B</option>
+                  <option value="C" <%= question.correctOption === 'C' ? 'selected' : '' %>>C</option>
+                  <option value="D" <%= question.correctOption === 'D' ? 'selected' : '' %>>D</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Marks</label>
+                <input type="number" class="form-input" name="marks" value="<%= question.marks || 1 %>" min="1" max="10">
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 12px; margin-top: 8px;">
+              <button type="submit" class="btn btn-primary btn-lg">Update Question</button>
+              <a href="/admin/tests/<%= test._id %>/questions" class="btn btn-outline btn-lg">Cancel</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

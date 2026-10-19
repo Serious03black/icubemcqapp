@@ -1,0 +1,139 @@
+<%- include('../partials/header') %>
+
+<div style="min-height: 100vh; position: relative; z-index: 1;">
+  <!-- Test Header -->
+  <div class="test-header">
+    <div>
+      <h2 style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary);"><%= test.title %></h2>
+      <p style="font-size: 0.82rem; color: var(--text-muted);"><%= test.course %> • <%= test.questions.length %> Questions • <%= test.totalMarks %> Marks</p>
+    </div>
+
+    <div class="test-progress">
+      <span id="progressText">0 / <%= test.questions.length %></span>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+      </div>
+    </div>
+
+    <div class="test-timer" id="timer">
+      <span>⏱️</span>
+      <span id="timerDisplay"><%= test.duration %>:00</span>
+    </div>
+  </div>
+
+  <!-- Test Form -->
+  <form action="/student/test/<%= test._id %>/submit" method="POST" id="testForm" style="padding: 32px; max-width: 900px; margin: 0 auto;">
+    <input type="hidden" name="timeTaken" id="timeTaken" value="0">
+
+    <% test.questions.forEach((q, index) => { %>
+      <div class="question-card fade-in" id="question-<%= index %>">
+        <div style="margin-bottom: 16px;">
+          <span class="question-number"><%= index + 1 %></span>
+          <span class="question-text"><%= q.questionText %></span>
+          <span class="badge badge-primary" style="margin-left: 8px; vertical-align: middle;"><%= q.marks || 1 %> mark<%= (q.marks || 1) > 1 ? 's' : '' %></span>
+        </div>
+
+        <div>
+          <input type="radio" name="q_<%= q._id %>" value="A" id="q_<%= q._id %>_A" class="mcq-option" onchange="updateProgress()">
+          <label for="q_<%= q._id %>_A" class="mcq-label">
+            <span class="mcq-marker">A</span>
+            <span><%= q.optionA %></span>
+          </label>
+
+          <input type="radio" name="q_<%= q._id %>" value="B" id="q_<%= q._id %>_B" class="mcq-option" onchange="updateProgress()">
+          <label for="q_<%= q._id %>_B" class="mcq-label">
+            <span class="mcq-marker">B</span>
+            <span><%= q.optionB %></span>
+          </label>
+
+          <input type="radio" name="q_<%= q._id %>" value="C" id="q_<%= q._id %>_C" class="mcq-option" onchange="updateProgress()">
+          <label for="q_<%= q._id %>_C" class="mcq-label">
+            <span class="mcq-marker">C</span>
+            <span><%= q.optionC %></span>
+          </label>
+
+          <input type="radio" name="q_<%= q._id %>" value="D" id="q_<%= q._id %>_D" class="mcq-option" onchange="updateProgress()">
+          <label for="q_<%= q._id %>_D" class="mcq-label">
+            <span class="mcq-marker">D</span>
+            <span><%= q.optionD %></span>
+          </label>
+        </div>
+      </div>
+    <% }) %>
+
+    <div style="text-align: center; padding: 32px 0;">
+      <button type="submit" class="btn btn-primary btn-lg" id="submitBtn" onclick="return confirmSubmit()">
+        📤 Submit Test
+      </button>
+    </div>
+  </form>
+</div>
+
+<script>
+// Timer
+const totalSeconds = <%= test.duration %> * 60;
+let remainingSeconds = totalSeconds;
+let elapsedSeconds = 0;
+
+function updateTimer() {
+  const minutes = Math.floor(remainingSeconds / 60);
+  const seconds = remainingSeconds % 60;
+  const display = document.getElementById('timerDisplay');
+  const timer = document.getElementById('timer');
+
+  display.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+  // Warning states
+  if (remainingSeconds <= 60) {
+    timer.className = 'test-timer danger';
+  } else if (remainingSeconds <= 300) {
+    timer.className = 'test-timer warning';
+  }
+
+  if (remainingSeconds <= 0) {
+    clearInterval(timerInterval);
+    document.getElementById('timeTaken').value = elapsedSeconds;
+    alert('⏰ Time is up! Your test will be submitted automatically.');
+    document.getElementById('testForm').submit();
+    return;
+  }
+
+  remainingSeconds--;
+  elapsedSeconds++;
+  document.getElementById('timeTaken').value = elapsedSeconds;
+}
+
+const timerInterval = setInterval(updateTimer, 1000);
+
+// Progress
+const totalQuestions = <%= test.questions.length %>;
+
+function updateProgress() {
+  const answered = document.querySelectorAll('.mcq-option:checked').length;
+  document.getElementById('progressText').textContent = `${answered} / ${totalQuestions}`;
+  document.getElementById('progressFill').style.width = `${(answered / totalQuestions) * 100}%`;
+}
+
+function confirmSubmit() {
+  const answered = document.querySelectorAll('.mcq-option:checked').length;
+  const unanswered = totalQuestions - answered;
+
+  if (unanswered > 0) {
+    return confirm(`You have ${unanswered} unanswered question(s). Are you sure you want to submit?`);
+  }
+  return confirm('Are you sure you want to submit this test?');
+}
+
+// Prevent accidental page leave
+window.addEventListener('beforeunload', function(e) {
+  e.preventDefault();
+  e.returnValue = 'Are you sure you want to leave? Your progress will be lost.';
+});
+
+// Remove warning on form submit
+document.getElementById('testForm').addEventListener('submit', function() {
+  window.removeEventListener('beforeunload', function() {});
+});
+</script>
+
+<%- include('../partials/footer') %>
