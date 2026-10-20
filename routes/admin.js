@@ -257,7 +257,7 @@ router.get('/tests/create', (req, res) => {
 
 router.post('/tests/create', async (req, res) => {
   try {
-    const { title, description, course, duration, passingMarks, subTests: rawSubTests } = req.body;
+    const { title, description, course, duration, passingMarks, price, subTests: rawSubTests } = req.body;
 
     // ── Idempotency: prevent double-save if form replays ──
     // Check if a test with same title was already created by this admin in the last 10 seconds

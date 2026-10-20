@@ -282,6 +282,28 @@ router.get('/pay/:id', async (req, res) => {
 router.post('/pay/:id', async (req, res) => {
   const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;
   // In real implementation verify signature with Razorpay secret
+  // Mark test as paid in session
+  const paidTests = req.session.paidTests || [];
+  if (!paidTests.includes(req.params.id)) {
+    paidTests.push(req.params.id);
+    req.session.paidTests = paidTests;
+  }
+  // Record payment in DB
+  const Payment = require('../models/Payment');
+  const test = await Test.findById(req.params.id);
+  if (test) {
+    await Payment.create({
+      student: req.session.user.id,
+      test: test._id,
+      amount: test.price,
+      paymentId: razorpay_payment_id
+    });
+  }
+  req.flash('success', 'Payment successful! You can now start the test.');
+  res.redirect(`/student/test/${req.params.id}`);
+});
+  const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;
+  // In real implementation verify signature with Razorpay secret
   // For now, mark test as paid in session
   const paidTests = req.session.paidTests || [];
   if (!paidTests.includes(req.params.id)) {
@@ -300,6 +322,21 @@ router.get('/results', (req, res) => {
 router.get('/results/:id', (req, res) => {
   req.flash('info', 'Results are only visible to the admin.');
   res.redirect('/student/dashboard');
+});
+
+// ==================== EXAM HISTORY ====================
+// Student can view their exam attempts and results
+router.get('/history', async (req, res) => {
+  try {
+    const results = await Result.find({ student: req.session.user.id })
+      .sort({ submittedAt: -1 })
+      .populate('test', 'title course');
+    res.render('student/history', { title: 'My Exam History', results });
+  } catch (err) {
+    console.error(err);
+    req.flash('error', 'Failed to load exam history');
+    res.redirect('/student/dashboard');
+  }
 });
 
 module.exports = router;
