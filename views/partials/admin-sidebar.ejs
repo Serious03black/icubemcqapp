@@ -1,11 +1,11 @@
 <!-- Admin Sidebar -->
 <div class="sidebar" id="sidebar">
   <div class="sidebar-brand">
-    <div class="logo-sm">📝</div>
-    <div class="sidebar-brand-text">
-      <h2>TechMinds</h2>
-      <span>MCQ Test Platform</span>
+    <div class="brand">
+      <div class="brand-dot"></div>
+      ICUBE <span>Info Solution</span>
     </div>
+    <div class="portal-badge">Admin Portal</div>
   </div>
 
   <nav class="sidebar-nav">
@@ -19,22 +19,22 @@
     <div class="nav-section">
       <div class="nav-section-title">Management</div>
       <a href="/admin/students" class="nav-link <%= typeof active !== 'undefined' && active === 'students' ? 'active' : '' %>">
-        <span class="nav-icon">👥</span> Students
+        <span class="nav-icon">👥</span> Candidates
       </a>
       <a href="/admin/tests" class="nav-link <%= typeof active !== 'undefined' && active === 'tests' ? 'active' : '' %>">
-        <span class="nav-icon">📋</span> Tests
+        <span class="nav-icon">📋</span> Assessments
       </a>
       <a href="/admin/results" class="nav-link <%= typeof active !== 'undefined' && active === 'results' ? 'active' : '' %>">
-        <span class="nav-icon">📈</span> Results
+        <span class="nav-icon">📈</span> Results &amp; Reviews
       </a>
     </div>
 
     <div class="nav-section">
       <div class="nav-section-title">Quick Actions</div>
-      <a href="/admin/students/create" class="nav-link">
-        <span class="nav-icon">➕</span> Add Student
+      <a href="/admin/students/create" class="nav-link <%= typeof active !== 'undefined' && active === 'create-student' ? 'active' : '' %>">
+        <span class="nav-icon">➕</span> Add Candidate
       </a>
-      <a href="/admin/tests/create" class="nav-link">
+      <a href="/admin/tests/create" class="nav-link <%= typeof active !== 'undefined' && active === 'create-test' ? 'active' : '' %>">
         <span class="nav-icon">✏️</span> Create Test
       </a>
     </div>
@@ -44,15 +44,15 @@
     <div class="user-info">
       <div class="user-avatar"><%= currentUser ? currentUser.name.charAt(0).toUpperCase() : 'A' %></div>
       <div class="user-details">
-        <div class="user-name"><%= currentUser ? currentUser.name : 'Admin' %></div>
+        <div class="user-name"><%= currentUser ? currentUser.name : 'Administrator' %></div>
         <div class="user-role">Administrator</div>
       </div>
     </div>
     <a href="/logout" class="nav-link">
-      <span class="nav-icon">🚪</span> Logout
+      <span class="nav-icon">🚪</span> Sign Out
     </a>
   </div>
 </div>
 
 <!-- Mobile Toggle -->
-<button class="sidebar-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+<button class="sidebar-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')" aria-label="Toggle navigation">☰</button>

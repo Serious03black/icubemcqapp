@@ -1,37 +1,44 @@
-<!-- Student Sidebar -->
+<!-- Student / Candidate Sidebar -->
 <div class="sidebar" id="sidebar">
   <div class="sidebar-brand">
-    <div class="logo-sm">📝</div>
-    <div class="sidebar-brand-text">
-      <h2>TechMinds</h2>
-      <span>MCQ Test Platform</span>
+    <div class="brand">
+      <div class="brand-dot"></div>
+      ICUBE <span>Info Solution</span>
     </div>
+    <div class="portal-badge">Candidate Portal</div>
   </div>
 
   <nav class="sidebar-nav">
     <div class="nav-section">
-      <div class="nav-section-title">Main</div>
+      <div class="nav-section-title">Navigation</div>
       <a href="/student/dashboard" class="nav-link <%= typeof active !== 'undefined' && active === 'dashboard' ? 'active' : '' %>">
         <span class="nav-icon">🏠</span> Dashboard
       </a>
-    </div>
-
+      <a href="/student/tests" class="nav-link <%= typeof active !== 'undefined' && active === 'tests' ? 'active' : '' %>">
+        <span class="nav-icon">📋</span> Assessments
+      </a>
+      <a href="/student/history" class="nav-link <%= typeof active !== 'undefined' && active === 'history' ? 'active' : '' %>">
+        <span class="nav-icon">📜</span> Exam History
+      </a>
+      <a href="/student/profile" class="nav-link <%= typeof active !== 'undefined' && active === 'profile' ? 'active' : '' %>">
+        <span class="nav-icon">👤</span> My Profile
+      </a>
     </div>
   </nav>
 
   <div class="sidebar-footer">
     <div class="user-info">
-      <div class="user-avatar"><%= currentUser ? currentUser.name.charAt(0).toUpperCase() : 'S' %></div>
+      <div class="user-avatar"><%= currentUser ? currentUser.name.charAt(0).toUpperCase() : 'C' %></div>
       <div class="user-details">
-        <div class="user-name"><%= currentUser ? currentUser.name : 'Student' %></div>
-        <div class="user-role"><%= currentUser && currentUser.course ? currentUser.course : 'Student' %></div>
+        <div class="user-name"><%= currentUser ? currentUser.name : 'Candidate' %></div>
+        <div class="user-role"><%= currentUser && currentUser.course ? currentUser.course : 'Candidate' %></div>
       </div>
     </div>
     <a href="/logout" class="nav-link">
-      <span class="nav-icon">🚪</span> Logout
+      <span class="nav-icon">🚪</span> Sign Out
     </a>
   </div>
 </div>
 
 <!-- Mobile Toggle -->
-<button class="sidebar-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+<button class="sidebar-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')" aria-label="Toggle navigation">☰</button>

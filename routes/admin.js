@@ -6,6 +6,7 @@ const path = require('path');
 const User = require('../models/User');
 const Test = require('../models/Test');
 const Result = require('../models/Result');
+const Payment = require('../models/Payment');
 const { isAdmin } = require('../middleware/auth');
 
 // Multer config for Excel uploads
@@ -85,6 +86,9 @@ router.get('/dashboard', async (req, res) => {
     const totalTests = await Test.countDocuments();
     const totalResults = await Result.countDocuments();
     const activeTests = await Test.countDocuments({ isActive: true });
+    const totalPayments = await Payment.countDocuments();
+    const paymentAgg = await Payment.aggregate([{ $group: { _id: null, sum: { $sum: "$amount" } } }]);
+    const totalCollected = paymentAgg[0] ? paymentAgg[0].sum : 0;
 
     const recentTests = await Test.find()
       .sort({ createdAt: -1 })
@@ -101,15 +105,24 @@ router.get('/dashboard', async (req, res) => {
       .populate('student', 'name email')
       .populate('test', 'title');
 
+    const recentPayments = await Payment.find()
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .populate('student', 'name email')
+      .populate('test', 'title');
+
     res.render('admin/dashboard', {
       title: 'Admin Dashboard - TechMinds',
       totalStudents,
       totalTests,
       totalResults,
       activeTests,
+      totalPayments,
+      totalCollected,
       recentTests,
       recentStudents,
-      recentResults
+      recentResults,
+      recentPayments
     });
   } catch (err) {
     console.error('Dashboard Error:', err);
@@ -257,7 +270,7 @@ router.get('/tests/create', (req, res) => {
 
 router.post('/tests/create', async (req, res) => {
   try {
-    const { title, description, course, duration, passingMarks, price, subTests: rawSubTests } = req.body;
+    const { title, description, course, duration, passingMarks, originalPrice, price, subTests: rawSubTests } = req.body;
 
     // ── Idempotency: prevent double-save if form replays ──
     // Check if a test with same title was already created by this admin in the last 10 seconds
@@ -296,6 +309,8 @@ router.post('/tests/create', async (req, res) => {
       course,
       duration: parseInt(duration) || 30,
       passingMarks: parseInt(passingMarks) || 0,
+      originalPrice: parseFloat(originalPrice) || 0,
+      price: parseFloat(price) || 0,
       createdBy: req.session.user.id,
       questions: [],
       subTests
@@ -331,7 +346,7 @@ router.get('/tests/:id/edit', async (req, res) => {
 
 router.post('/tests/:id/edit', async (req, res) => {
   try {
-    const { title, description, course, duration, passingMarks, isActive, subTests: rawSubTests } = req.body;
+    const { title, description, course, duration, passingMarks, originalPrice, price, isActive, subTests: rawSubTests } = req.body;
 
     const test = await Test.findById(req.params.id);
     if (!test) {
@@ -345,7 +360,9 @@ router.post('/tests/:id/edit', async (req, res) => {
     test.course       = course;
     test.duration     = parseInt(duration) || 30;
     test.passingMarks = parseInt(passingMarks) || 0;
-    test.isActive     = isActive === 'on';
+    test.originalPrice = parseFloat(originalPrice) || 0;
+    test.price         = parseFloat(price) || 0;
+    test.isActive      = isActive === 'on';
 
     // Merge sub-tests: keep existing questions for sub-tests with matching _id
     if (rawSubTests && typeof rawSubTests === 'object') {
@@ -388,6 +405,27 @@ router.post('/tests/:id/edit', async (req, res) => {
     console.error(err);
     req.flash('error', 'Failed to update test');
     res.redirect('/admin/tests');
+  }
+});
+
+// Update test pricing directly (used when adding questions)
+router.post('/tests/:id/pricing', async (req, res) => {
+  try {
+    const { originalPrice, price } = req.body;
+    const test = await Test.findById(req.params.id);
+    if (!test) {
+      req.flash('error', 'Test not found');
+      return res.redirect('/admin/tests');
+    }
+    test.originalPrice = parseFloat(originalPrice) || 0;
+    test.price = parseFloat(price) || 0;
+    await test.save();
+    req.flash('success', 'Pricing updated successfully!');
+    res.redirect(`/admin/tests/${test._id}/questions`);
+  } catch (err) {
+    console.error(err);
+    req.flash('error', 'Failed to update pricing');
+    res.redirect(`/admin/tests/${req.params.id}/questions`);
   }
 });
 

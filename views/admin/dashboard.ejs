@@ -5,24 +5,32 @@
 
   <div class="main-content">
     <div class="page-header">
-      <h1>📊 Dashboard</h1>
-      <p>Welcome back, <%= currentUser.name %>! Here's your overview.</p>
+      <div class="page-header-actions">
+        <div>
+          <h1>Administrator Overview</h1>
+          <p>Welcome back, <%= currentUser.name %>! Monitor candidate assessments, evaluations, and review queues.</p>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <a href="/admin/tests/create" class="btn btn-primary btn-sm">+ Create Assessment</a>
+          <a href="/admin/students/create" class="btn btn-outline btn-sm">+ Add Candidate</a>
+        </div>
+      </div>
     </div>
 
     <div class="page-body">
       <%- include('../partials/alerts') %>
 
-      <!-- Stats -->
+      <!-- Stats Grid -->
       <div class="stats-grid">
         <div class="stat-card">
-          <div class="stat-icon purple">👥</div>
+          <div class="stat-icon green">👥</div>
           <div class="stat-value"><%= totalStudents %></div>
-          <div class="stat-label">Total Students</div>
+          <div class="stat-label">Total Candidates</div>
         </div>
         <div class="stat-card">
           <div class="stat-icon green">📋</div>
           <div class="stat-value"><%= totalTests %></div>
-          <div class="stat-label">Total Tests</div>
+          <div class="stat-label">Total Assessments</div>
         </div>
         <div class="stat-card">
           <div class="stat-icon blue">✅</div>
@@ -41,7 +49,7 @@
         <!-- Recent Tests -->
         <div class="card">
           <div class="card-header">
-            <h3>📋 Recent Tests</h3>
+            <h3>📋 Recent Assessments</h3>
             <a href="/admin/tests" class="btn btn-sm btn-outline">View All</a>
           </div>
           <div class="table-responsive">
@@ -49,20 +57,20 @@
               <thead>
                 <tr>
                   <th>Title</th>
-                  <th>Course</th>
+                  <th>Domain</th>
                   <th>Questions</th>
                   <th>Status</th>
                 </tr>
               </thead>
               <tbody>
                 <% if (recentTests.length === 0) { %>
-                  <tr><td colspan="4" style="text-align:center; padding:24px; color:var(--text-muted);">No tests yet</td></tr>
+                  <tr><td colspan="4" style="text-align:center; padding:24px; color:var(--text-muted);">No assessments created yet</td></tr>
                 <% } else { %>
                   <% recentTests.forEach(test => { %>
                     <tr>
-                      <td><strong style="color:var(--text-primary)"><%= test.title %></strong></td>
+                      <td><strong style="color: #fff"><%= test.title %></strong></td>
                       <td><span class="badge badge-primary"><%= test.course %></span></td>
-                      <td><%= test.questions.length %></td>
+                      <td><%= test.questions ? test.questions.length : 0 %> Qs</td>
                       <td>
                         <span class="badge <%= test.isActive ? 'badge-success' : 'badge-danger' %>">
                           <%= test.isActive ? 'Active' : 'Inactive' %>
@@ -79,29 +87,29 @@
         <!-- Recent Students -->
         <div class="card">
           <div class="card-header">
-            <h3>👥 Recent Students</h3>
+            <h3>👥 Recent Candidates</h3>
             <a href="/admin/students" class="btn btn-sm btn-outline">View All</a>
           </div>
           <div class="table-responsive">
             <table class="data-table">
               <thead>
                 <tr>
-                  <th>Name</th>
-                  <th>Course</th>
+                  <th>Candidate</th>
+                  <th>Domain Track</th>
                   <th>Status</th>
                 </tr>
               </thead>
               <tbody>
                 <% if (recentStudents.length === 0) { %>
-                  <tr><td colspan="3" style="text-align:center; padding:24px; color:var(--text-muted);">No students yet</td></tr>
+                  <tr><td colspan="3" style="text-align:center; padding:24px; color:var(--text-muted);">No candidates registered yet</td></tr>
                 <% } else { %>
                   <% recentStudents.forEach(student => { %>
                     <tr>
                       <td>
-                        <strong style="color:var(--text-primary)"><%= student.name %></strong>
+                        <strong style="color: #fff"><%= student.name %></strong>
                         <br><small style="color:var(--text-muted)"><%= student.email %></small>
                       </td>
-                      <td><span class="badge badge-info"><%= student.course || 'N/A' %></span></td>
+                      <td><span class="badge badge-info"><%= student.course || 'General' %></span></td>
                       <td>
                         <span class="badge <%= student.isActive ? 'badge-success' : 'badge-danger' %>">
                           <%= student.isActive ? 'Active' : 'Inactive' %>
@@ -120,18 +128,18 @@
       <div style="margin-top: 24px;">
         <div class="card">
           <div class="card-header">
-            <h3>📈 Recent Submissions</h3>
+            <h3>📈 Recent Candidate Submissions</h3>
             <a href="/admin/results" class="btn btn-sm btn-outline">View All</a>
           </div>
           <div class="table-responsive">
             <table class="data-table">
               <thead>
                 <tr>
-                  <th>Student</th>
-                  <th>Test</th>
+                  <th>Candidate</th>
+                  <th>Assessment</th>
                   <th>Score</th>
-                  <th>Result</th>
-                  <th>Date</th>
+                  <th>Review Status</th>
+                  <th>Submitted At</th>
                 </tr>
               </thead>
               <tbody>
@@ -140,12 +148,12 @@
                 <% } else { %>
                   <% recentResults.forEach(result => { %>
                     <tr>
-                      <td><strong style="color:var(--text-primary)"><%= result.student ? result.student.name : 'Deleted' %></strong></td>
-                      <td><%= result.test ? result.test.title : 'Deleted' %></td>
-                      <td><%= result.obtainedMarks %>/<%= result.totalMarks %> (<%= result.percentage %>%)</td>
+                      <td><strong style="color: #fff"><%= result.student ? result.student.name : 'Unknown' %></strong></td>
+                      <td><%= result.test ? result.test.title : 'Deleted Assessment' %></td>
+                      <td><%= result.obtainedMarks %> / <%= result.totalMarks %> (<%= result.percentage %>%)</td>
                       <td>
                         <span class="badge <%= result.isPassed ? 'badge-success' : 'badge-danger' %>">
-                          <%= result.isPassed ? 'Passed' : 'Failed' %>
+                          <%= result.isPassed ? 'Passed' : 'Needs Review' %>
                         </span>
                       </td>
                       <td><%= new Date(result.submittedAt).toLocaleDateString('en-IN') %></td>

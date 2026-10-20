@@ -5,12 +5,12 @@ const { isGuest } = require('../middleware/auth');
 
 // GET Login Page (Student)
 router.get('/login', isGuest, (req, res) => {
-  res.render('login', { title: 'Login - TechMinds MCQ', isAdmin: false });
+  res.render('login', { title: 'Login - ICUBE Info Solution', isAdmin: false });
 });
 
 // GET Admin Login Page (access via /admin/login)
 router.get('/admin/login', isGuest, (req, res) => {
-  res.render('login', { title: 'Admin Login - TechMinds MCQ', isAdmin: true });
+  res.render('login', { title: 'Admin Login - ICUBE Info Solution', isAdmin: true });
 });
 
 // POST Login (handles both student and admin via hidden flag)
@@ -73,7 +73,7 @@ router.post('/login', async (req, res) => {
 
 // GET Signup Page
 router.get('/signup', isGuest, (req, res) => {
-  res.render('signup', { title: 'Sign Up - TechMinds MCQ', isAdmin: false });
+  res.render('signup', { title: 'Sign Up - ICUBE Info Solution', isAdmin: false });
 });
 
 // POST Signup (create new student account)

@@ -4,7 +4,8 @@ const paymentSchema = new mongoose.Schema({
   student: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   test: { type: mongoose.Schema.Types.ObjectId, ref: 'Test', required: true },
   amount: { type: Number, required: true },
-  paymentId: { type: String }, // Razorpay payment identifier
+  paymentId: { type: String },  // Razorpay payment ID (pay_xxx)
+  orderId: { type: String },    // Razorpay order ID  (order_xxx)
   createdAt: { type: Date, default: Date.now }
 });
 

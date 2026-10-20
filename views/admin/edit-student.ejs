@@ -5,14 +5,25 @@
 
   <div class="main-content">
     <div class="page-header">
-      <h1>✏️ Edit Student</h1>
-      <p>Update student details for <%= student.name %></p>
+      <div class="page-header-actions">
+        <div>
+          <h1>✏️ Edit Candidate</h1>
+          <p>Update candidate details for <%= student.name %></p>
+        </div>
+        <a href="/admin/students" class="btn btn-outline">← Back to Candidates</a>
+      </div>
     </div>
 
     <div class="page-body">
       <%- include('../partials/alerts') %>
 
-      <div class="card" style="max-width: 640px;">
+      <div class="card" style="max-width: 680px;">
+        <div class="card-header">
+          <h3>👤 Candidate Details</h3>
+          <span class="badge <%= student.isActive ? 'badge-success' : 'badge-danger' %>">
+            <%= student.isActive ? 'Active' : 'Inactive' %>
+          </span>
+        </div>
         <div class="card-body">
           <form action="/admin/students/<%= student._id %>/edit" method="POST">
             <div class="form-row">
@@ -38,22 +49,26 @@
             </div>
 
             <div class="form-group">
-              <label class="form-label" for="course">Course</label>
+              <label class="form-label" for="course">Primary Domain / Track</label>
               <select class="form-select" id="course" name="course">
-                <option value="">Select a course</option>
-                <% ['MERN Stack', 'Data Science', 'Python Full Stack', 'Java Full Stack', 'DevOps', 'Cloud Computing', 'Machine Learning', 'Digital Marketing', 'UI/UX Design'].forEach(c => { %>
+                <option value="">Select candidate track</option>
+                <% [
+                  'Artificial Intelligence', 'Data Science', 'Robotics', 'Machine Learning',
+                  'MERN Stack', 'Python Full Stack', 'Java Full Stack', 'Cloud Computing',
+                  'DevOps', 'Cybersecurity', 'UI/UX Design', 'Digital Marketing'
+                ].forEach(c => { %>
                   <option value="<%= c %>" <%= student.course === c ? 'selected' : '' %>><%= c %></option>
                 <% }) %>
               </select>
             </div>
 
-            <div class="form-check">
+            <div class="form-check" style="margin-top: 14px; margin-bottom: 20px;">
               <input type="checkbox" id="isActive" name="isActive" <%= student.isActive ? 'checked' : '' %>>
-              <label for="isActive">Account is Active</label>
+              <label for="isActive">Candidate account is active</label>
             </div>
 
-            <div style="display: flex; gap: 12px; margin-top: 8px;">
-              <button type="submit" class="btn btn-primary btn-lg">Update Student</button>
+            <div style="display: flex; gap: 12px;">
+              <button type="submit" class="btn btn-primary btn-lg">Update Candidate</button>
               <a href="/admin/students" class="btn btn-outline btn-lg">Cancel</a>
             </div>
           </form>

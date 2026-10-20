@@ -5,56 +5,68 @@
 
   <div class="main-content">
     <div class="page-header">
-      <h1>➕ Create Student</h1>
-      <p>Add a new student account</p>
+      <div class="page-header-actions">
+        <div>
+          <h1>➕ Add Candidate</h1>
+          <p>Register a new candidate profile for evaluation</p>
+        </div>
+        <a href="/admin/students" class="btn btn-outline">← Back to Candidates</a>
+      </div>
     </div>
 
     <div class="page-body">
       <%- include('../partials/alerts') %>
 
-      <div class="card" style="max-width: 640px;">
+      <div class="card" style="max-width: 680px;">
+        <div class="card-header">
+          <h3>👤 Candidate Information</h3>
+          <span class="badge badge-info">Registration</span>
+        </div>
         <div class="card-body">
           <form action="/admin/students/create" method="POST">
             <div class="form-row">
               <div class="form-group">
                 <label class="form-label" for="name">Full Name *</label>
-                <input type="text" class="form-input" id="name" name="name" placeholder="Enter student name" required>
+                <input type="text" class="form-input" id="name" name="name" placeholder="e.g. Priya Sharma" required>
               </div>
               <div class="form-group">
                 <label class="form-label" for="email">Email Address *</label>
-                <input type="email" class="form-input" id="email" name="email" placeholder="student@techminds.in" required>
+                <input type="email" class="form-input" id="email" name="email" placeholder="candidate@example.com" required>
               </div>
             </div>
 
             <div class="form-row">
               <div class="form-group">
-                <label class="form-label" for="password">Password *</label>
+                <label class="form-label" for="password">Initial Password *</label>
                 <input type="password" class="form-input" id="password" name="password" placeholder="Min 6 characters" required minlength="6">
               </div>
               <div class="form-group">
                 <label class="form-label" for="phone">Phone Number</label>
-                <input type="text" class="form-input" id="phone" name="phone" placeholder="Phone number">
+                <input type="text" class="form-input" id="phone" name="phone" placeholder="+91 9876543210">
               </div>
             </div>
 
             <div class="form-group">
-              <label class="form-label" for="course">Course *</label>
+              <label class="form-label" for="course">Primary Domain / Track *</label>
               <select class="form-select" id="course" name="course" required>
-                <option value="">Select a course</option>
-                <option value="MERN Stack">MERN Stack</option>
+                <option value="">Select candidate track</option>
+                <option value="Artificial Intelligence">Artificial Intelligence</option>
                 <option value="Data Science">Data Science</option>
+                <option value="Robotics">Robotics</option>
+                <option value="Machine Learning">Machine Learning</option>
+                <option value="MERN Stack">MERN Stack</option>
                 <option value="Python Full Stack">Python Full Stack</option>
                 <option value="Java Full Stack">Java Full Stack</option>
-                <option value="DevOps">DevOps</option>
                 <option value="Cloud Computing">Cloud Computing</option>
-                <option value="Machine Learning">Machine Learning</option>
-                <option value="Digital Marketing">Digital Marketing</option>
+                <option value="DevOps">DevOps</option>
+                <option value="Cybersecurity">Cybersecurity</option>
                 <option value="UI/UX Design">UI/UX Design</option>
+                <option value="Digital Marketing">Digital Marketing</option>
               </select>
             </div>
 
-            <div style="display: flex; gap: 12px; margin-top: 8px;">
-              <button type="submit" class="btn btn-primary btn-lg">Create Student</button>
+            <div style="display: flex; gap: 12px; margin-top: 14px;">
+              <button type="submit" class="btn btn-primary btn-lg">Create Candidate Profile</button>
               <a href="/admin/students" class="btn btn-outline btn-lg">Cancel</a>
             </div>
           </form>

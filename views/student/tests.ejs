@@ -1,0 +1,99 @@
+﻿<%- include('../partials/header') %>
+
+<div class="dashboard-layout">
+  <%- include('../partials/student-sidebar', { active: 'tests' }) %>
+
+  <div class="main-content">
+    <div class="page-header">
+      <div class="page-header-actions">
+        <div>
+          <h1>📋 Browse Assessments</h1>
+          <p>All available technical evaluations open for candidates</p>
+        </div>
+        <span class="badge badge-success" style="font-size: 0.9rem; padding: 8px 16px;">
+          <%= tests.length %> Available
+        </span>
+      </div>
+    </div>
+
+    <div class="page-body">
+      <%- include('../partials/alerts') %>
+
+      <!-- Info Banner -->
+      <div style="background: linear-gradient(135deg, rgba(34,197,94,.16), rgba(34,197,94,.04)); border: 1px solid rgba(34,197,94,.32); border-radius: 12px; padding: 14px 18px; margin-bottom: 24px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+        <span style="background: var(--green); color: #000; font-weight: 800; font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; padding: 5px 11px; border-radius: 6px; white-space: nowrap;">
+          📌 Open to All Candidates
+        </span>
+        <div style="font-size: .86rem; color: #e2e8f0; line-height: 1.45;">
+          All active assessments are available for every registered candidate. Paid tests require payment before access.
+        </div>
+      </div>
+
+      <% if (tests.length === 0) { %>
+        <div class="card">
+          <div class="empty-state">
+            <span class="empty-icon">📋</span>
+            <h3>No assessments available</h3>
+            <p>Check back soon — new tests will be added by the admin.</p>
+          </div>
+        </div>
+      <% } else { %>
+        <div class="test-grid">
+          <% tests.forEach(test => {
+            const isDone = completedTestIds.includes(test._id.toString());
+            const isFree = !test.price || test.price <= 0;
+          %>
+            <div class="test-card scale-in" style="<%= isDone ? 'opacity: 0.72;' : '' %>">
+              <div class="test-card-header">
+                <div class="test-card-title"><%= test.title %></div>
+                <% if (isDone) { %>
+                  <span class="badge badge-info">✅ Submitted</span>
+                <% } else { %>
+                  <span class="badge badge-success">Active</span>
+                <% } %>
+              </div>
+
+              <% if (test.description) { %>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px; line-height: 1.5;">
+                  <%= test.description.substring(0, 120) %><%= test.description.length > 120 ? '...' : '' %>
+                </p>
+              <% } %>
+
+              <div class="test-card-meta">
+                <span>📚 <%= test.course %></span>
+                <span>
+                  💰
+                  <% if (test.originalPrice && test.originalPrice > test.price) { %>
+                    <span style="text-decoration: line-through; color: var(--text-muted); opacity: 0.65; margin-right: 4px;">₹<%= test.originalPrice %></span>
+                  <% } %>
+                  <strong style="color: var(--green);"><%= isFree ? 'Free' : '&#8377;' + test.price %></strong>
+                </span>
+                <span>❓ <%= test.questions ? test.questions.length : 0 %> Questions</span>
+                <span>⏱️ <%= test.duration %> mins</span>
+                <span>🏆 <%= test.totalMarks %> marks</span>
+              </div>
+
+              <div class="test-card-actions">
+                <% if (isDone) { %>
+                  <button class="btn btn-sm btn-outline btn-full" disabled style="cursor: not-allowed; opacity: 0.6;">
+                    ✅ Already Submitted
+                  </button>
+                <% } else { %>
+                  <a href="/student/test/<%= test._id %>" class="btn btn-primary btn-full">
+                    <% if (!isFree) { %>
+                      💳 Pay &amp; Start &mdash; &#8377;<%= test.price %>
+                    <% } else { %>
+                      ▶️ Start Assessment
+                    <% } %>
+                  </a>
+                <% } %>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

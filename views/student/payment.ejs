@@ -1,83 +1,142 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title><%= title %></title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Inter', sans-serif;
-      background: linear-gradient(135deg, #1e293b, #0f172a);
-      color: #e2e8f0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-    }
-    .card {
-      background: rgba(30, 41, 59, 0.85);
-      padding: 2rem;
-      border-radius: 12px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-      backdrop-filter: blur(8px);
-      max-width: 500px;
-      width: 100%;
-    }
-    .btn {
-      background: #6366f1;
-      color: #fff;
-      padding: 0.75rem 1.5rem;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-      width: 100%;
-    }
-    .btn:hover {
-      background: #4f46e5;
-    }
-  </style>
-</head>
-<body>
-  <div class="card">
-    <h2>Pay for <%= test.title %></h2>
-    <p>Price: <strong>₹<%= test.price %></strong></p>
-    <form id="payment-form">
-      <button type="button" id="pay-button" class="btn">Pay with Razorpay</button>
-    </form>
+﻿<%- include('../partials/header') %>
+
+<div class="login-page">
+  <div class="login-bg"></div>
+  <div class="login-container">
+    <div class="login-card">
+      <div class="login-brand">
+        <div class="brand" style="justify-content: center; margin-bottom: 8px;">
+          <div class="brand-dot"></div>
+          ICUBE <span>Info Solution</span>
+        </div>
+        <div class="portal-badge" style="margin: 0 auto 16px; display: inline-block;">
+          Secure Assessment Checkout
+        </div>
+        <h1>Assessment Access Fee</h1>
+        <p style="color: var(--text-muted); font-size: 0.86rem; margin-top: 4px;">
+          Complete payment to unlock your technical evaluation
+        </p>
+      </div>
+
+      <!-- Test Summary Card -->
+      <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 22px;">
+        <div style="font-size: 1.1rem; font-weight: 800; color: #fff; margin-bottom: 6px;"><%= test.title %></div>
+        <div style="font-size: 0.82rem; color: var(--green); font-weight: 700; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em;"><%= test.course %></div>
+        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 14px;">
+          <div>
+            <div style="font-size: 0.88rem; color: var(--text-muted);">Assessment Fee</div>
+            <% if (test.originalPrice && test.originalPrice > test.price) { %>
+              <div style="font-size: 0.74rem; color: var(--green); font-weight: 700; margin-top: 2px;">
+                🎉 Special Offer Applied (<%= Math.round(((test.originalPrice - test.price) / test.originalPrice) * 100) %>% OFF)
+              </div>
+            <% } %>
+          </div>
+          <div style="display: flex; align-items: baseline; gap: 8px;">
+            <% if (test.originalPrice && test.originalPrice > test.price) { %>
+              <span style="font-size: 1.05rem; text-decoration: line-through; color: var(--text-muted); opacity: 0.65;">
+                ₹<%= test.originalPrice %>
+              </span>
+            <% } %>
+            <span style="font-size: 1.55rem; font-weight: 900; color: #fff;">
+              ₹<%= test.price %>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pay Button -->
+      <button type="button" id="pay-button" class="btn btn-primary btn-lg btn-full">
+        💳 Pay ₹<%= test.price %> with Razorpay →
+      </button>
+
+      <!-- Error display -->
+      <div id="pay-error" style="display:none; margin-top: 14px; padding: 12px 16px; background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); border-radius: 8px; color: #f87171; font-size: 0.85rem;"></div>
+
+      <div style="text-align: center; margin-top: 18px; font-size: 0.8rem; color: var(--text-muted);">
+        🔒 256-Bit SSL Encrypted &bull; Powered by Razorpay
+      </div>
+      <div style="text-align: center; margin-top: 12px; font-size: 0.84rem;">
+        <a href="/student/dashboard" style="color: var(--text-muted);">← Return to Dashboard</a>
+      </div>
+    </div>
   </div>
-  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-  <script>
-    const razorpayKey = "<%= razorpayKey %>";
-    const orderOptions = {
-      key: razorpayKey,
-      amount: <%= test.price %> * 100, // amount in paise
-      currency: "INR",
-      name: "TechMinds MCQ",
-      description: `Payment for ${"<%= test.title %>"}`,
-      handler: function (response) {
-        // Post verification to server
-        fetch(`/student/pay/${"<%= test._id %>"}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(response)
-        })
-        .then(() => { window.location.href = `/student/test/${"<%= test._id %>"}`; })
-        .catch(err => console.error(err));
-      },
-      prefill: {
-        email: "<%= currentUser ? currentUser.email : '' %>",
-        name: "<%= currentUser ? currentUser.name : '' %>"
-      },
-      theme: { color: "#6366f1" }
-    };
-    document.getElementById('pay-button').onclick = function (e) {
-      const rzp = new Razorpay(orderOptions);
+</div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+  const TEST_ID  = '<%= test._id %>';
+  const RZP_KEY  = '<%= razorpayKey %>';
+  const AMOUNT   = <%= test.price %>;
+
+  function showError(msg) {
+    const el = document.getElementById('pay-error');
+    el.textContent = '⚠️ ' + msg;
+    el.style.display = 'block';
+    document.getElementById('pay-button').disabled = false;
+    document.getElementById('pay-button').textContent = '💳 Try Again';
+  }
+
+  document.getElementById('pay-button').onclick = async function () {
+    this.disabled = true;
+    this.textContent = 'Creating order…';
+    document.getElementById('pay-error').style.display = 'none';
+
+    try {
+      // Step 1: Create Razorpay order on server
+      const orderRes = await fetch(`/student/pay/${TEST_ID}/order`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const orderData = await orderRes.json();
+      if (!orderRes.ok) throw new Error(orderData.error || 'Failed to create order');
+
+      // Step 2: Open Razorpay checkout
+      const options = {
+        key: RZP_KEY,
+        amount: orderData.amount,
+        currency: orderData.currency || 'INR',
+        name: 'ICUBE Info Solution',
+        description: 'Assessment Access Fee',
+        order_id: orderData.orderId,
+        prefill: {
+          name:  '<%= currentUser ? currentUser.name : "" %>',
+          email: '<%= currentUser ? currentUser.email : "" %>'
+        },
+        theme: { color: '#22c55e' },
+        handler: async function (response) {
+          document.getElementById('pay-button').textContent = 'Verifying payment…';
+
+          // Step 3: Verify signature on server
+          const verifyRes = await fetch(`/student/pay/${TEST_ID}/verify`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(response)
+          });
+          const verifyData = await verifyRes.json();
+
+          if (verifyRes.ok && verifyData.success) {
+            window.location.href = verifyData.redirect;
+          } else {
+            showError(verifyData.error || 'Verification failed. Contact support.');
+          }
+        },
+        modal: {
+          ondismiss: function () {
+            document.getElementById('pay-button').disabled = false;
+            document.getElementById('pay-button').textContent = '💳 Pay ₹' + AMOUNT + ' with Razorpay →';
+          }
+        }
+      };
+
+      const rzp = new Razorpay(options);
+      rzp.on('payment.failed', function (resp) {
+        showError(resp.error.description || 'Payment failed. Please try again.');
+      });
       rzp.open();
-      e.preventDefault();
-    };
-  </script>
-</body>
-</html>
+    } catch (err) {
+      showError(err.message || 'Something went wrong. Please refresh and try again.');
+    }
+  };
+</script>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,80 @@
+<%- include('../partials/header') %>
+
+<div class="dashboard-layout">
+  <%- include('../partials/student-sidebar', { active: 'history' }) %>
+
+  <div class="main-content">
+    <div class="page-header">
+      <div class="page-header-actions">
+        <div>
+          <h1>Exam History &amp; Submissions</h1>
+          <p>Review your completed assessment attempts and review statuses</p>
+        </div>
+        <a href="/student/dashboard" class="btn btn-outline">← Back to Dashboard</a>
+      </div>
+    </div>
+
+    <div class="page-body">
+      <%- include('../partials/alerts') %>
+
+      <div class="card">
+        <div class="card-header">
+          <h3>📜 Past Submissions</h3>
+          <span class="badge badge-info"><%= results.length %> Records</span>
+        </div>
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Assessment</th>
+                <th>Track / Course</th>
+                <th>Submitted Date</th>
+                <th>Recruiter Verification</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (results.length === 0) { %>
+                <tr>
+                  <td colspan="4">
+                    <div class="empty-state">
+                      <span class="empty-icon">📜</span>
+                      <h3>No exam history yet</h3>
+                      <p>Complete your assigned technical tests to see your submission logs here.</p>
+                      <br>
+                      <a href="/student/dashboard" class="btn btn-primary">Go to Dashboard</a>
+                    </div>
+                  </td>
+                </tr>
+              <% } else { %>
+                <% results.forEach(result => { %>
+                  <tr>
+                    <td>
+                      <strong style="color: #fff; font-weight: 700;">
+                        <%= result.test ? result.test.title : 'Assessment' %>
+                      </strong>
+                    </td>
+                    <td>
+                      <span class="badge badge-info">
+                        <%= result.test ? result.test.course : 'General' %>
+                      </span>
+                    </td>
+                    <td>
+                      <%= new Date(result.submittedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) %>
+                    </td>
+                    <td>
+                      <span class="badge badge-success">
+                        ✅ Submitted for Verification
+                      </span>
+                    </td>
+                  </tr>
+                <% }) %>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

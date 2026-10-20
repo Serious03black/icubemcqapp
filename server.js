@@ -63,7 +63,7 @@ app.get('/', (req, res) => {
     return res.redirect('/student/dashboard');
   }
   // Render landing page for unauthenticated visitors
-  res.render('landing', { title: 'Welcome - TechMinds MCQ', landingData: {} });
+  res.render('landing', { title: 'Welcome - ICUBE Info Solution', landingData: {} });
 });
 
 // 404 handler
@@ -73,5 +73,5 @@ app.use((req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`🚀 TechMinds MCQ App running on http://localhost:${PORT}`);
+  console.log(`🚀 ICUBE Info Solution App running on http://localhost:${PORT}`);
 });

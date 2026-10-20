@@ -1,35 +1,48 @@
 <%- include('../partials/header') %>
 
-<div class="profile-header" style="display:flex; justify-content:space-between; align-items:center; padding:16px 24px; background: rgba(15,23,42,0.9); border-bottom: 1px solid rgba(129,140,248,0.15); backdrop-filter: blur(8px);">
-  <div class="welcome-msg" style="color:#e2e8f0; font-size:1.2rem; font-weight:600;">
-    Welcome, <%= currentUser.name %>!
-  </div>
-<a href="/student/profile" class="profile-link" style="display:flex; align-items:center; gap:12px; color:#a5b4fc; text-decoration:none;">
-  <span class="profile-icon" style="width:32px; height:32px; background:#818cf8; color:#fff; display:flex; align-items:center; justify-content:center; border-radius:8px; font-weight:700;">
-    <%= currentUser.name.charAt(0).toUpperCase() %>
-  </span>
-  Profile
-</a>
-</div>
+<div class="dashboard-layout">
+  <%- include('../partials/student-sidebar', { active: 'dashboard' }) %>
 
-<!-- Existing dashboard layout -->
-<div class="dashboard-layout" style="margin-top:0;">
-
+  <div class="main-content">
+    <div class="page-header">
+      <div class="page-header-actions">
+        <div>
+          <h1>Candidate Dashboard</h1>
+          <p>Welcome back, <%= currentUser.name %>! Manage your technical evaluations and assessment progress.</p>
+        </div>
+        <a href="/student/profile" class="profile-link">
+          <span class="profile-icon">
+            <%= currentUser.name.charAt(0).toUpperCase() %>
+          </span>
+          <span>Profile (<%= currentUser.course || 'Candidate' %>)</span>
+        </a>
+      </div>
+    </div>
 
     <div class="page-body">
       <%- include('../partials/alerts') %>
 
-      <!-- Stats -->
+      <!-- Hiring Pipeline Banner matching Landing Page -->
+      <div style="background: linear-gradient(135deg, rgba(34,197,94,.16), rgba(34,197,94,.04)); border: 1px solid rgba(34,197,94,.32); border-radius: 12px; padding: 14px 18px; margin-bottom: 24px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+        <span style="background: var(--green); color: #000; font-weight: 800; font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; padding: 5px 11px; border-radius: 6px; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px;">
+          🤝 Assessment Status
+        </span>
+        <div style="font-size: .86rem; color: #e2e8f0; line-height: 1.45;">
+          <strong>Pre-Interview Technical Evaluation:</strong> Complete your assigned assessments. Our recruiters will manually verify your resume credentials and submitted code/answers to schedule your interview.
+        </div>
+      </div>
+
+      <!-- Stats Grid -->
       <div class="stats-grid">
         <div class="stat-card">
-          <div class="stat-icon purple">📋</div>
+          <div class="stat-icon green">📋</div>
           <div class="stat-value"><%= totalAssigned %></div>
-          <div class="stat-label">Assigned Tests</div>
+          <div class="stat-label">Available Assessments</div>
         </div>
         <div class="stat-card">
           <div class="stat-icon orange">⏳</div>
           <div class="stat-value"><%= totalPending %></div>
-          <div class="stat-label">Pending Tests</div>
+          <div class="stat-label">To Attempt</div>
         </div>
         <div class="stat-card">
           <div class="stat-icon green">✅</div>
@@ -38,17 +51,18 @@
         </div>
       </div>
 
-      <!-- Pending Tests -->
-      <div class="card" style="margin-bottom: 24px;">
+      <!-- Available Tests Section -->
+      <div class="card" style="margin-bottom: 26px;">
         <div class="card-header">
-          <h3>⏳ Pending Tests</h3>
+          <h3>📋 Available Assessments</h3>
+          <span class="badge badge-success"><%= totalPending %> Available</span>
         </div>
         <div class="card-body">
           <% if (pendingTests.length === 0) { %>
             <div class="empty-state">
               <span class="empty-icon">🎉</span>
               <h3>All caught up!</h3>
-              <p>You have no pending tests. Check back later for new assignments.</p>
+              <p>You have no pending tests. Check back later for new assignments or notifications.</p>
             </div>
           <% } else { %>
             <div class="test-grid">
@@ -59,18 +73,27 @@
                     <span class="badge badge-success">Active</span>
                   </div>
                   <% if (test.description) { %>
-                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
-                      <%= test.description.substring(0, 100) %><%= test.description.length > 100 ? '...' : '' %>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px; line-height: 1.5;">
+                      <%= test.description.substring(0, 110) %><%= test.description.length > 110 ? '...' : '' %>
                     </p>
                   <% } %>
                   <div class="test-card-meta">
                     <span>📚 <%= test.course %></span>
-                    <span>❓ <%= test.questions.length %> Questions</span>
+                    <span>
+                      💰
+                      <% if (test.originalPrice && test.originalPrice > test.price) { %>
+                        <span style="text-decoration: line-through; color: var(--text-muted); opacity: 0.65; margin-right: 4px;">₹<%= test.originalPrice %></span>
+                      <% } %>
+                      <strong style="color: var(--green);"><%= (test.price && test.price > 0) ? '₹' + test.price : 'Free' %></strong>
+                    </span>
+                    <span>❓ <%= test.questions ? test.questions.length : 0 %> Questions</span>
                     <span>⏱️ <%= test.duration %> mins</span>
                     <span>🏆 <%= test.totalMarks %> marks</span>
                   </div>
                   <div class="test-card-actions">
-                    <a href="/student/test/<%= test._id %>" class="btn btn-primary">▶️ Start Test</a>
+                    <a href="/student/test/<%= test._id %>" class="btn btn-primary btn-full">
+                      ▶️ Start Assessment
+                    </a>
                   </div>
                 </div>
               <% }) %>
@@ -79,29 +102,31 @@
         </div>
       </div>
 
-      <!-- Completed Tests -->
+      <!-- Completed Tests Section -->
       <div class="card">
         <div class="card-header">
-          <h3>✅ Completed Tests</h3>
+          <h3>✅ Completed Assessments</h3>
+          <span class="badge badge-info"><%= totalCompleted %> Finished</span>
         </div>
         <div class="card-body">
           <% if (completedResults.length === 0) { %>
             <div class="empty-state">
               <span class="empty-icon">📝</span>
               <h3>No completed tests yet</h3>
-              <p>Your completed tests will appear here.</p>
+              <p>Your finished assessments and submission records will appear here.</p>
             </div>
           <% } else { %>
             <div class="test-grid">
               <% completedResults.forEach(result => { %>
-                <div class="test-card" style="opacity:0.75;">
+                <div class="test-card" style="opacity: 0.88;">
                   <div class="test-card-header">
-                    <div class="test-card-title"><%= result.test ? result.test.title : 'Deleted Test' %></div>
-                    <span class="badge badge-info">Completed</span>
+                    <div class="test-card-title"><%= result.test ? result.test.title : 'Assessment' %></div>
+                    <span class="badge badge-info">Submitted</span>
                   </div>
                   <div class="test-card-meta">
-                    <span>📚 <%= result.test ? result.test.course : 'N/A' %></span>
+                    <span>📚 <%= result.test ? result.test.course : 'Technical Evaluation' %></span>
                     <span>📅 <%= new Date(result.submittedAt).toLocaleDateString('en-IN') %></span>
+                    <span>🔍 Verification in progress</span>
                   </div>
                 </div>
               <% }) %>
@@ -109,6 +134,7 @@
           <% } %>
         </div>
       </div>
+
     </div>
   </div>
 </div>

@@ -14,12 +14,12 @@
     animation: fadeIn 0.25s ease;
   }
   @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
-  .subtest-card .card-title { font-size: 0.85rem; font-weight: 700; color: var(--primary, #818cf8); margin-bottom: 12px; letter-spacing: 0.05em; text-transform: uppercase; }
+  .subtest-card .card-title { font-size: 0.85rem; font-weight: 700; color: var(--green); margin-bottom: 12px; letter-spacing: 0.05em; text-transform: uppercase; }
   .subtest-card .remove-btn { position: absolute; top: 12px; right: 14px; background: rgba(239,68,68,0.15); border: none; color: #f87171; border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 0.78rem; font-weight: 600; transition: background 0.2s; }
   .subtest-card .remove-btn:hover { background: rgba(239,68,68,0.35); }
   .subtest-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  #addSubTestBtn { background: rgba(129,140,248,0.15); border: 1.5px dashed rgba(129,140,248,0.5); color: #a5b4fc; border-radius: 8px; padding: 10px 20px; cursor: pointer; font-size: 0.9rem; font-weight: 600; width: 100%; transition: background 0.2s; margin-top: 4px; }
-  #addSubTestBtn:hover { background: rgba(129,140,248,0.28); }
+  #addSubTestBtn { background: var(--green-dim); border: 1.5px dashed rgba(34, 197, 94, 0.45); color: var(--green); border-radius: 8px; padding: 10px 20px; cursor: pointer; font-size: 0.9rem; font-weight: 600; width: 100%; transition: background 0.2s, border-color 0.2s; margin-top: 4px; }
+  #addSubTestBtn:hover { background: rgba(34, 197, 94, 0.25); border-color: var(--green); }
   .no-subtests-hint { text-align: center; color: rgba(255,255,255,0.35); font-size: 0.85rem; padding: 18px 0 8px; }
 </style>
 
@@ -67,6 +67,45 @@
               <div class="form-group">
                 <label class="form-label" for="passingMarks">Passing Marks</label>
                 <input type="number" class="form-input" id="passingMarks" name="passingMarks" value="<%= test.passingMarks %>" min="0">
+              </div>
+            </div>
+
+            <!-- ===== Assessment Pricing Options ===== -->
+            <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; margin-bottom: 22px;">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                <label class="form-label" style="margin-bottom: 0; font-size: 0.85rem; color: #fff; text-transform: uppercase; letter-spacing: 0.06em;">
+                  💰 Assessment Pricing &amp; Charges
+                </label>
+                <span class="badge badge-info" style="font-size: 0.7rem;">Optional / Paywall</span>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group" style="margin-bottom: 10px;">
+                  <label class="form-label" for="originalPrice" style="color: var(--text-muted);">
+                    My Pricing / Standard Price (₹)
+                  </label>
+                  <input type="number" class="form-input" id="originalPrice" name="originalPrice"
+                    value="<%= test.originalPrice || 0 %>" min="0" placeholder="e.g. 999 (shows in light color with overline)"
+                    oninput="updatePricingPreview()">
+                  <small style="color: var(--text-muted); font-size: 0.74rem;">Original standard rate (displayed in light color with strikethrough)</small>
+                </div>
+                <div class="form-group" style="margin-bottom: 10px;">
+                  <label class="form-label" for="price" style="color: var(--green);">
+                    Offer Price / Payable Price (₹) *
+                  </label>
+                  <input type="number" class="form-input" id="price" name="price"
+                    value="<%= test.price || 0 %>" min="0" placeholder="e.g. 499 (active discounted charge)"
+                    oninput="updatePricingPreview()">
+                  <small style="color: var(--green); font-size: 0.74rem;">Actual amount candidate pays (0 for Free)</small>
+                </div>
+              </div>
+
+              <!-- Live preview -->
+              <div id="pricingPreview" style="margin-top: 12px; padding: 10px 14px; background: rgba(0,0,0,0.3); border-radius: 8px; border: 1px dashed var(--border); display: flex; align-items: center; gap: 12px;">
+                <span style="font-size: 0.78rem; color: var(--text-muted); font-weight: 600;">Candidate View:</span>
+                <span id="previewOriginal" style="text-decoration: line-through; color: var(--text-muted); opacity: 0.65; font-size: 0.92rem; display: none;">₹0</span>
+                <span id="previewOffer" style="color: var(--green); font-weight: 800; font-size: 1.05rem;">Free Assessment</span>
+                <span id="previewBadge" class="badge badge-success" style="display: none; font-size: 0.7rem;">SPECIAL OFFER</span>
               </div>
             </div>
 
@@ -188,6 +227,32 @@
       document.getElementById('noSubTestHint').style.display = '';
     }
   }
+
+  function updatePricingPreview() {
+    const orig = parseFloat(document.getElementById('originalPrice').value) || 0;
+    const offer = parseFloat(document.getElementById('price').value) || 0;
+    const previewOrig = document.getElementById('previewOriginal');
+    const previewOffer = document.getElementById('previewOffer');
+    const previewBadge = document.getElementById('previewBadge');
+
+    if (orig > offer && offer >= 0) {
+      previewOrig.style.display = 'inline';
+      previewOrig.textContent = '₹' + orig;
+      previewBadge.style.display = 'inline-flex';
+      const pct = Math.round(((orig - offer) / orig) * 100);
+      previewBadge.textContent = pct > 0 ? `${pct}% OFF` : 'OFFER';
+    } else {
+      previewOrig.style.display = 'none';
+      previewBadge.style.display = 'none';
+    }
+
+    if (offer > 0) {
+      previewOffer.textContent = '₹' + offer;
+    } else {
+      previewOffer.textContent = 'Free Assessment';
+    }
+  }
+  updatePricingPreview();
 </script>
 
 <%- include('../partials/footer') %>

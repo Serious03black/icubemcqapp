@@ -45,15 +45,20 @@
 
               <div class="test-card-meta">
                 <span>📚 <%= test.course %></span>
-                <span>❓ <%= test.questions.length %> Questions</span>
+                <span>
+                  💰
+                  <% if (test.originalPrice && test.originalPrice > test.price) { %>
+                    <span style="text-decoration: line-through; color: var(--text-muted); opacity: 0.65; margin-right: 4px;">₹<%= test.originalPrice %></span>
+                  <% } %>
+                  <strong style="color: var(--green);"><%= (test.price && test.price > 0) ? '₹' + test.price : 'Free' %></strong>
+                </span>
+                <span>❓ <%= test.questions ? test.questions.length : 0 %> Questions</span>
                 <span>⏱️ <%= test.duration %> mins</span>
                 <span>🏆 <%= test.totalMarks %> marks</span>
-                <span>👥 <%= test.assignedTo ? test.assignedTo.length : 0 %> students</span>
               </div>
 
               <div class="test-card-actions">
                 <a href="/admin/tests/<%= test._id %>/questions" class="btn btn-sm btn-primary">📝 Questions</a>
-                <a href="/admin/tests/<%= test._id %>/assign" class="btn btn-sm btn-success">👥 Assign</a>
                 <a href="/admin/tests/<%= test._id %>/edit" class="btn btn-sm btn-outline">✏️ Edit</a>
                 <form action="/admin/tests/<%= test._id %>/toggle" method="POST" style="display:inline;">
                   <button type="submit" class="btn btn-sm btn-warning">

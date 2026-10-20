@@ -19,20 +19,20 @@
     align-items: center;
     justify-content: space-between;
     padding: 14px 18px;
-    background: rgba(129,140,248,0.12);
-    border-bottom: 1px solid rgba(129,140,248,0.2);
+    background: var(--green-dim);
+    border-bottom: 1px solid rgba(34, 197, 94, 0.25);
   }
   .subtest-col-header h3 {
     font-size: 0.95rem;
     font-weight: 700;
-    color: #a5b4fc;
+    color: var(--green);
     margin: 0;
   }
   .subtest-col-header .badge-count {
-    background: rgba(129,140,248,0.25);
-    color: #c7d2fe;
+    background: rgba(34, 197, 94, 0.25);
+    color: #fff;
     font-size: 0.75rem;
-    font-weight: 600;
+    font-weight: 700;
     padding: 3px 10px;
     border-radius: 999px;
   }
@@ -44,16 +44,17 @@
 
   /* upload zone (smaller) */
   .upload-zone-sm {
-    border: 2px dashed rgba(129,140,248,0.35);
+    border: 2px dashed rgba(34, 197, 94, 0.35);
     border-radius: 8px;
     padding: 14px;
     text-align: center;
     cursor: pointer;
     transition: border-color 0.2s, background 0.2s;
     margin-bottom: 14px;
+    background: rgba(34, 197, 94, 0.02);
   }
-  .upload-zone-sm:hover { border-color: #818cf8; background: rgba(129,140,248,0.06); }
-  .upload-zone-sm p { font-size: 0.78rem; color: rgba(255,255,255,0.4); margin: 4px 0 0; }
+  .upload-zone-sm:hover { border-color: var(--green); background: var(--green-dim); }
+  .upload-zone-sm p { font-size: 0.78rem; color: var(--text-muted); margin: 4px 0 0; }
   .upload-zone-sm input[type="file"] { display: none; }
   .upload-zone-sm .up-icon { font-size: 1.5rem; }
 
@@ -82,7 +83,7 @@
     margin-bottom: 12px;
     line-height: 1.5;
   }
-  .format-hint code { color: #a5b4fc; background: rgba(129,140,248,0.15); border-radius: 3px; padding: 0 4px; }
+  .format-hint code { color: var(--green); background: var(--green-dim); border-radius: 3px; padding: 0 4px; }
 </style>
 
 <div class="dashboard-layout">
@@ -101,6 +102,57 @@
 
     <div class="page-body">
       <%- include('../partials/alerts') %>
+
+      <!-- Test Pricing & Charges Bar -->
+      <div class="card" style="margin-bottom: 24px; background: var(--bg2); border: 1px solid var(--border);">
+        <div class="card-body" style="padding: 16px 20px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px;">
+            <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+              <span style="font-size: 0.82rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em;">
+                💰 Assessment Pricing:
+              </span>
+              <div style="display: flex; align-items: baseline; gap: 10px;">
+                <span style="font-size: 0.8rem; color: var(--text-muted);">My Pricing:</span>
+                <span style="text-decoration: line-through; color: var(--text-muted); opacity: 0.65; font-size: 0.95rem; font-weight: 600;">
+                  ₹<%= test.originalPrice || 0 %>
+                </span>
+                <span style="font-size: 0.8rem; color: var(--green); margin-left: 6px;">Offer Price:</span>
+                <span style="color: var(--green); font-size: 1.25rem; font-weight: 800;">
+                  <%= (test.price && test.price > 0) ? '₹' + test.price : 'Free' %>
+                </span>
+                <% if (test.originalPrice && test.originalPrice > test.price) { %>
+                  <span class="badge badge-success" style="font-size: 0.7rem;">
+                    <%= Math.round(((test.originalPrice - test.price) / test.originalPrice) * 100) %>% OFF
+                  </span>
+                <% } %>
+              </div>
+            </div>
+
+            <button type="button" class="btn btn-sm btn-outline" onclick="togglePricingForm()">
+              ✏️ Adjust Pricing
+            </button>
+          </div>
+
+          <!-- Quick edit pricing form (collapsible) -->
+          <form id="quickPricingForm" action="/admin/tests/<%= test._id %>/pricing" method="POST"
+                style="display: none; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border);">
+            <div class="form-row" style="align-items: flex-end;">
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" style="color: var(--text-muted); font-size: 0.76rem;">My Pricing (Light Color &amp; Overline / Line-Through)</label>
+                <input type="number" class="form-input" name="originalPrice" value="<%= test.originalPrice || 0 %>" min="0" placeholder="e.g. 999">
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" style="color: var(--green); font-size: 0.76rem;">Offer Price (Payable Charge)</label>
+                <input type="number" class="form-input" name="price" value="<%= test.price || 0 %>" min="0" placeholder="e.g. 499">
+              </div>
+              <div style="display: flex; gap: 8px;">
+                <button type="submit" class="btn btn-primary btn-sm" style="height: 42px;">Save Pricing</button>
+                <button type="button" class="btn btn-outline btn-sm" style="height: 42px;" onclick="togglePricingForm()">Cancel</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
 
       <% if (test.subTests && test.subTests.length > 0) { %>
         <!-- ══════════════ Sub-test columns ══════════════ -->
@@ -346,6 +398,14 @@
       if (currentlyHidden) body.classList.remove('hidden');
     });
   });
+
+  // ── Toggle Quick Pricing Form ──
+  function togglePricingForm() {
+    const f = document.getElementById('quickPricingForm');
+    if (f) {
+      f.style.display = (f.style.display === 'none' || f.style.display === '') ? 'block' : 'none';
+    }
+  }
 </script>
 
 <%- include('../partials/footer') %>

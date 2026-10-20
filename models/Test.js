@@ -17,7 +17,8 @@ const questionSchema = new mongoose.Schema({
 const testSchema = new mongoose.Schema({
   title: { type: String, required: true, trim: true },
   description: { type: String, trim: true },
-  price: { type: Number, required: true, default: 0 },
+  originalPrice: { type: Number, default: 0 }, // Regular / Standard Price (shows in light color with overline / line-through)
+  price: { type: Number, required: true, default: 0 }, // Offer Price (actual payable amount)
   course: { type: String, required: true, trim: true },
   duration: { type: Number, required: true, default: 30 }, // minutes
   totalMarks: { type: Number, default: 0 },

@@ -5,9 +5,17 @@
   <div class="login-container">
     <div class="login-card">
       <div class="login-brand">
-        <div class="logo-icon">📝</div>
-        <h1>MCQ Test Platform</h1>
-        <div class="company-name">TechMinds Software India Pvt. Ltd.</div>
+        <div class="brand" style="justify-content: center; margin-bottom: 8px;">
+          <div class="brand-dot"></div>
+          ICUBE <span>Info Solution</span>
+        </div>
+        <div class="portal-badge" style="margin: 0 auto 16px; display: inline-block;">
+          <%= isAdmin ? 'Administrator Portal' : 'Candidate Assessment Portal' %>
+        </div>
+        <h1>Welcome Back</h1>
+        <p style="color: var(--text-muted); font-size: 0.86rem; margin-top: 4px;">
+          <%= isAdmin ? 'Sign in with your administrative credentials' : 'Sign in to access your invited technical assessment' %>
+        </p>
       </div>
 
       <%- include('partials/alerts') %>
@@ -16,8 +24,8 @@
         <div class="form-group">
           <label class="form-label" for="email">Email Address</label>
           <div class="input-group">
-            <span class="input-icon">📧</span>
-            <input type="email" class="form-input" id="email" name="email" placeholder="Enter your email" required>
+            <span class="input-icon">✉️</span>
+            <input type="email" class="form-input" id="email" name="email" placeholder="name@example.com" required autocomplete="email">
           </div>
         </div>
 
@@ -25,16 +33,30 @@
           <label class="form-label" for="password">Password</label>
           <div class="input-group">
             <span class="input-icon">🔒</span>
-            <input type="password" class="form-input" id="password" name="password" placeholder="Enter your password" required>
+            <input type="password" class="form-input" id="password" name="password" placeholder="••••••••" required autocomplete="current-password">
           </div>
         </div>
 
         <input type="hidden" name="loginAs" value="<%= isAdmin ? 'admin' : 'student' %>">
-        <button type="submit" class="btn btn-primary btn-lg">Sign In →</button>
+        <button type="submit" class="btn btn-primary btn-lg btn-full" style="margin-top: 10px;">
+          Sign In →
+        </button>
       </form>
+
+      <% if (!isAdmin) { %>
+        <div style="text-align: center; margin-top: 20px; font-size: 0.85rem; color: var(--text-muted);">
+          New candidate? <a href="/signup" style="font-weight: 700; color: var(--green);">Create candidate account</a>
+        </div>
+        <div style="text-align: center; margin-top: 12px; font-size: 0.8rem; color: var(--text-muted);">
+          <a href="/" style="color: var(--text-muted);">← Back to Home</a>
+        </div>
+      <% } else { %>
+        <div style="text-align: center; margin-top: 20px; font-size: 0.85rem; color: var(--text-muted);">
+          Candidate? <a href="/login" style="font-weight: 700; color: var(--green);">Go to candidate sign in</a>
+        </div>
+      <% } %>
     </div>
   </div>
 </div>
 
 <%- include('partials/footer') %>
-

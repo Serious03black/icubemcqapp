@@ -4,7 +4,14 @@ const User = require('../models/User');
 const Test = require('../models/Test');
 const Razorpay = require('razorpay');
 const Result = require('../models/Result');
+const Payment = require('../models/Payment');
 const { isStudent } = require('../middleware/auth');
+
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID || 'rzp_live_Tra23GH7GQR2McTdZAPyl6d2se',
+  key_secret: process.env.RAZORPAY_KEY_SECRET || 'a23GH7GQR2McTdZAPyl6d2se'
+});
+
 
 // Apply student middleware
 router.use(isStudent);
@@ -12,25 +19,27 @@ router.use(isStudent);
 // ==================== DASHBOARD ====================
 router.get('/dashboard', async (req, res) => {
   try {
-    const student = await User.findById(req.session.user.id)
-      .populate({
-        path: 'assignedTests',
-        match: { isActive: true }
-      });
+    const student = await User.findById(req.session.user.id);
+
+    // All active tests are available for all candidates to view and attempt
+    const allTests = await Test.find({ isActive: true }).sort({ createdAt: -1 });
 
     const completedResults = await Result.find({ student: req.session.user.id })
       .populate('test', 'title course totalMarks passingMarks');
 
-    const completedTestIds = completedResults.map(r => r.test?._id?.toString());
-    const assignedTests = student.assignedTests || [];
-    const pendingTests = assignedTests.filter(t => !completedTestIds.includes(t._id.toString()));
+    const completedTestIds = completedResults
+      .map(r => r.test?._id?.toString())
+      .filter(Boolean);
+
+    // Available assessments not yet completed by this candidate
+    const pendingTests = allTests.filter(t => !completedTestIds.includes(t._id.toString()));
 
     res.render('student/dashboard', {
-      title: 'Student Dashboard - TechMinds',
+      title: 'Candidate Dashboard - ICUBE Info Solution',
       student,
       pendingTests,
       completedResults,
-      totalAssigned: assignedTests.length,
+      totalAssigned: allTests.length,
       totalCompleted: completedResults.length,
       totalPending: pendingTests.length
     });
@@ -38,6 +47,26 @@ router.get('/dashboard', async (req, res) => {
     console.error('Student Dashboard Error:', err);
     req.flash('error', 'Failed to load dashboard');
     res.redirect('/login');
+  }
+});
+
+// ==================== BROWSE TESTS ====================
+router.get('/tests', async (req, res) => {
+  try {
+    const allTests = await Test.find({ isActive: true }).sort({ createdAt: -1 });
+    const completedResults = await Result.find({ student: req.session.user.id })
+      .select('test');
+    const completedTestIds = completedResults.map(r => r.test?.toString()).filter(Boolean);
+
+    res.render('student/tests', {
+      title: 'Browse Assessments - ICUBE Info Solution',
+      tests: allTests,
+      completedTestIds
+    });
+  } catch (err) {
+    console.error('Browse Tests Error:', err);
+    req.flash('error', 'Failed to load tests');
+    res.redirect('/student/dashboard');
   }
 });
 
@@ -51,11 +80,12 @@ router.get('/test/:id', async (req, res) => {
       return res.redirect('/student/dashboard');
     }
 
-    // Ensure payment has been made before allowing test access
-    const paidTests = req.session.paidTests || [];
-    if (!paidTests.includes(test._id.toString())) {
-      // Redirect to payment page
-      return res.redirect(`/student/pay/${test._id}`);
+    // Ensure payment has been made before allowing test access if price > 0
+    if (test.price && test.price > 0) {
+      const paidTests = req.session.paidTests || [];
+      if (!paidTests.includes(test._id.toString())) {
+        return res.redirect(`/student/pay/${test._id}`);
+      }
     }
 
     // Check if already submitted
@@ -66,13 +96,6 @@ router.get('/test/:id', async (req, res) => {
 
     if (existingResult) {
       req.flash('error', 'You have already submitted this test');
-      return res.redirect('/student/dashboard');
-    }
-
-    // Check if test is assigned to student
-    const student = await User.findById(req.session.user.id);
-    if (!student.assignedTests.includes(test._id.toString())) {
-      req.flash('error', 'This test is not assigned to you');
       return res.redirect('/student/dashboard');
     }
 
@@ -138,7 +161,7 @@ router.get('/test/:id', async (req, res) => {
       sum + s.questions.reduce((qs, q) => qs + (q.marks || 1), 0), 0);
 
     res.render('student/take-test', {
-      title: `${test.title} - TechMinds`,
+      title: `${test.title} - ICUBE Info Solution`,
       test: test.toObject(),
       sections,
       totalQuestions,
@@ -259,8 +282,8 @@ router.post('/test/:id/submit', async (req, res) => {
   }
 });
 
-// ==================== RESULTS (Blocked for students — admin only) ====================
-// Payment page – render Razorpay checkout
+// ==================== PAYMENT ====================
+// Step 1: Render payment page
 router.get('/pay/:id', async (req, res) => {
   try {
     const test = await Test.findById(req.params.id);
@@ -268,7 +291,10 @@ router.get('/pay/:id', async (req, res) => {
       req.flash('error', 'Test not found');
       return res.redirect('/student/dashboard');
     }
-    // Razorpay key from env (public key)
+    if (!test.price || test.price <= 0) {
+      // Free test — no payment needed
+      return res.redirect(`/student/test/${test._id}`);
+    }
     const razorpayKey = process.env.RAZORPAY_KEY_ID || '';
     res.render('student/payment', { title: 'Pay for Test', test, razorpayKey });
   } catch (err) {
@@ -278,40 +304,70 @@ router.get('/pay/:id', async (req, res) => {
   }
 });
 
-// Handle payment verification (placeholder – assume success)
-router.post('/pay/:id', async (req, res) => {
-  const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;
-  // In real implementation verify signature with Razorpay secret
-  // Mark test as paid in session
-  const paidTests = req.session.paidTests || [];
-  if (!paidTests.includes(req.params.id)) {
-    paidTests.push(req.params.id);
-    req.session.paidTests = paidTests;
-  }
-  // Record payment in DB
-  const Payment = require('../models/Payment');
-  const test = await Test.findById(req.params.id);
-  if (test) {
-    await Payment.create({
-      student: req.session.user.id,
-      test: test._id,
-      amount: test.price,
-      paymentId: razorpay_payment_id
+// Step 2: Create Razorpay Order (called via fetch from frontend)
+router.post('/pay/:id/order', async (req, res) => {
+  try {
+    const test = await Test.findById(req.params.id);
+    if (!test) return res.status(404).json({ error: 'Test not found' });
+
+    const order = await razorpay.orders.create({
+      amount: Math.round(test.price * 100), // paise
+      currency: 'INR',
+      receipt: `receipt_${req.session.user.id}_${test._id}`.substring(0, 40),
+      notes: {
+        testId: test._id.toString(),
+        studentId: req.session.user.id
+      }
     });
+
+    res.json({ orderId: order.id, amount: order.amount, currency: order.currency });
+  } catch (err) {
+    console.error('Razorpay order error:', err);
+    res.status(500).json({ error: err.error?.description || err.message || 'Failed to create order' });
   }
-  req.flash('success', 'Payment successful! You can now start the test.');
-  res.redirect(`/student/test/${req.params.id}`);
 });
-  const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;
-  // In real implementation verify signature with Razorpay secret
-  // For now, mark test as paid in session
-  const paidTests = req.session.paidTests || [];
-  if (!paidTests.includes(req.params.id)) {
-    paidTests.push(req.params.id);
-    req.session.paidTests = paidTests;
+
+// Step 3: Verify payment signature & grant access
+router.post('/pay/:id/verify', express.json(), async (req, res) => {
+  try {
+    const crypto = require('crypto');
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+
+    // Verify HMAC signature
+    const secret = process.env.RAZORPAY_KEY_SECRET || '';
+    const generated = crypto
+      .createHmac('sha256', secret)
+      .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+      .digest('hex');
+
+    if (generated !== razorpay_signature) {
+      return res.status(400).json({ error: 'Payment verification failed. Signature mismatch.' });
+    }
+
+    // Mark test as paid in session
+    const paidTests = req.session.paidTests || [];
+    if (!paidTests.includes(req.params.id)) {
+      paidTests.push(req.params.id);
+      req.session.paidTests = paidTests;
+    }
+
+    // Record payment in DB
+    const test = await Test.findById(req.params.id);
+    if (test) {
+      await Payment.create({
+        student: req.session.user.id,
+        test: test._id,
+        amount: test.price,
+        paymentId: razorpay_payment_id,
+        orderId: razorpay_order_id
+      });
+    }
+
+    res.json({ success: true, redirect: `/student/test/${req.params.id}` });
+  } catch (err) {
+    console.error('Payment verify error:', err);
+    res.status(500).json({ error: 'Verification failed. Please contact support.' });
   }
-  req.flash('success', 'Payment successful! You can now start the test.');
-  res.redirect(`/student/test/${req.params.id}`);
 });
 
 router.get('/results', (req, res) => {

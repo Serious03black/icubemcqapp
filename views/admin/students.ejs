@@ -25,7 +25,6 @@
                 <th>Student</th>
                 <th>Course</th>
                 <th>Phone</th>
-                <th>Tests Assigned</th>
                 <th>Status</th>
                 <th>Joined</th>
                 <th>Actions</th>
@@ -34,7 +33,7 @@
             <tbody>
               <% if (students.length === 0) { %>
                 <tr>
-                  <td colspan="7">
+                  <td colspan="6">
                     <div class="empty-state">
                       <span class="empty-icon">👥</span>
                       <h3>No students yet</h3>
@@ -53,11 +52,6 @@
                     </td>
                     <td><span class="badge badge-info"><%= student.course || 'N/A' %></span></td>
                     <td><%= student.phone || 'N/A' %></td>
-                    <td>
-                      <span class="badge badge-primary">
-                        <%= student.assignedTests ? student.assignedTests.length : 0 %> tests
-                      </span>
-                    </td>
                     <td>
                       <span class="badge <%= student.isActive ? 'badge-success' : 'badge-danger' %>">
                         <%= student.isActive ? 'Active' : 'Inactive' %>
