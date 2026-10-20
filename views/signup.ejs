@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign Up - TechMinds MCQ</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      color: #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .card {
+      background: rgba(30, 41, 59, 0.85);
+      padding: 2rem 2.5rem;
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+      backdrop-filter: blur(8px);
+      width: 100%;
+      max-width: 420px;
+    }
+    h1 {font-size: 2rem; margin-bottom: 1.5rem; text-align:center;}
+    .form-group {margin-bottom: 1rem;}
+    label {display:block; margin-bottom:0.4rem; font-weight:600;}
+    input, select {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      background: #1e293b;
+      color: #e2e8f0;
+      font-size: 1rem;
+    }
+    input:focus, select:focus {outline:none; border-color:#6366f1;}
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 0.75rem;
+      margin-top: 1rem;
+      background: #6366f1;
+      color:#fff;
+      border:none;
+      border-radius:8px;
+      font-weight:600;
+      cursor:pointer;
+      transition: background 0.2s, transform 0.2s;
+    }
+    .btn:hover {background:#4f46e5; transform:translateY(-2px);}
+    .link {text-align:center; margin-top:0.75rem;}
+    .link a {color:#a5b4fc; text-decoration:none;}
+    .link a:hover {text-decoration:underline;}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Create Account</h1>
+    <form action="/signup" method="POST">
+      <div class="form-group">
+        <label for="name">Full Name</label>
+        <input type="text" id="name" name="name" placeholder="John Doe" required />
+      </div>
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" name="email" placeholder="you@example.com" required />
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" placeholder="••••••••" required />
+      </div>
+      <div class="form-group">
+        <label for="course">Course (optional)</label>
+        <input type="text" id="course" name="course" placeholder="e.g., Web Development" />
+      </div>
+      <button type="submit" class="btn">Sign Up →</button>
+    </form>
+    <div class="link">
+      <a href="/login">Already have an account? Sign In</a>
+    </div>
+  </div>
+</body>
+</html>

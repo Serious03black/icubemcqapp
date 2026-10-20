@@ -1,5 +1,90 @@
 <%- include('../partials/header') %>
 
+<style>
+  /* ── Sub-test column grid ── */
+  .subtests-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 20px;
+    margin-bottom: 28px;
+  }
+  .subtest-col {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .subtest-col-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    background: rgba(129,140,248,0.12);
+    border-bottom: 1px solid rgba(129,140,248,0.2);
+  }
+  .subtest-col-header h3 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #a5b4fc;
+    margin: 0;
+  }
+  .subtest-col-header .badge-count {
+    background: rgba(129,140,248,0.25);
+    color: #c7d2fe;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 999px;
+  }
+  .subtest-col-body { padding: 16px; }
+
+/* utility class to hide elements */
+.hidden { display: none; }
+
+
+  /* upload zone (smaller) */
+  .upload-zone-sm {
+    border: 2px dashed rgba(129,140,248,0.35);
+    border-radius: 8px;
+    padding: 14px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    margin-bottom: 14px;
+  }
+  .upload-zone-sm:hover { border-color: #818cf8; background: rgba(129,140,248,0.06); }
+  .upload-zone-sm p { font-size: 0.78rem; color: rgba(255,255,255,0.4); margin: 4px 0 0; }
+  .upload-zone-sm input[type="file"] { display: none; }
+  .upload-zone-sm .up-icon { font-size: 1.5rem; }
+
+  /* question mini-card */
+  .q-mini-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    font-size: 0.83rem;
+  }
+  .q-mini-card .q-text { color: var(--text-primary, #e2e8f0); margin-bottom: 6px; font-weight: 500; }
+  .q-mini-card .q-meta { display: flex; justify-content: space-between; align-items: center; }
+  .q-mini-card .q-correct { color: #34d399; font-size: 0.75rem; }
+  .q-mini-card .q-marks  { color: #94a3b8; font-size: 0.75rem; }
+  .q-mini-card .q-actions { display: flex; gap: 6px; margin-top: 6px; }
+
+  /* format hint */
+  .format-hint {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.35);
+    background: rgba(255,255,255,0.03);
+    border-radius: 6px;
+    padding: 8px 10px;
+    margin-bottom: 12px;
+    line-height: 1.5;
+  }
+  .format-hint code { color: #a5b4fc; background: rgba(129,140,248,0.15); border-radius: 3px; padding: 0 4px; }
+</style>
+
 <div class="dashboard-layout">
   <%- include('../partials/admin-sidebar', { active: 'tests' }) %>
 
@@ -8,7 +93,7 @@
       <div class="page-header-actions">
         <div>
           <h1>📝 Questions — <%= test.title %></h1>
-          <p><%= test.course %> • <%= test.questions.length %> questions • <%= test.totalMarks %> marks total</p>
+          <p><%= test.course %> • <%= test.subTests.length %> sub-tests • <%= test.totalMarks %> marks total</p>
         </div>
         <a href="/admin/tests" class="btn btn-outline">← Back to Tests</a>
       </div>
@@ -17,154 +102,249 @@
     <div class="page-body">
       <%- include('../partials/alerts') %>
 
-      <!-- Upload via Excel -->
-      <div class="card" style="margin-bottom: 24px;">
-        <div class="card-header">
-          <h3>📤 Upload Questions via Excel</h3>
+      <% if (test.subTests && test.subTests.length > 0) { %>
+        <!-- ══════════════ Sub-test columns ══════════════ -->
+        <div class="subtests-grid">
+          <% test.subTests.forEach((st, si) => { %>
+            <div class="subtest-col">
+              <!-- Column header -->
+              <div class="subtest-col-header">
+                <h3>📂 <%= st.name %></h3>
+                <span class="badge-count"><%= st.questions.length %> Q</span>
+              </div>
+
+              <div class="subtest-col-body hidden">
+                <!-- Type badge -->
+                <div style="margin-bottom:10px;">
+                  <span class="badge badge-<%= st.type === 'code' ? 'warning' : 'primary' %>" style="font-size:0.72rem;">
+                    <%= st.type === 'mcq' ? '📋 MCQ' : st.type === 'code' ? '💻 Coding' : '🔀 Mixed' %>
+                  </span>
+                  <% if (st.questionCount) { %>
+                    <span class="badge" style="font-size:0.72rem; margin-left:6px; background:rgba(255,255,255,0.08); color:#94a3b8;">
+                      Delivers: <%= st.questionCount %> random
+                    </span>
+                  <% } %>
+                </div>
+
+                <!-- Description -->
+                <% if (st.description) { %>
+                  <p style="font-size:0.8rem; color:rgba(255,255,255,0.45); margin-bottom:10px;"><%= st.description %></p>
+                <% } %>
+
+                <!-- Excel format hint -->
+                <div class="format-hint">
+                  Columns: <code>Question</code>, <code>Option A</code>, <code>Option B</code>,
+                  <code>Option C</code>, <code>Option D</code>, <code>Correct Option</code> (A/B/C/D), <code>Marks</code>
+                </div>
+
+                <!-- Excel Upload -->
+                <form action="/admin/tests/<%= test._id %>/subtests/<%= st._id %>/upload"
+                      method="POST" enctype="multipart/form-data"
+                      id="uploadForm-<%= si %>">
+                  <div class="upload-zone-sm"
+                       onclick="document.getElementById('file-<%= si %>').click()">
+                    <div class="up-icon">📤</div>
+                    <strong style="font-size:0.82rem;">Upload Excel / CSV</strong>
+                    <p>Click to browse file</p>
+                    <input type="file" id="file-<%= si %>" name="excelFile"
+                           accept=".xlsx,.xls,.csv"
+                           onchange="onFileChosen(this, '<%= si %>')">
+                  </div>
+                  <div id="fileInfo-<%= si %>" style="display:none; margin-bottom:10px; text-align:center;">
+                    <span class="badge badge-success" id="fileName-<%= si %>"></span>
+                    <button type="submit" class="btn btn-success btn-sm" style="margin-left:8px;">
+                      📤 Import
+                    </button>
+                  </div>
+                </form>
+
+                <!-- Questions list -->
+                <% if (st.questions.length === 0) { %>
+                  <div style="text-align:center; padding:20px 0; color:rgba(255,255,255,0.25); font-size:0.82rem;">
+                    No questions yet — upload an Excel file above.
+                  </div>
+                <% } else { %>
+                  <% st.questions.forEach((q, qi) => { %>
+                    <div class="q-mini-card">
+                      <div class="q-text"><%= qi + 1 %>. <%= q.questionText %></div>
+                      <div class="q-meta">
+                        <span class="q-correct">✅ Option <%= q.correctOption %></span>
+                        <span class="q-marks"><%= q.marks || 1 %> mark<%= (q.marks || 1) > 1 ? 's' : '' %></span>
+                      </div>
+                      <div class="q-actions">
+                        <form action="/admin/tests/<%= test._id %>/subtests/<%= st._id %>/questions/<%= q._id %>/delete"
+                              method="POST" onsubmit="return confirm('Remove this question?')">
+                          <button type="submit" class="btn btn-sm btn-danger">🗑️</button>
+                        </form>
+                      </div>
+                    </div>
+                  <% }) %>
+                <% } %>
+              </div>
+            </div>
+          <% }) %>
         </div>
-        <div class="card-body">
-          <div class="template-info">
-            <strong>Excel Format:</strong> Your Excel file should have columns:
-            <code>Question</code>, <code>Option A</code>, <code>Option B</code>, <code>Option C</code>, <code>Option D</code>, <code>Correct Option</code> (A/B/C/D), <code>Marks</code> (optional)
+      <% } else { %>
+        <!-- No sub-tests: show legacy flat upload / add question -->
+        <div class="card" style="margin-bottom: 24px;">
+          <div class="card-header"><h3>📤 Upload Questions via Excel</h3></div>
+          <div class="card-body">
+            <div class="format-hint">
+              Columns: <code>Question</code>, <code>Option A</code>, <code>Option B</code>,
+              <code>Option C</code>, <code>Option D</code>, <code>Correct Option</code> (A/B/C/D), <code>Marks</code>
+            </div>
+            <form action="/admin/tests/<%= test._id %>/questions/upload"
+                  method="POST" enctype="multipart/form-data" id="uploadFormFlat">
+              <div class="upload-zone" onclick="document.getElementById('excelFileFlat').click()" id="uploadZone">
+                <span class="upload-icon">📁</span>
+                <h4>Click to upload Excel file</h4>
+                <p>Supports .xlsx, .xls, .csv files (max 5MB)</p>
+                <input type="file" name="excelFile" id="excelFileFlat" accept=".xlsx,.xls,.csv">
+              </div>
+              <div id="fileInfoFlat" style="display:none; margin-top:12px; text-align:center;">
+                <span class="badge badge-success" id="fileNameFlat"></span>
+                <button type="submit" class="btn btn-success" style="margin-left:12px;">📤 Upload &amp; Import</button>
+              </div>
+            </form>
           </div>
-
-          <form action="/admin/tests/<%= test._id %>/questions/upload" method="POST" enctype="multipart/form-data" id="uploadForm">
-            <div class="upload-zone" onclick="document.getElementById('excelFile').click()" id="uploadZone">
-              <span class="upload-icon">📁</span>
-              <h4>Click to upload Excel file</h4>
-              <p>Supports .xlsx, .xls, .csv files (max 5MB)</p>
-              <input type="file" name="excelFile" id="excelFile" accept=".xlsx,.xls,.csv">
-            </div>
-            <div id="fileInfo" style="display:none; margin-top:12px; text-align:center;">
-              <span class="badge badge-success" id="fileName"></span>
-              <button type="submit" class="btn btn-success" style="margin-left:12px;">📤 Upload & Import</button>
-            </div>
-          </form>
         </div>
-      </div>
 
-      <!-- Add Question Manually -->
-      <div class="card" style="margin-bottom: 24px;">
-        <div class="card-header">
-          <h3>➕ Add Question Manually</h3>
-        </div>
-        <div class="card-body">
-          <form action="/admin/tests/<%= test._id %>/questions/add" method="POST">
-            <div class="form-group">
-              <label class="form-label">Question Text *</label>
-              <textarea class="form-input" name="questionText" placeholder="Enter the question..." rows="2" required></textarea>
-            </div>
-
-            <div class="form-row">
+        <!-- Manual add -->
+        <div class="card" style="margin-bottom: 24px;">
+          <div class="card-header"><h3>➕ Add Question Manually</h3></div>
+          <div class="card-body">
+            <form action="/admin/tests/<%= test._id %>/questions/add" method="POST">
               <div class="form-group">
-                <label class="form-label">Option A *</label>
-                <input type="text" class="form-input" name="optionA" placeholder="Option A" required>
+                <label class="form-label">Question Text *</label>
+                <textarea class="form-input" name="questionText" placeholder="Enter the question..." rows="2" required></textarea>
               </div>
-              <div class="form-group">
-                <label class="form-label">Option B *</label>
-                <input type="text" class="form-input" name="optionB" placeholder="Option B" required>
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label class="form-label">Option C *</label>
-                <input type="text" class="form-input" name="optionC" placeholder="Option C" required>
-              </div>
-              <div class="form-group">
-                <label class="form-label">Option D *</label>
-                <input type="text" class="form-input" name="optionD" placeholder="Option D" required>
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label class="form-label">Correct Option *</label>
-                <select class="form-select" name="correctOption" required>
-                  <option value="">Select correct answer</option>
-                  <option value="A">A</option>
-                  <option value="B">B</option>
-                  <option value="C">C</option>
-                  <option value="D">D</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label class="form-label">Marks</label>
-                <input type="number" class="form-input" name="marks" value="1" min="1" max="10">
-              </div>
-            </div>
-
-            <button type="submit" class="btn btn-primary">➕ Add Question</button>
-          </form>
-        </div>
-      </div>
-
-      <!-- Questions List -->
-      <div class="card">
-        <div class="card-header">
-          <h3>📋 All Questions (<%= test.questions.length %>)</h3>
-        </div>
-        <div class="card-body">
-          <% if (test.questions.length === 0) { %>
-            <div class="empty-state">
-              <span class="empty-icon">❓</span>
-              <h3>No questions yet</h3>
-              <p>Upload an Excel file or add questions manually above.</p>
-            </div>
-          <% } else { %>
-            <% test.questions.forEach((q, index) => { %>
-              <div class="question-card">
-                <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px;">
-                  <div>
-                    <span class="question-number"><%= index + 1 %></span>
-                    <span class="question-text"><%= q.questionText %></span>
-                  </div>
-                  <span class="badge badge-primary" style="white-space: nowrap; margin-left: 12px;"><%= q.marks || 1 %> mark<%= (q.marks || 1) > 1 ? 's' : '' %></span>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Option A *</label>
+                  <input type="text" class="form-input" name="optionA" placeholder="Option A" required>
                 </div>
-
-                <div class="options-grid">
-                  <div class="option-item <%= q.correctOption === 'A' ? 'correct' : '' %>">
-                    <span class="option-label">A</span>
-                    <span><%= q.optionA %></span>
-                  </div>
-                  <div class="option-item <%= q.correctOption === 'B' ? 'correct' : '' %>">
-                    <span class="option-label">B</span>
-                    <span><%= q.optionB %></span>
-                  </div>
-                  <div class="option-item <%= q.correctOption === 'C' ? 'correct' : '' %>">
-                    <span class="option-label">C</span>
-                    <span><%= q.optionC %></span>
-                  </div>
-                  <div class="option-item <%= q.correctOption === 'D' ? 'correct' : '' %>">
-                    <span class="option-label">D</span>
-                    <span><%= q.optionD %></span>
-                  </div>
-                </div>
-
-                <div class="question-footer">
-                  <span style="font-size: 0.82rem; color: var(--success);">✅ Correct: Option <%= q.correctOption %></span>
-                  <div style="display: flex; gap: 8px;">
-                    <a href="/admin/tests/<%= test._id %>/questions/<%= q._id %>/edit" class="btn btn-sm btn-outline">✏️ Edit</a>
-                    <form action="/admin/tests/<%= test._id %>/questions/<%= q._id %>/delete" method="POST" onsubmit="return confirm('Remove this question?')">
-                      <button type="submit" class="btn btn-sm btn-danger">🗑️ Remove</button>
-                    </form>
-                  </div>
+                <div class="form-group">
+                  <label class="form-label">Option B *</label>
+                  <input type="text" class="form-input" name="optionB" placeholder="Option B" required>
                 </div>
               </div>
-            <% }) %>
-          <% } %>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Option C *</label>
+                  <input type="text" class="form-input" name="optionC" placeholder="Option C" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Option D *</label>
+                  <input type="text" class="form-input" name="optionD" placeholder="Option D" required>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Correct Option *</label>
+                  <select class="form-select" name="correctOption" required>
+                    <option value="">Select correct answer</option>
+                    <option value="A">A</option>
+                    <option value="B">B</option>
+                    <option value="C">C</option>
+                    <option value="D">D</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Marks</label>
+                  <input type="number" class="form-input" name="marks" value="1" min="1" max="10">
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary">➕ Add Question</button>
+            </form>
+          </div>
         </div>
-      </div>
+
+        <!-- All questions list -->
+        <div class="card">
+          <div class="card-header"><h3>📋 All Questions (<%= test.questions.length %>)</h3></div>
+          <div class="card-body">
+            <% if (test.questions.length === 0) { %>
+              <div class="empty-state">
+                <span class="empty-icon">❓</span>
+                <h3>No questions yet</h3>
+                <p>Upload an Excel file or add questions manually above.</p>
+              </div>
+            <% } else { %>
+              <% test.questions.forEach((q, index) => { %>
+                <div class="question-card">
+                  <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:12px;">
+                    <div>
+                      <span class="question-number"><%= index + 1 %></span>
+                      <span class="question-text"><%= q.questionText %></span>
+                    </div>
+                    <span class="badge badge-primary" style="white-space:nowrap; margin-left:12px;">
+                      <%= q.marks || 1 %> mark<%= (q.marks || 1) > 1 ? 's' : '' %>
+                    </span>
+                  </div>
+                  <div class="options-grid">
+                    <div class="option-item <%= q.correctOption === 'A' ? 'correct' : '' %>">
+                      <span class="option-label">A</span><span><%= q.optionA %></span>
+                    </div>
+                    <div class="option-item <%= q.correctOption === 'B' ? 'correct' : '' %>">
+                      <span class="option-label">B</span><span><%= q.optionB %></span>
+                    </div>
+                    <div class="option-item <%= q.correctOption === 'C' ? 'correct' : '' %>">
+                      <span class="option-label">C</span><span><%= q.optionC %></span>
+                    </div>
+                    <div class="option-item <%= q.correctOption === 'D' ? 'correct' : '' %>">
+                      <span class="option-label">D</span><span><%= q.optionD %></span>
+                    </div>
+                  </div>
+                  <div class="question-footer">
+                    <span style="font-size:0.82rem; color:var(--success);">✅ Correct: Option <%= q.correctOption %></span>
+                    <div style="display:flex; gap:8px;">
+                      <a href="/admin/tests/<%= test._id %>/questions/<%= q._id %>/edit" class="btn btn-sm btn-outline">✏️ Edit</a>
+                      <form action="/admin/tests/<%= test._id %>/questions/<%= q._id %>/delete" method="POST"
+                            onsubmit="return confirm('Remove this question?')">
+                        <button type="submit" class="btn btn-sm btn-danger">🗑️ Remove</button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              <% }) %>
+            <% } %>
+          </div>
+        </div>
+      <% } %>
     </div>
   </div>
 </div>
 
 <script>
-  document.getElementById('excelFile').addEventListener('change', function(e) {
-    if (e.target.files.length > 0) {
-      document.getElementById('fileName').textContent = '📄 ' + e.target.files[0].name;
-      document.getElementById('fileInfo').style.display = 'block';
+  function onFileChosen(input, idx) {
+    if (input.files.length > 0) {
+      document.getElementById('fileName-' + idx).textContent = '📄 ' + input.files[0].name;
+      document.getElementById('fileInfo-' + idx).style.display = 'block';
     }
+  }
+
+  // Legacy flat upload
+  const flatFile = document.getElementById('excelFileFlat');
+  if (flatFile) {
+    flatFile.addEventListener('change', function(e) {
+      if (e.target.files.length > 0) {
+        document.getElementById('fileNameFlat').textContent = '📄 ' + e.target.files[0].name;
+        document.getElementById('fileInfoFlat').style.display = 'block';
+      }
+    });
+  }
+
+  // ── Sub-test column toggle ──
+  document.querySelectorAll('.subtest-col-header').forEach(header => {
+    header.addEventListener('click', () => {
+      const body = header.parentElement.querySelector('.subtest-col-body');
+      if (!body) return;
+      const currentlyHidden = body.classList.contains('hidden');
+      // close all bodies first
+      document.querySelectorAll('.subtest-col-body').forEach(b => b.classList.add('hidden'));
+      // open the clicked one if it was hidden
+      if (currentlyHidden) body.classList.remove('hidden');
+    });
   });
 </script>
 

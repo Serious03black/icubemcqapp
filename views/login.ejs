@@ -12,11 +12,6 @@
 
       <%- include('partials/alerts') %>
 
-      <div class="login-tabs">
-        <button class="login-tab active" onclick="switchTab('student')" id="tab-student">Student</button>
-        <button class="login-tab" onclick="switchTab('admin')" id="tab-admin">Admin</button>
-      </div>
-
       <form action="/login" method="POST" id="loginForm">
         <div class="form-group">
           <label class="form-label" for="email">Email Address</label>
@@ -34,41 +29,12 @@
           </div>
         </div>
 
-        <button type="submit" class="btn btn-primary btn-full btn-lg">
-          Sign In →
-        </button>
+        <input type="hidden" name="loginAs" value="<%= isAdmin ? 'admin' : 'student' %>">
+        <button type="submit" class="btn btn-primary btn-lg">Sign In →</button>
       </form>
-
-      <div style="text-align: center; margin-top: 24px;">
-        <p style="font-size: 0.8rem; color: var(--text-muted);">
-          Default Admin: <code style="color: var(--accent);">admin@techminds.in</code> / <code style="color: var(--accent);">Admin@123</code>
-        </p>
-      </div>
     </div>
   </div>
 </div>
 
-<script>
-function switchTab(type) {
-  const emailInput = document.getElementById('email');
-  const passwordInput = document.getElementById('password');
-  const tabStudent = document.getElementById('tab-student');
-  const tabAdmin = document.getElementById('tab-admin');
-
-  if (type === 'admin') {
-    tabAdmin.classList.add('active');
-    tabStudent.classList.remove('active');
-    emailInput.value = 'admin@techminds.in';
-    passwordInput.value = 'Admin@123';
-    emailInput.placeholder = 'Admin email';
-  } else {
-    tabStudent.classList.add('active');
-    tabAdmin.classList.remove('active');
-    emailInput.value = '';
-    passwordInput.value = '';
-    emailInput.placeholder = 'Enter your email';
-  }
-}
-</script>
-
 <%- include('partials/footer') %>
+

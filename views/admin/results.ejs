@@ -59,8 +59,12 @@
                       </span>
                     </td>
                     <td><%= new Date(result.submittedAt).toLocaleDateString('en-IN') %></td>
-                    <td>
+                    <td style="display: flex; gap: 6px; align-items: center;">
                       <a href="/admin/results/<%= result._id %>" class="btn btn-sm btn-outline">👁️ View</a>
+                      <form action="/admin/results/<%= result._id %>/reassign" method="POST" style="margin:0;"
+                            onsubmit="return confirm('Delete this result and allow the student to retake the test?')">
+                        <button type="submit" class="btn btn-sm btn-warning" title="Delete result & allow retake">🔄 Re-assign</button>
+                      </form>
                     </td>
                   </tr>
                 <% }) %>

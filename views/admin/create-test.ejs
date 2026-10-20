@@ -1,5 +1,64 @@
 <%- include('../partials/header') %>
 
+<style>
+  .subtests-section { margin-top: 28px; }
+  .subtests-header  { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .subtests-header h3 { font-size: 1rem; font-weight: 600; color: var(--text-primary, #e2e8f0); margin: 0; }
+  .subtest-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin-bottom: 12px;
+    position: relative;
+    animation: fadeIn 0.25s ease;
+  }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+  .subtest-card .card-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--primary, #818cf8);
+    margin-bottom: 12px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .subtest-card .remove-btn {
+    position: absolute;
+    top: 12px; right: 14px;
+    background: rgba(239,68,68,0.15);
+    border: none;
+    color: #f87171;
+    border-radius: 6px;
+    padding: 4px 10px;
+    cursor: pointer;
+    font-size: 0.78rem;
+    font-weight: 600;
+    transition: background 0.2s;
+  }
+  .subtest-card .remove-btn:hover { background: rgba(239,68,68,0.35); }
+  .subtest-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  #addSubTestBtn {
+    background: rgba(129,140,248,0.15);
+    border: 1.5px dashed rgba(129,140,248,0.5);
+    color: #a5b4fc;
+    border-radius: 8px;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    width: 100%;
+    transition: background 0.2s;
+    margin-top: 4px;
+  }
+  #addSubTestBtn:hover { background: rgba(129,140,248,0.28); }
+  .no-subtests-hint {
+    text-align: center;
+    color: rgba(255,255,255,0.35);
+    font-size: 0.85rem;
+    padding: 18px 0 8px;
+  }
+</style>
+
 <div class="dashboard-layout">
   <%- include('../partials/admin-sidebar', { active: 'tests' }) %>
 
@@ -12,17 +71,21 @@
     <div class="page-body">
       <%- include('../partials/alerts') %>
 
-      <div class="card" style="max-width: 640px;">
+      <div class="card" style="max-width: 720px;">
         <div class="card-body">
-          <form action="/admin/tests/create" method="POST">
+          <form action="/admin/tests/create" method="POST" id="createTestForm">
+
+            <!-- Basic Info -->
             <div class="form-group">
               <label class="form-label" for="title">Test Title *</label>
-              <input type="text" class="form-input" id="title" name="title" placeholder="e.g., MERN Stack Final Assessment" required>
+              <input type="text" class="form-input" id="title" name="title"
+                placeholder="e.g., MERN Stack Final Assessment" required>
             </div>
 
             <div class="form-group">
               <label class="form-label" for="description">Description</label>
-              <textarea class="form-input" id="description" name="description" placeholder="Brief description of the test..." rows="3"></textarea>
+              <textarea class="form-input" id="description" name="description"
+                placeholder="Brief description of the test..." rows="3"></textarea>
             </div>
 
             <div class="form-group">
@@ -44,20 +107,40 @@
             <div class="form-row">
               <div class="form-group">
                 <label class="form-label" for="duration">Duration (minutes) *</label>
-                <input type="number" class="form-input" id="duration" name="duration" value="30" min="5" max="180" required>
+                <input type="number" class="form-input" id="duration" name="duration"
+                  value="30" min="5" max="180" required>
               </div>
               <div class="form-group">
                 <label class="form-label" for="passingMarks">Passing Marks</label>
-                <input type="number" class="form-input" id="passingMarks" name="passingMarks" value="0" min="0" placeholder="Auto: 40% of total">
+                <input type="number" class="form-input" id="passingMarks" name="passingMarks"
+                  value="0" min="0" placeholder="Auto: 40% of total">
               </div>
             </div>
 
-            <div class="alert alert-info" style="margin-top: 4px;">
-              <span>ℹ️</span> After creating the test, you'll be able to add questions manually or upload them via Excel.
+            <!-- ===== Sub-tests Section ===== -->
+            <div class="subtests-section">
+              <div class="subtests-header">
+                <h3>📂 Sub-tests / Sections</h3>
+              </div>
+
+              <div id="subTestsContainer">
+                <p class="no-subtests-hint" id="noSubTestHint">
+                  No sub-tests added yet. Click below to add sections like HTML, CSS, JS…
+                </p>
+              </div>
+
+              <button type="button" id="addSubTestBtn" onclick="addSubTest()">
+                ＋ Add Sub-test
+              </button>
+            </div>
+
+            <!-- Info -->
+            <div class="alert alert-info" style="margin-top: 20px;">
+              <span>ℹ️</span> After creating the test, you'll be able to upload questions via Excel for each sub-test.
             </div>
 
             <div style="display: flex; gap: 12px; margin-top: 16px;">
-              <button type="submit" class="btn btn-primary btn-lg">Create Test & Add Questions</button>
+              <button type="submit" class="btn btn-primary btn-lg">Create Test &amp; Add Questions</button>
               <a href="/admin/tests" class="btn btn-outline btn-lg">Cancel</a>
             </div>
           </form>
@@ -67,4 +150,62 @@
   </div>
 </div>
 
+<script>
+  let subTestCounter = 0;
+
+  function addSubTest() {
+    const container = document.getElementById('subTestsContainer');
+    const hint = document.getElementById('noSubTestHint');
+    if (hint) hint.style.display = 'none';
+
+    const idx = subTestCounter++;
+    const card = document.createElement('div');
+    card.className = 'subtest-card';
+    card.id = `subtest-card-${idx}`;
+    card.innerHTML = `
+      <div class="card-title">Sub-test #${idx + 1}</div>
+      <button type="button" class="remove-btn" onclick="removeSubTest(${idx})">✕ Remove</button>
+
+      <div class="form-group">
+        <label class="form-label">Sub-test Name *</label>
+        <input type="text" class="form-input" name="subTests[${idx}][name]"
+          placeholder="e.g., HTML, CSS, JavaScript" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <input type="text" class="form-input" name="subTests[${idx}][description]"
+          placeholder="Brief description (optional)">
+      </div>
+
+      <div class="subtest-row">
+        <div class="form-group">
+          <label class="form-label">No. of Questions to Show *</label>
+          <input type="number" class="form-input" name="subTests[${idx}][questionCount]"
+            placeholder="e.g., 10" min="1" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Question Type *</label>
+          <select class="form-select" name="subTests[${idx}][type]" required>
+            <option value="mcq">MCQ</option>
+            <option value="code">Coding / Programming</option>
+            <option value="mixed">Mixed (MCQ + Coding)</option>
+          </select>
+        </div>
+      </div>
+    `;
+    container.appendChild(card);
+  }
+
+  function removeSubTest(idx) {
+    const card = document.getElementById(`subtest-card-${idx}`);
+    if (card) card.remove();
+    const container = document.getElementById('subTestsContainer');
+    if (container.querySelectorAll('.subtest-card').length === 0) {
+      document.getElementById('noSubTestHint').style.display = '';
+    }
+  }
+</script>
+
 <%- include('../partials/footer') %>
+

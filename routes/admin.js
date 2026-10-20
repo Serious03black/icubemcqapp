@@ -34,6 +34,50 @@ const upload = multer({
 // Apply admin middleware to all routes
 router.use(isAdmin);
 
+// ==================== CERTIFICATION TEST CREATION ====================
+// GET form to create a JavaScript certification exam with predefined settings
+router.get('/certification/create', (req, res) => {
+  // Render a form with defaults; price is omitted intentionally
+  res.render('admin/create-certification', {
+    title: 'Create JavaScript Certification Exam',
+    default: {
+      title: 'JavaScript Fundamentals Certification',
+      description: 'A comprehensive certification covering JavaScript fundamentals, ES6+ features, modern programming concepts, DOM manipulation, and asynchronous programming patterns.',
+      course: 'JavaScript',
+      duration: 45,
+      passingPercentage: 80,
+      questionCount: 30
+    }
+  });
+});
+
+// POST handler to create the test with predefined fields (price omitted)
+router.post('/certification/create', async (req, res) => {
+  try {
+    const { title, description, course, duration, passingPercentage, questionCount } = req.body;
+    // Calculate passingMarks later when total marks known; store percentage for reference
+    const test = new Test({
+      title: title || 'JavaScript Fundamentals Certification',
+      description: description || '',
+      course: course || 'JavaScript',
+      duration: parseInt(duration) || 45,
+      // Store passing criteria as percentage, will be used when evaluating results
+      passingPercentage: parseInt(passingPercentage) || 80,
+      // Optional fields for predefining expected number of questions
+      expectedQuestionCount: parseInt(questionCount) || 30,
+      createdBy: req.session.user.id,
+      isActive: false // Admin can activate after adding questions
+    });
+    await test.save();
+    req.flash('success', `Certification test "${test.title}" created! Add questions and then activate.`);
+    res.redirect('/admin/tests');
+  } catch (err) {
+    console.error(err);
+    req.flash('error', 'Failed to create certification test');
+    res.redirect('/admin/certification/create');
+  }
+});
+
 // ==================== DASHBOARD ====================
 router.get('/dashboard', async (req, res) => {
   try {
@@ -101,8 +145,15 @@ router.post('/students/create', async (req, res) => {
   try {
     const { name, email, password, course, phone } = req.body;
 
+    // Duplicate check (email is unique – prevents double-save on POST replay)
     const existingUser = await User.findOne({ email: email.toLowerCase() });
     if (existingUser) {
+      // If created in last 5 seconds, it's a duplicate submit — redirect silently
+      const fiveSecsAgo = new Date(Date.now() - 5000);
+      if (existingUser.createdAt >= fiveSecsAgo) {
+        req.flash('success', `Student "${existingUser.name}" created successfully!`);
+        return res.redirect('/admin/students');
+      }
       req.flash('error', 'A user with this email already exists');
       return res.redirect('/admin/students/create');
     }
@@ -206,7 +257,38 @@ router.get('/tests/create', (req, res) => {
 
 router.post('/tests/create', async (req, res) => {
   try {
-    const { title, description, course, duration, passingMarks } = req.body;
+    const { title, description, course, duration, passingMarks, subTests: rawSubTests } = req.body;
+
+    // ── Idempotency: prevent double-save if form replays ──
+    // Check if a test with same title was already created by this admin in the last 10 seconds
+    const tenSecsAgo = new Date(Date.now() - 10000);
+    const duplicate = await Test.findOne({
+      title: title.trim(),
+      createdBy: req.session.user.id,
+      createdAt: { $gte: tenSecsAgo }
+    });
+    if (duplicate) {
+      req.flash('success', `Test "${title}" already created! Redirecting to questions.`);
+      return res.redirect(`/admin/tests/${duplicate._id}/questions`);
+    }
+
+    // Convert the object map { '0': {...}, '1': {...} } into an ordered array
+    let subTests = [];
+    if (rawSubTests && typeof rawSubTests === 'object') {
+      subTests = Object.keys(rawSubTests)
+        .sort((a, b) => parseInt(a) - parseInt(b))
+        .map(key => {
+          const st = rawSubTests[key];
+          return {
+            name: st.name || '',
+            description: st.description || '',
+            questionCount: parseInt(st.questionCount) || undefined,
+            type: st.type || 'mcq',
+            questions: []
+          };
+        })
+        .filter(st => st.name.trim() !== '');
+    }
 
     const test = new Test({
       title,
@@ -215,11 +297,12 @@ router.post('/tests/create', async (req, res) => {
       duration: parseInt(duration) || 30,
       passingMarks: parseInt(passingMarks) || 0,
       createdBy: req.session.user.id,
-      questions: []
+      questions: [],
+      subTests
     });
 
     await test.save();
-    req.flash('success', `Test "${title}" created! Now add questions.`);
+    req.flash('success', `Test "${title}" created! Now upload questions for each sub-test.`);
     res.redirect(`/admin/tests/${test._id}/questions`);
   } catch (err) {
     console.error(err);
@@ -248,17 +331,59 @@ router.get('/tests/:id/edit', async (req, res) => {
 
 router.post('/tests/:id/edit', async (req, res) => {
   try {
-    const { title, description, course, duration, passingMarks, isActive } = req.body;
-    await Test.findByIdAndUpdate(req.params.id, {
-      title,
-      description,
-      course,
-      duration: parseInt(duration) || 30,
-      passingMarks: parseInt(passingMarks) || 0,
-      isActive: isActive === 'on'
-    });
+    const { title, description, course, duration, passingMarks, isActive, subTests: rawSubTests } = req.body;
+
+    const test = await Test.findById(req.params.id);
+    if (!test) {
+      req.flash('error', 'Test not found');
+      return res.redirect('/admin/tests');
+    }
+
+    // Update basic fields
+    test.title        = title;
+    test.description  = description;
+    test.course       = course;
+    test.duration     = parseInt(duration) || 30;
+    test.passingMarks = parseInt(passingMarks) || 0;
+    test.isActive     = isActive === 'on';
+
+    // Merge sub-tests: keep existing questions for sub-tests with matching _id
+    if (rawSubTests && typeof rawSubTests === 'object') {
+      const incoming = Object.keys(rawSubTests)
+        .sort((a, b) => parseInt(a) - parseInt(b))
+        .map(key => rawSubTests[key])
+        .filter(st => st.name && st.name.trim() !== '');
+
+      const updatedSubTests = incoming.map(st => {
+        if (st._id) {
+          const existing = test.subTests.id(st._id);
+          if (existing) {
+            // Update metadata, keep questions intact
+            existing.name          = st.name;
+            existing.description   = st.description || '';
+            existing.questionCount = parseInt(st.questionCount) || undefined;
+            existing.type          = st.type || 'mcq';
+            return existing.toObject();
+          }
+        }
+        // Brand new sub-test
+        return {
+          name: st.name,
+          description: st.description || '',
+          questionCount: parseInt(st.questionCount) || undefined,
+          type: st.type || 'mcq',
+          questions: []
+        };
+      });
+
+      test.subTests = updatedSubTests;
+    } else {
+      test.subTests = [];
+    }
+
+    await test.save();
     req.flash('success', 'Test updated successfully!');
-    res.redirect('/admin/tests');
+    res.redirect(`/admin/tests/${test._id}/questions`);
   } catch (err) {
     console.error(err);
     req.flash('error', 'Failed to update test');
@@ -480,6 +605,96 @@ router.post('/tests/:id/questions/upload', upload.single('excelFile'), async (re
   }
 });
 
+// ── Upload questions via Excel into a specific sub-test ──
+router.post('/tests/:id/subtests/:stId/upload', upload.single('excelFile'), async (req, res) => {
+  try {
+    if (!req.file) {
+      req.flash('error', 'Please upload an Excel file');
+      return res.redirect(`/admin/tests/${req.params.id}/questions`);
+    }
+
+    const workbook = XLSX.readFile(req.file.path);
+    const sheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[sheetName];
+    const data = XLSX.utils.sheet_to_json(worksheet);
+
+    if (data.length === 0) {
+      req.flash('error', 'Excel file is empty');
+      return res.redirect(`/admin/tests/${req.params.id}/questions`);
+    }
+
+    const test = await Test.findById(req.params.id);
+    if (!test) {
+      req.flash('error', 'Test not found');
+      return res.redirect('/admin/tests');
+    }
+
+    const subTest = test.subTests.id(req.params.stId);
+    if (!subTest) {
+      req.flash('error', 'Sub-test not found');
+      return res.redirect(`/admin/tests/${req.params.id}/questions`);
+    }
+
+    let addedCount = 0, errorCount = 0;
+    for (const row of data) {
+      const question   = row['Question'] || row['question'] || row['QuestionText'] || row['questionText'];
+      const optA       = row['Option A']  || row['optionA']  || row['OptionA']  || row['A'];
+      const optB       = row['Option B']  || row['optionB']  || row['OptionB']  || row['B'];
+      const optC       = row['Option C']  || row['optionC']  || row['OptionC']  || row['C'];
+      const optD       = row['Option D']  || row['optionD']  || row['OptionD']  || row['D'];
+      const correct    = (row['Correct Option'] || row['correctOption'] || row['CorrectOption'] || row['Answer'] || row['answer'] || '').toString().toUpperCase().trim();
+      const marks      = parseInt(row['Marks'] || row['marks'] || 1);
+
+      if (question && optA && optB && optC && optD && ['A','B','C','D'].includes(correct)) {
+        subTest.questions.push({
+          questionText:  question.toString().trim(),
+          optionA:  optA.toString().trim(),
+          optionB:  optB.toString().trim(),
+          optionC:  optC.toString().trim(),
+          optionD:  optD.toString().trim(),
+          correctOption: correct,
+          marks: marks || 1
+        });
+        addedCount++;
+      } else {
+        errorCount++;
+      }
+    }
+
+    await test.save();
+
+    const fs = require('fs');
+    fs.unlink(req.file.path, () => {});
+
+    let message = `${addedCount} questions added to "${subTest.name}"!`;
+    if (errorCount > 0) message += ` ${errorCount} rows skipped.`;
+    req.flash('success', message);
+    res.redirect(`/admin/tests/${req.params.id}/questions`);
+  } catch (err) {
+    console.error(err);
+    req.flash('error', 'Failed to process Excel file.');
+    res.redirect(`/admin/tests/${req.params.id}/questions`);
+  }
+});
+
+// ── Delete a question from a specific sub-test ──
+router.post('/tests/:id/subtests/:stId/questions/:qId/delete', async (req, res) => {
+  try {
+    const test = await Test.findById(req.params.id);
+    const subTest = test.subTests.id(req.params.stId);
+    if (subTest) {
+      subTest.questions.pull(req.params.qId);
+      await test.save();
+      req.flash('success', 'Question removed.');
+    }
+    res.redirect(`/admin/tests/${req.params.id}/questions`);
+  } catch (err) {
+    console.error(err);
+    req.flash('error', 'Failed to delete question.');
+    res.redirect(`/admin/tests/${req.params.id}/questions`);
+  }
+});
+
 // ==================== ASSIGN TESTS ====================
 router.get('/tests/:id/assign', async (req, res) => {
   try {
@@ -584,4 +799,32 @@ router.get('/results/:id', async (req, res) => {
   }
 });
 
+// ==================== RE-ASSIGN TEST (allow student to retake) ====================
+router.post('/results/:id/reassign', async (req, res) => {
+  try {
+    const result = await Result.findById(req.params.id)
+      .populate('student', 'name')
+      .populate('test', 'title');
+
+    if (!result) {
+      req.flash('error', 'Result not found');
+      return res.redirect('/admin/results');
+    }
+
+    const studentName = result.student ? result.student.name : 'Unknown';
+    const testTitle = result.test ? result.test.title : 'Unknown';
+
+    // Delete the result so the student can retake the test
+    await Result.findByIdAndDelete(req.params.id);
+
+    req.flash('success', `✅ Result deleted! "${studentName}" can now retake "${testTitle}".`);
+    res.redirect('/admin/results');
+  } catch (err) {
+    console.error(err);
+    req.flash('error', 'Failed to re-assign test');
+    res.redirect('/admin/results');
+  }
+});
+
 module.exports = router;
+

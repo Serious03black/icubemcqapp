@@ -1,13 +1,20 @@
 <%- include('../partials/header') %>
 
-<div class="dashboard-layout">
-  <%- include('../partials/student-sidebar', { active: 'dashboard' }) %>
+<div class="profile-header" style="display:flex; justify-content:space-between; align-items:center; padding:16px 24px; background: rgba(15,23,42,0.9); border-bottom: 1px solid rgba(129,140,248,0.15); backdrop-filter: blur(8px);">
+  <div class="welcome-msg" style="color:#e2e8f0; font-size:1.2rem; font-weight:600;">
+    Welcome, <%= currentUser.name %>!
+  </div>
+<a href="/student/profile" class="profile-link" style="display:flex; align-items:center; gap:12px; color:#a5b4fc; text-decoration:none;">
+  <span class="profile-icon" style="width:32px; height:32px; background:#818cf8; color:#fff; display:flex; align-items:center; justify-content:center; border-radius:8px; font-weight:700;">
+    <%= currentUser.name.charAt(0).toUpperCase() %>
+  </span>
+  Profile
+</a>
+</div>
 
-  <div class="main-content">
-    <div class="page-header">
-      <h1>🏠 Welcome, <%= currentUser.name %>!</h1>
-      <p>Your tests and progress overview</p>
-    </div>
+<!-- Existing dashboard layout -->
+<div class="dashboard-layout" style="margin-top:0;">
+
 
     <div class="page-body">
       <%- include('../partials/alerts') %>
@@ -76,47 +83,30 @@
       <div class="card">
         <div class="card-header">
           <h3>✅ Completed Tests</h3>
-          <a href="/student/results" class="btn btn-sm btn-outline">View All Results</a>
         </div>
-        <div class="table-responsive">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Test</th>
-                <th>Score</th>
-                <th>Percentage</th>
-                <th>Result</th>
-                <th>Date</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              <% if (completedResults.length === 0) { %>
-                <tr><td colspan="6" style="text-align:center; padding:24px; color:var(--text-muted);">No completed tests yet</td></tr>
-              <% } else { %>
-                <% completedResults.forEach(result => { %>
-                  <tr>
-                    <td><strong style="color: var(--text-primary)"><%= result.test ? result.test.title : 'Deleted' %></strong></td>
-                    <td><%= result.obtainedMarks %> / <%= result.totalMarks %></td>
-                    <td>
-                      <span style="color: <%= result.percentage >= 70 ? 'var(--success)' : result.percentage >= 40 ? 'var(--warning)' : 'var(--danger)' %>; font-weight: 700;">
-                        <%= result.percentage %>%
-                      </span>
-                    </td>
-                    <td>
-                      <span class="badge <%= result.isPassed ? 'badge-success' : 'badge-danger' %>">
-                        <%= result.isPassed ? '✅ Passed' : '❌ Failed' %>
-                      </span>
-                    </td>
-                    <td><%= new Date(result.submittedAt).toLocaleDateString('en-IN') %></td>
-                    <td>
-                      <a href="/student/results/<%= result._id %>" class="btn btn-sm btn-outline">👁️ View</a>
-                    </td>
-                  </tr>
-                <% }) %>
-              <% } %>
-            </tbody>
-          </table>
+        <div class="card-body">
+          <% if (completedResults.length === 0) { %>
+            <div class="empty-state">
+              <span class="empty-icon">📝</span>
+              <h3>No completed tests yet</h3>
+              <p>Your completed tests will appear here.</p>
+            </div>
+          <% } else { %>
+            <div class="test-grid">
+              <% completedResults.forEach(result => { %>
+                <div class="test-card" style="opacity:0.75;">
+                  <div class="test-card-header">
+                    <div class="test-card-title"><%= result.test ? result.test.title : 'Deleted Test' %></div>
+                    <span class="badge badge-info">Completed</span>
+                  </div>
+                  <div class="test-card-meta">
+                    <span>📚 <%= result.test ? result.test.course : 'N/A' %></span>
+                    <span>📅 <%= new Date(result.submittedAt).toLocaleDateString('en-IN') %></span>
+                  </div>
+                </div>
+              <% }) %>
+            </div>
+          <% } %>
         </div>
       </div>
     </div>

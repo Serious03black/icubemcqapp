@@ -1,67 +1,234 @@
 <%- include('../partials/header') %>
 
-<div style="min-height: 100vh; position: relative; z-index: 1;">
-  <!-- Test Header -->
-  <div class="test-header">
-    <div>
-      <h2 style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary);"><%= test.title %></h2>
-      <p style="font-size: 0.82rem; color: var(--text-muted);"><%= test.course %> • <%= test.questions.length %> Questions • <%= test.totalMarks %> Marks</p>
-    </div>
+<style>
+  /* ── Test header bar ── */
+  .test-topbar {
+    position: sticky; top: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(15,23,42,0.97);
+    border-bottom: 1px solid rgba(129,140,248,0.15);
+    padding: 12px 24px;
+    backdrop-filter: blur(12px);
+  }
+  .test-topbar .test-info h2 { font-size: 1.05rem; font-weight: 700; color: #e2e8f0; margin: 0; }
+  .test-topbar .test-info p  { font-size: 0.78rem; color: #94a3b8; margin: 2px 0 0; }
 
+  .test-progress { display: flex; align-items: center; gap: 10px; }
+  .test-progress span { font-size: 0.82rem; color: #94a3b8; font-weight: 600; }
+  .progress-bar { width: 120px; height: 6px; background: rgba(255,255,255,0.08); border-radius: 99px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg,#818cf8,#6366f1); border-radius: 99px; transition: width 0.3s; }
+
+  .test-timer {
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(129,140,248,0.1); border: 1px solid rgba(129,140,248,0.25);
+    padding: 8px 16px; border-radius: 10px; font-weight: 700; font-size: 1.2rem; color: #e2e8f0;
+  }
+  .test-timer.warning { background: rgba(251,191,36,0.12); border-color: rgba(251,191,36,0.35); color: #fbbf24; }
+  .test-timer.danger  { background: rgba(239,68,68,0.15);  border-color: rgba(239,68,68,0.35);  color: #ef4444; animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
+
+  /* ── Sub-test tab bar ── */
+  .section-tabs {
+    display: flex; gap: 0; overflow-x: auto;
+    background: rgba(15,23,42,0.85);
+    border-bottom: 2px solid rgba(129,140,248,0.1);
+    padding: 0 24px;
+    position: sticky; top: 58px; z-index: 99;
+    backdrop-filter: blur(10px);
+  }
+  .section-tab {
+    padding: 12px 20px; cursor: pointer;
+    font-size: 0.85rem; font-weight: 600;
+    color: #64748b; border-bottom: 3px solid transparent;
+    white-space: nowrap; transition: all 0.2s;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-tab:hover { color: #a5b4fc; background: rgba(129,140,248,0.05); }
+  .section-tab.active {
+    color: #a5b4fc; border-bottom-color: #818cf8;
+    background: rgba(129,140,248,0.08);
+  }
+  .section-tab .tab-badge {
+    font-size: 0.68rem; background: rgba(129,140,248,0.2);
+    color: #c7d2fe; padding: 2px 8px; border-radius: 99px;
+  }
+  .section-tab .tab-type {
+    font-size: 0.62rem; padding: 2px 6px; border-radius: 4px; font-weight: 700; text-transform: uppercase;
+  }
+  .tab-type.mcq  { background: rgba(99,102,241,0.2); color: #a5b4fc; }
+  .tab-type.code { background: rgba(251,191,36,0.2); color: #fbbf24; }
+  .tab-type.mixed { background: rgba(52,211,153,0.2); color: #34d399; }
+
+  /* ── Section panels ── */
+  .section-panel { display: none; padding: 28px 24px; max-width: 900px; margin: 0 auto; }
+  .section-panel.active { display: block; }
+
+  /* ── Question card ── */
+  .question-card {
+    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px; padding: 20px; margin-bottom: 16px;
+    transition: border-color 0.2s;
+  }
+  .question-card:hover { border-color: rgba(129,140,248,0.25); }
+  .question-header { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 16px; }
+  .question-number {
+    min-width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg,#6366f1,#818cf8); color: #fff;
+    font-weight: 700; font-size: 0.82rem; border-radius: 8px;
+  }
+  .question-text { color: #e2e8f0; font-weight: 600; font-size: 0.92rem; line-height: 1.5; flex: 1; }
+  .question-marks { font-size: 0.72rem; color: #94a3b8; background: rgba(255,255,255,0.06); padding: 4px 10px; border-radius: 6px; white-space: nowrap; }
+
+  /* ── MCQ options ── */
+  .mcq-options { display: grid; gap: 10px; }
+  .mcq-option { display: none; }
+  .mcq-label {
+    display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px; cursor: pointer; transition: all 0.2s;
+    font-size: 0.85rem; color: #cbd5e1;
+  }
+  .mcq-label:hover { background: rgba(129,140,248,0.08); border-color: rgba(129,140,248,0.3); }
+  .mcq-option:checked + .mcq-label {
+    background: rgba(129,140,248,0.12); border-color: #818cf8; color: #e2e8f0;
+  }
+  .mcq-marker {
+    min-width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,0.06); border-radius: 6px; font-weight: 700; font-size: 0.78rem; color: #818cf8;
+  }
+  .mcq-option:checked + .mcq-label .mcq-marker {
+    background: #818cf8; color: #fff;
+  }
+
+  /* ── Code textarea ── */
+  .code-answer-area {
+    width: 100%; min-height: 160px; padding: 14px;
+    background: rgba(0,0,0,0.3); border: 1px solid rgba(129,140,248,0.2);
+    border-radius: 10px; color: #e2e8f0; font-family: 'Courier New', monospace;
+    font-size: 0.88rem; line-height: 1.6; resize: vertical;
+    transition: border-color 0.2s;
+  }
+  .code-answer-area:focus { outline: none; border-color: #818cf8; }
+  .code-label {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 0.78rem; color: #94a3b8; margin-bottom: 8px;
+  }
+
+  /* ── Submit area ── */
+  .submit-area { text-align: center; padding: 40px 0; }
+</style>
+
+<div style="min-height: 100vh; position: relative; z-index: 1;">
+
+  <!-- ═══════ Top bar ═══════ -->
+  <div class="test-topbar">
+    <div class="test-info">
+      <h2><%= test.title %></h2>
+      <p><%= test.course %> • <%= totalQuestions %> Questions • <%= totalMarks %> Marks</p>
+    </div>
     <div class="test-progress">
-      <span id="progressText">0 / <%= test.questions.length %></span>
+      <span id="progressText">0 / <%= totalQuestions %></span>
       <div class="progress-bar">
         <div class="progress-fill" id="progressFill" style="width: 0%"></div>
       </div>
     </div>
-
     <div class="test-timer" id="timer">
       <span>⏱️</span>
       <span id="timerDisplay"><%= test.duration %>:00</span>
     </div>
   </div>
 
-  <!-- Test Form -->
-  <form action="/student/test/<%= test._id %>/submit" method="POST" id="testForm" style="padding: 32px; max-width: 900px; margin: 0 auto;">
+  <!-- ═══════ Sub-test tabs ═══════ -->
+  <% if (sections.length > 1) { %>
+  <div class="section-tabs">
+    <% sections.forEach((sec, si) => { %>
+      <div class="section-tab <%= si === 0 ? 'active' : '' %>"
+           data-section="<%= si %>" onclick="switchSection(<%= si %>)">
+        <% if (sec.type === 'code') { %>
+          <span class="tab-type code">💻 Code</span>
+        <% } else if (sec.type === 'mixed') { %>
+          <span class="tab-type mixed">🔀 Mixed</span>
+        <% } else { %>
+          <span class="tab-type mcq">📋 MCQ</span>
+        <% } %>
+        <%= sec.name %>
+        <span class="tab-badge"><%= sec.questions.length %> Q</span>
+      </div>
+    <% }) %>
+  </div>
+  <% } %>
+
+  <!-- ═══════ Test Form ═══════ -->
+  <form action="/student/test/<%= test._id %>/submit" method="POST" id="testForm">
     <input type="hidden" name="timeTaken" id="timeTaken" value="0">
 
-    <% test.questions.forEach((q, index) => { %>
-      <div class="question-card fade-in" id="question-<%= index %>">
-        <div style="margin-bottom: 16px;">
-          <span class="question-number"><%= index + 1 %></span>
-          <span class="question-text"><%= q.questionText %></span>
-          <span class="badge badge-primary" style="margin-left: 8px; vertical-align: middle;"><%= q.marks || 1 %> mark<%= (q.marks || 1) > 1 ? 's' : '' %></span>
-        </div>
+    <% let globalIdx = 0; %>
+    <% sections.forEach((sec, si) => { %>
+      <div class="section-panel <%= si === 0 ? 'active' : '' %>" id="sectionPanel-<%= si %>">
 
-        <div>
-          <input type="radio" name="q_<%= q._id %>" value="A" id="q_<%= q._id %>_A" class="mcq-option" onchange="updateProgress()">
-          <label for="q_<%= q._id %>_A" class="mcq-label">
-            <span class="mcq-marker">A</span>
-            <span><%= q.optionA %></span>
-          </label>
+        <% if (sec.description) { %>
+          <p style="color:#94a3b8; font-size:0.82rem; margin-bottom:20px;"><%= sec.description %></p>
+        <% } %>
 
-          <input type="radio" name="q_<%= q._id %>" value="B" id="q_<%= q._id %>_B" class="mcq-option" onchange="updateProgress()">
-          <label for="q_<%= q._id %>_B" class="mcq-label">
-            <span class="mcq-marker">B</span>
-            <span><%= q.optionB %></span>
-          </label>
+        <% sec.questions.forEach((q, qi) => { globalIdx++; %>
+          <div class="question-card">
+            <div class="question-header">
+              <span class="question-number"><%= globalIdx %></span>
+              <span class="question-text"><%= q.questionText %></span>
+              <span class="question-marks"><%= q.marks || 1 %> mark<%= (q.marks || 1) > 1 ? 's' : '' %></span>
+            </div>
 
-          <input type="radio" name="q_<%= q._id %>" value="C" id="q_<%= q._id %>_C" class="mcq-option" onchange="updateProgress()">
-          <label for="q_<%= q._id %>_C" class="mcq-label">
-            <span class="mcq-marker">C</span>
-            <span><%= q.optionC %></span>
-          </label>
+            <% if (sec.type === 'code' || q.type === 'code') { %>
+              <!-- ── Coding question: textarea ── -->
+              <div>
+                <div class="code-label">
+                  <span>💻</span> Write your answer / code below
+                </div>
+                <textarea class="code-answer-area"
+                          name="q_<%= q._id %>"
+                          placeholder="Type your code or answer here..."
+                          oninput="updateProgress()"></textarea>
+              </div>
+            <% } else { %>
+              <!-- ── MCQ question: radio buttons ── -->
+              <div class="mcq-options">
+                <div>
+                  <input type="radio" name="q_<%= q._id %>" value="A" id="q_<%= q._id %>_A" class="mcq-option" onchange="updateProgress()">
+                  <label for="q_<%= q._id %>_A" class="mcq-label">
+                    <span class="mcq-marker">A</span>
+                    <span><%= q.optionA %></span>
+                  </label>
+                </div>
+                <div>
+                  <input type="radio" name="q_<%= q._id %>" value="B" id="q_<%= q._id %>_B" class="mcq-option" onchange="updateProgress()">
+                  <label for="q_<%= q._id %>_B" class="mcq-label">
+                    <span class="mcq-marker">B</span>
+                    <span><%= q.optionB %></span>
+                  </label>
+                </div>
+                <div>
+                  <input type="radio" name="q_<%= q._id %>" value="C" id="q_<%= q._id %>_C" class="mcq-option" onchange="updateProgress()">
+                  <label for="q_<%= q._id %>_C" class="mcq-label">
+                    <span class="mcq-marker">C</span>
+                    <span><%= q.optionC %></span>
+                  </label>
+                </div>
+                <div>
+                  <input type="radio" name="q_<%= q._id %>" value="D" id="q_<%= q._id %>_D" class="mcq-option" onchange="updateProgress()">
+                  <label for="q_<%= q._id %>_D" class="mcq-label">
+                    <span class="mcq-marker">D</span>
+                    <span><%= q.optionD %></span>
+                  </label>
+                </div>
+              </div>
+            <% } %>
+          </div>
+        <% }) %>
 
-          <input type="radio" name="q_<%= q._id %>" value="D" id="q_<%= q._id %>_D" class="mcq-option" onchange="updateProgress()">
-          <label for="q_<%= q._id %>_D" class="mcq-label">
-            <span class="mcq-marker">D</span>
-            <span><%= q.optionD %></span>
-          </label>
-        </div>
       </div>
     <% }) %>
 
-    <div style="text-align: center; padding: 32px 0;">
+    <div class="submit-area">
       <button type="submit" class="btn btn-primary btn-lg" id="submitBtn" onclick="return confirmSubmit()">
         📤 Submit Test
       </button>
@@ -70,7 +237,17 @@
 </div>
 
 <script>
-// Timer
+// ── Section tab switching ──
+function switchSection(idx) {
+  // Hide all panels
+  document.querySelectorAll('.section-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.section-tab').forEach(t => t.classList.remove('active'));
+  // Show selected
+  document.getElementById('sectionPanel-' + idx).classList.add('active');
+  document.querySelector('.section-tab[data-section="' + idx + '"]').classList.add('active');
+}
+
+// ── Timer ──
 const totalSeconds = <%= test.duration %> * 60;
 let remainingSeconds = totalSeconds;
 let elapsedSeconds = 0;
@@ -83,7 +260,6 @@ function updateTimer() {
 
   display.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 
-  // Warning states
   if (remainingSeconds <= 60) {
     timer.className = 'test-timer danger';
   } else if (remainingSeconds <= 300) {
@@ -105,17 +281,25 @@ function updateTimer() {
 
 const timerInterval = setInterval(updateTimer, 1000);
 
-// Progress
-const totalQuestions = <%= test.questions.length %>;
+// ── Progress tracking ──
+const totalQuestions = <%= totalQuestions %>;
 
 function updateProgress() {
-  const answered = document.querySelectorAll('.mcq-option:checked').length;
+  // Count answered MCQs (radio checked) + filled textareas
+  const mcqAnswered = document.querySelectorAll('.mcq-option:checked').length;
+  const codeAnswered = Array.from(document.querySelectorAll('.code-answer-area'))
+    .filter(ta => ta.value.trim().length > 0).length;
+  const answered = mcqAnswered + codeAnswered;
+
   document.getElementById('progressText').textContent = `${answered} / ${totalQuestions}`;
   document.getElementById('progressFill').style.width = `${(answered / totalQuestions) * 100}%`;
 }
 
 function confirmSubmit() {
-  const answered = document.querySelectorAll('.mcq-option:checked').length;
+  const mcqAnswered = document.querySelectorAll('.mcq-option:checked').length;
+  const codeAnswered = Array.from(document.querySelectorAll('.code-answer-area'))
+    .filter(ta => ta.value.trim().length > 0).length;
+  const answered = mcqAnswered + codeAnswered;
   const unanswered = totalQuestions - answered;
 
   if (unanswered > 0) {
@@ -124,15 +308,24 @@ function confirmSubmit() {
   return confirm('Are you sure you want to submit this test?');
 }
 
-// Prevent accidental page leave
-window.addEventListener('beforeunload', function(e) {
+// ── Anti‑cheat: disable right‑click, text selection and common copy shortcuts �ndocument.addEventListener('contextmenu', e => e.preventDefault());
+// Block Ctrl/Cmd + C/V/X/A
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && ['c','v','x','a'].includes(e.key.toLowerCase())) {
+    e.preventDefault();
+  }
+});
+// Prevent text selection on MCQ options
+document.querySelectorAll('.question-card').forEach(card => {
+  card.style.userSelect = 'none';
+});
+
   e.preventDefault();
   e.returnValue = 'Are you sure you want to leave? Your progress will be lost.';
 });
 
-// Remove warning on form submit
 document.getElementById('testForm').addEventListener('submit', function() {
-  window.removeEventListener('beforeunload', function() {});
+  window.onbeforeunload = null;
 });
 </script>
 

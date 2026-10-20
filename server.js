@@ -62,7 +62,8 @@ app.get('/', (req, res) => {
     }
     return res.redirect('/student/dashboard');
   }
-  res.redirect('/login');
+  // Render landing page for unauthenticated visitors
+  res.render('landing', { title: 'Welcome - TechMinds MCQ', landingData: {} });
 });
 
 // 404 handler

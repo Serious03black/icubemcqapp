@@ -1,0 +1,11 @@
+<%- include('../partials/header') %>
+
+<div class="profile-page" style="max-width:800px; margin:auto; padding:24px; background:rgba(15,23,42,0.9); border-radius:12px; color:#e2e8f0;">
+  <h1 style="font-size:2rem; margin-bottom:16px;">Your Profile</h1>
+  <p><strong>Name:</strong> <%= currentUser.name %></p>
+  <p><strong>Email:</strong> <%= currentUser.email %></p>
+  <p><strong>Role:</strong> <%= currentUser.role %></p>
+  <a href="/student/dashboard" class="btn btn-primary" style="margin-top:16px; color:#fff; background:#6366f1; border:none;">Back to Dashboard</a>
+</div>
+
+<%- include('../partials/footer') %>
