@@ -71,7 +71,7 @@ app.use((req, res) => {
   res.status(404).render('404', { title: '404 - Page Not Found' });
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`🚀 ICUBE Info Solution App running on http://localhost:${PORT}`);
 });
