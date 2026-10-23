@@ -1,723 +1,1137 @@
 <%- include('../partials/header') %>
 
-<style>
-  /* ── Test header bar ── */
-  .test-topbar {
-    position: sticky; top: 0; z-index: 100;
-    display: flex; align-items: center; justify-content: space-between;
-    background: rgba(15, 15, 15, 0.95);
-    border-bottom: 1px solid var(--border);
-    padding: 14px 28px;
-    backdrop-filter: blur(14px);
-  }
-  .test-topbar .test-info { display: flex; align-items: center; gap: 14px; }
-  .test-topbar .test-info h2 { font-size: 1.1rem; font-weight: 800; color: #fff; margin: 0; }
-  .test-topbar .test-info p  { font-size: 0.8rem; color: var(--text-muted); margin: 2px 0 0; }
+  <style>
+    /* ── Test header bar ── */
+    .test-topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(15, 15, 15, 0.95);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 28px;
+      backdrop-filter: blur(14px);
+    }
 
-  .test-progress { display: flex; align-items: center; gap: 10px; }
-  .test-progress span { font-size: 0.84rem; color: var(--text-muted); font-weight: 600; }
-  .progress-bar { width: 140px; height: 7px; background: rgba(255,255,255,0.08); border-radius: 99px; overflow: hidden; }
-  .progress-fill { height: 100%; background: linear-gradient(90deg, #22c55e, #16a34a); border-radius: 99px; transition: width 0.3s; }
+    .test-topbar .test-info {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
 
-  .test-timer {
-    display: flex; align-items: center; gap: 8px;
-    background: var(--green-dim); border: 1px solid rgba(34,197,94,0.3);
-    padding: 8px 16px; border-radius: 8px; font-weight: 800; font-size: 1.15rem; color: #fff;
-    font-family: 'JetBrains Mono', monospace;
-  }
-  .test-timer.warning { background: rgba(245,158,11,0.14); border-color: rgba(245,158,11,0.4); color: #fbbf24; }
-  .test-timer.danger  { background: rgba(239,68,68,0.18);  border-color: rgba(239,68,68,0.4);  color: #f87171; animation: pulse 1s infinite; }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
+    .test-topbar .test-info h2 {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: #fff;
+      margin: 0;
+    }
 
-  /* ── Sub-test tab bar ── */
-  .section-tabs {
-    display: flex; gap: 4px; overflow-x: auto;
-    background: rgba(10, 10, 10, 0.95);
-    border-bottom: 1px solid var(--border);
-    padding: 8px 24px 0;
-    position: sticky; top: 68px; z-index: 99;
-    backdrop-filter: blur(12px);
-  }
-  .section-tab {
-    padding: 10px 18px; cursor: pointer;
-    font-size: 0.86rem; font-weight: 600;
-    color: var(--text-muted); border-bottom: 2px solid transparent;
-    white-space: nowrap; transition: all 0.2s;
-    display: flex; align-items: center; gap: 8px;
-    border-radius: 6px 6px 0 0;
-  }
-  .section-tab:hover { color: #fff; background: rgba(255, 255, 255, 0.03); }
-  .section-tab.active {
-    color: var(--green); border-bottom-color: var(--green);
-    background: var(--green-dim); font-weight: 700;
-  }
-  .section-tab .tab-badge {
-    font-size: 0.68rem; background: rgba(255, 255, 255, 0.08);
-    color: #e2e8f0; padding: 2px 7px; border-radius: 99px;
-  }
-  .section-tab .tab-type {
-    font-size: 0.62rem; padding: 2px 6px; border-radius: 4px; font-weight: 800; text-transform: uppercase;
-  }
-  .tab-type.mcq   { background: var(--green-dim); color: var(--green); border: 1px solid rgba(34,197,94,0.3); }
-  .tab-type.code  { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }
-  .tab-type.mixed { background: rgba(56,189,248,0.15); color: #38bdf8; border: 1px solid rgba(56,189,248,0.3); }
+    .test-topbar .test-info p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin: 2px 0 0;
+    }
 
-  /* ── Section panels ── */
-  .section-panel { display: none; padding: 32px 24px; max-width: 860px; margin: 0 auto; }
-  .section-panel.active { display: block; }
+    .test-progress {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
 
-  /* ── Question card ── */
-  .question-card {
-    background: var(--bg-card); border: 1px solid var(--border);
-    border-radius: 12px; padding: 22px; margin-bottom: 18px;
-    transition: border-color 0.2s, box-shadow 0.2s;
-  }
-  .question-card:hover { border-color: rgba(34, 197, 94, 0.3); }
-  .question-header { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 18px; }
-  .question-number {
-    min-width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
-    background: var(--green); color: #000;
-    font-weight: 800; font-size: 0.85rem; border-radius: 8px; flex-shrink: 0;
-  }
-  .question-text { color: #fff; font-weight: 600; font-size: 0.96rem; line-height: 1.5; flex: 1; }
-  .question-marks { font-size: 0.74rem; color: var(--text-muted); background: rgba(255,255,255,0.05); padding: 4px 10px; border-radius: 6px; white-space: nowrap; border: 1px solid var(--border); }
+    .test-progress span {
+      font-size: 0.84rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
 
-  /* ── MCQ options ── */
-  .mcq-options { display: grid; gap: 10px; }
-  .mcq-option { display: none; }
-  .mcq-label {
-    display: flex; align-items: center; gap: 12px; padding: 13px 16px;
-    background: rgba(255,255,255,0.03); border: 1px solid var(--border);
-    border-radius: 8px; cursor: pointer; transition: all 0.2s;
-    font-size: 0.88rem; color: var(--text-secondary);
-  }
-  .mcq-label:hover { background: rgba(34, 197, 94, 0.05); border-color: rgba(34, 197, 94, 0.35); }
-  .mcq-option:checked + .mcq-label {
-    background: var(--green-dim); border-color: var(--green); color: #fff;
-    box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
-  }
-  .mcq-marker {
-    min-width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
-    background: rgba(255,255,255,0.06); border-radius: 6px; font-weight: 700; font-size: 0.78rem; color: var(--green);
-  }
-  .mcq-option:checked + .mcq-label .mcq-marker {
-    background: var(--green); color: #000;
-  }
+    .progress-bar {
+      width: 140px;
+      height: 7px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 99px;
+      overflow: hidden;
+    }
 
-  /* ── Code textarea ── */
-  .code-answer-area {
-    width: 100%; min-height: 160px; padding: 14px;
-    background: rgba(0, 0, 0, 0.4); border: 1px solid var(--border);
-    border-radius: 8px; color: #fff; font-family: 'JetBrains Mono', monospace;
-    font-size: 0.88rem; line-height: 1.6; resize: vertical;
-    transition: border-color 0.2s, box-shadow 0.2s;
-  }
-  .code-answer-area:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.12); }
-  .code-label {
-    display: flex; align-items: center; gap: 8px;
-    font-size: 0.78rem; color: var(--text-muted); margin-bottom: 8px; font-weight: 600;
-  }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #22c55e, #16a34a);
+      border-radius: 99px;
+      transition: width 0.3s;
+    }
 
-  /* ── Submit area ── */
-  .submit-area { text-align: center; padding: 40px 0 60px; }
+    .test-timer {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--green-dim);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: 800;
+      font-size: 1.15rem;
+      color: #fff;
+      font-family: 'JetBrains Mono', monospace;
+    }
 
-  /* ── Pre-Exam Rules & Disclaimer Modal Gate ── */
-  .rules-modal-overlay {
-    position: fixed; inset: 0; z-index: 99999;
-    background: rgba(3, 7, 12, 0.94);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    display: flex; align-items: center; justify-content: center;
-    padding: 18px;
-    animation: fadeInRules 0.25s ease;
-  }
-  @keyframes fadeInRules {
-    from { opacity: 0; transform: scale(0.97); }
-    to { opacity: 1; transform: scale(1); }
-  }
-  .rules-modal-card {
-    background: #0f131a;
-    border: 1.5px solid rgba(34, 197, 94, 0.4);
-    border-radius: 16px;
-    width: 100%; max-width: 880px;
-    max-height: 92vh;
-    display: flex; flex-direction: column;
-    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), 0 0 50px rgba(34, 197, 94, 0.14);
-    overflow: hidden;
-  }
-  .rules-modal-header {
-    background: linear-gradient(180deg, rgba(34, 197, 94, 0.16) 0%, rgba(15, 19, 26, 0.98) 100%);
-    border-bottom: 1px solid var(--border);
-    padding: 22px 28px 18px;
-  }
-  .rules-badge {
-    display: inline-block;
-    background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.35);
-    color: #f87171; font-size: 0.72rem; font-weight: 800;
-    padding: 4px 10px; border-radius: 6px; letter-spacing: 0.06em; text-transform: uppercase;
-    margin-bottom: 8px;
-  }
-  .rules-modal-header h1 {
-    font-size: clamp(1.15rem, 2.5vw, 1.45rem); font-weight: 900; color: #fff; margin: 0 0 4px;
-    letter-spacing: -0.02em;
-  }
-  .rules-company {
-    font-size: 0.92rem; font-weight: 700; color: var(--green); margin-bottom: 8px;
-  }
-  .rules-intro {
-    font-size: 0.84rem; color: #cbd5e1; line-height: 1.45; margin: 0 0 12px;
-  }
-  .rules-test-pills {
-    display: flex; gap: 8px; flex-wrap: wrap;
-  }
-  .rules-test-pills span {
-    font-size: 0.76rem; background: rgba(255,255,255,0.05); border: 1px solid var(--border);
-    padding: 4px 10px; border-radius: 6px; color: #e2e8f0;
-  }
-  .rules-modal-body {
-    padding: 22px 28px;
-    overflow-y: auto;
-    flex: 1;
-    font-size: 0.88rem;
-    line-height: 1.6;
-    color: #cbd5e1;
-  }
-  .rule-block {
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 10px;
-    padding: 14px 18px;
-    margin-bottom: 14px;
-  }
-  .rule-block h4 {
-    font-size: 0.92rem; font-weight: 700; color: #fff; margin: 0 0 8px;
-    display: flex; align-items: center; gap: 8px;
-  }
-  .rule-block .r-num {
-    background: var(--green); color: #000; font-size: 0.72rem; font-weight: 800;
-    min-width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
-  }
-  .rule-block ul {
-    margin: 0 0 0 18px; padding: 0;
-  }
-  .rule-block li {
-    margin-bottom: 6px; font-size: 0.84rem;
-  }
-  .rule-block strong {
-    color: #fff;
-  }
-  .terms-link-box {
-    background: rgba(56, 189, 248, 0.08);
-    border: 1px solid rgba(56, 189, 248, 0.25);
-    border-radius: 8px;
-    padding: 12px 16px;
-    margin-top: 14px;
-    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
-  }
-  .terms-link-box a {
-    color: #38bdf8; font-weight: 700; text-decoration: none; font-size: 0.84rem;
-  }
-  .terms-link-box a:hover {
-    text-decoration: underline;
-  }
-  .rules-modal-footer {
-    background: #0d1017;
-    border-top: 1px solid var(--border);
-    padding: 16px 28px;
-  }
-  .agreement-label {
-    display: flex; align-items: flex-start; gap: 12px; cursor: pointer;
-    background: rgba(34, 197, 94, 0.06); border: 1.5px solid rgba(34, 197, 94, 0.25);
-    border-radius: 10px; padding: 12px 14px; margin-bottom: 14px;
-    transition: all 0.2s;
-  }
-  .agreement-label:hover {
-    border-color: var(--green);
-    background: rgba(34, 197, 94, 0.1);
-  }
-  .agreement-label input[type="checkbox"] {
-    width: 20px; height: 20px; accent-color: #22c55e; margin-top: 2px; cursor: pointer; flex-shrink: 0;
-  }
-  .agreement-label .checkbox-text {
-    font-size: 0.82rem; color: #f1f5f9; line-height: 1.45;
-  }
-  .rules-action-btns {
-    display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  }
-</style>
+    .test-timer.warning {
+      background: rgba(245, 158, 11, 0.14);
+      border-color: rgba(245, 158, 11, 0.4);
+      color: #fbbf24;
+    }
 
-<!-- ═══════ Pre-Exam Rules & Disclaimer Modal (Mandatory Gate) ═══════ -->
-<div id="rulesDisclaimerModal" class="rules-modal-overlay">
-  <div class="rules-modal-card">
-    <div class="rules-modal-header">
-      <div class="rules-badge">⚠️ MANDATORY EXAMINATION INSTRUCTIONS</div>
-      <h1>TECHNICAL EXAMINATION RULES &amp; REGULATIONS</h1>
-      <div class="rules-company">Techminds Software India Pvt. Ltd.</div>
-      <p class="rules-intro">
-        All candidates must carefully read and agree to the following rules before starting the online technical examination.
-      </p>
+    .test-timer.danger {
+      background: rgba(239, 68, 68, 0.18);
+      border-color: rgba(239, 68, 68, 0.4);
+      color: #f87171;
+      animation: pulse 1s infinite;
+    }
 
-      <div class="rules-test-pills">
-        <span>⏱️ <strong><%= test.duration %> Mins</strong> Time Limit</span>
-        <span>❓ <strong><%= totalQuestions %></strong> Questions</span>
-        <span>🏆 <strong><%= totalMarks %></strong> Total Marks</span>
-        <span>📚 <strong><%= test.course %></strong></span>
-      </div>
-    </div>
+    @keyframes pulse {
 
-    <div class="rules-modal-body">
-      <!-- 1. Examination Fee & Refund Policy -->
-      <div class="rule-block">
-        <h4><span class="r-num">1</span> Examination Fee &amp; Refund Policy</h4>
-        <ul>
-          <li>The examination fee is <strong>strictly non-refundable</strong>, regardless of whether the candidate passes or fails the examination.</li>
-          <li>No refund will be provided if a candidate abandons, cancels, interrupts, or forcefully closes the examination after starting it.</li>
-          <li>If a candidate needs to retake the examination following a forceful closure or an invalid attempt, a new examination fee must be paid.</li>
-        </ul>
-      </div>
+      0%,
+      100% {
+        opacity: 1
+      }
 
-      <!-- 2. Tab Switching & Window Restrictions -->
-      <div class="rule-block">
-        <h4><span class="r-num">2</span> Tab Switching &amp; Window Restrictions</h4>
-        <ul>
-          <li>Switching browser tabs, opening other applications, minimizing the examination window, or refreshing the page is strictly prohibited during the examination.</li>
-          <li>Such activities may be recorded in the examination logs and considered during final evaluation.</li>
-          <li>Candidates must remain on the examination page until the examination is completed and submitted.</li>
-        </ul>
-      </div>
+      50% {
+        opacity: 0.6
+      }
+    }
 
-      <!-- 3. Camera Monitoring & Candidate Verification -->
-      <div class="rule-block">
-        <h4><span class="r-num">3</span> Camera Monitoring &amp; Candidate Verification</h4>
-        <ul>
-          <li>The candidate must remain visible in the camera throughout the examination, wherever camera monitoring is enabled.</li>
-          <li>If another person appears in the camera frame, or the candidate leaves the camera view, the incident may be recorded and considered during final evaluation.</li>
-          <li>Candidates must not allow another person to assist them or take the examination on their behalf.</li>
-          <li>These activities may be considered violations even if no immediate warning is displayed.</li>
-        </ul>
-      </div>
+    /* ── Sub-test tab bar ── */
+    .section-tabs {
+      display: flex;
+      gap: 4px;
+      overflow-x: auto;
+      background: rgba(10, 10, 10, 0.95);
+      border-bottom: 1px solid var(--border);
+      padding: 8px 24px 0;
+      position: sticky;
+      top: 68px;
+      z-index: 99;
+      backdrop-filter: blur(12px);
+    }
 
-      <!-- 4. Code Copying & AI Usage -->
-      <div class="rule-block">
-        <h4><span class="r-num">4</span> Code Copying &amp; AI Usage</h4>
-        <ul>
-          <li>Copying code from external websites, online repositories, messaging applications, or other unauthorized sources is strictly prohibited.</li>
-          <li>Using AI tools such as ChatGPT, GitHub Copilot, Gemini, or other AI assistants to generate answers or code during the examination is not permitted.</li>
-          <li>Candidates must write their own code and submit original work.</li>
-          <li>Plagiarism, unauthorized collaboration, or the use of external assistance may result in disqualification.</li>
-        </ul>
-      </div>
+    .section-tab {
+      padding: 10px 18px;
+      cursor: pointer;
+      font-size: 0.86rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      border-bottom: 2px solid transparent;
+      white-space: nowrap;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-radius: 6px 6px 0 0;
+    }
 
-      <!-- 5. Forceful Closure & Auto-Submission -->
-      <div class="rule-block">
-        <h4><span class="r-num">5</span> Forceful Closure &amp; Auto-Submission</h4>
-        <ul>
-          <li>Once the examination has started, forcefully closing the browser, closing the examination window, or terminating the examination session may trigger automatic submission.</li>
-          <li>After auto-submission, the candidate may not be able to resume the same attempt.</li>
-          <li>A new attempt, if permitted, may require payment of the examination fee again.</li>
-          <li>Candidates are responsible for ensuring that their device and browser remain operational throughout the examination.</li>
-        </ul>
-      </div>
+    .section-tab:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.03);
+    }
 
-      <!-- 6. Refreshing & Technical Interruptions -->
-      <div class="rule-block">
-        <h4><span class="r-num">6</span> Refreshing &amp; Technical Interruptions</h4>
-        <ul>
-          <li>Refreshing the examination page, navigating away from the portal, or minimizing the examination window is strictly prohibited.</li>
-          <li>Candidates must not attempt to bypass examination restrictions or monitoring mechanisms.</li>
-          <li>Candidates experiencing a genuine technical issue should contact the designated examination support team immediately, without repeatedly refreshing or restarting the examination.</li>
-        </ul>
-      </div>
+    .section-tab.active {
+      color: var(--green);
+      border-bottom-color: var(--green);
+      background: var(--green-dim);
+      font-weight: 700;
+    }
 
-      <!-- 7. Time Limit & Submission -->
-      <div class="rule-block">
-        <h4><span class="r-num">7</span> Time Limit &amp; Submission</h4>
-        <ul>
-          <li>Candidates must complete and submit the examination within the allotted time.</li>
-          <li>The examination may be submitted automatically when the timer expires.</li>
-          <li>Candidates should review their answers before final submission, where the portal permits it.</li>
-          <li>Once submitted, answers may not be editable.</li>
-        </ul>
-      </div>
+    .section-tab .tab-badge {
+      font-size: 0.68rem;
+      background: rgba(255, 255, 255, 0.08);
+      color: #e2e8f0;
+      padding: 2px 7px;
+      border-radius: 99px;
+    }
 
-      <!-- 8. Internet & Device Responsibility -->
-      <div class="rule-block">
-        <h4><span class="r-num">8</span> Internet &amp; Device Responsibility</h4>
-        <ul>
-          <li>Candidates must ensure a stable internet connection, a working device, and a compatible browser before starting.</li>
-          <li>Camera and other required permissions must be enabled before the examination begins.</li>
-          <li>Candidates should close unnecessary applications and disable notifications before starting the test.</li>
-          <li>Any interruption caused by the candidate's device, internet connection, or unauthorized actions may affect the examination attempt.</li>
-        </ul>
-      </div>
+    .section-tab .tab-type {
+      font-size: 0.62rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
 
-      <!-- 9. Examination Integrity & Evaluation -->
-      <div class="rule-block">
-        <h4><span class="r-num">9</span> Examination Integrity &amp; Evaluation</h4>
-        <ul>
-          <li>All examination activities, including tab switching, window minimization, suspicious behavior, camera-related incidents, and submission events, may be logged where supported by the portal.</li>
-          <li>Recorded violations will be reviewed during final evaluation, even if no immediate warning appears on the screen.</li>
-          <li>Depending on the nature and severity of the violation, the examination may be marked invalid or the candidate may be disqualified from the selection process.</li>
-          <li>The company reserves the right to verify submitted answers and code for originality and technical accuracy.</li>
-        </ul>
-      </div>
+    .tab-type.mcq {
+      background: var(--green-dim);
+      color: var(--green);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+    }
 
-      <!-- 10. Final Acknowledgment -->
-      <div class="rule-block" style="border-bottom: none; margin-bottom: 0;">
-        <h4><span class="r-num">10</span> Final Acknowledgment</h4>
-        <p>By starting the examination, the candidate confirms that they have read, understood, and agreed to these rules and regulations.</p>
-        <p>Candidates are expected to maintain professional conduct, complete the examination independently, and follow all examination instructions.</p>
-        <div style="margin-top: 10px; font-size: 0.82rem; color: #94a3b8;">
-          <strong>Techminds Software India Pvt. Ltd.</strong><br>
-          <em>Recruitment &amp; Technical Assessment Team</em>
+    .tab-type.code {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .tab-type.mixed {
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+
+    /* ── Section panels ── */
+    .section-panel {
+      display: none;
+      padding: 32px 24px;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    .section-panel.active {
+      display: block;
+    }
+
+    /* ── Question card ── */
+    .question-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 22px;
+      margin-bottom: 18px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .question-card:hover {
+      border-color: rgba(34, 197, 94, 0.3);
+    }
+
+    .question-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .question-number {
+      min-width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--green);
+      color: #000;
+      font-weight: 800;
+      font-size: 0.85rem;
+      border-radius: 8px;
+      flex-shrink: 0;
+    }
+
+    .question-text {
+      color: #fff;
+      font-weight: 600;
+      font-size: 0.96rem;
+      line-height: 1.5;
+      flex: 1;
+    }
+
+    .question-marks {
+      font-size: 0.74rem;
+      color: var(--text-muted);
+      background: rgba(255, 255, 255, 0.05);
+      padding: 4px 10px;
+      border-radius: 6px;
+      white-space: nowrap;
+      border: 1px solid var(--border);
+    }
+
+    /* ── MCQ options ── */
+    .mcq-options {
+      display: grid;
+      gap: 10px;
+    }
+
+    .mcq-option {
+      display: none;
+    }
+
+    .mcq-label {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 13px 16px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+    }
+
+    .mcq-label:hover {
+      background: rgba(34, 197, 94, 0.05);
+      border-color: rgba(34, 197, 94, 0.35);
+    }
+
+    .mcq-option:checked+.mcq-label {
+      background: var(--green-dim);
+      border-color: var(--green);
+      color: #fff;
+      box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+    }
+
+    .mcq-marker {
+      min-width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 0.78rem;
+      color: var(--green);
+    }
+
+    .mcq-option:checked+.mcq-label .mcq-marker {
+      background: var(--green);
+      color: #000;
+    }
+
+    /* ── Code textarea ── */
+    .code-answer-area {
+      width: 100%;
+      min-height: 160px;
+      padding: 14px;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: #fff;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.88rem;
+      line-height: 1.6;
+      resize: vertical;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .code-answer-area:focus {
+      outline: none;
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.12);
+    }
+
+    .code-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    /* ── Submit area ── */
+    .submit-area {
+      text-align: center;
+      padding: 40px 0 60px;
+    }
+
+    /* ── Pre-Exam Rules & Disclaimer Modal Gate ── */
+    .rules-modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 99999;
+      background: rgba(3, 7, 12, 0.94);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      animation: fadeInRules 0.25s ease;
+    }
+
+    @keyframes fadeInRules {
+      from {
+        opacity: 0;
+        transform: scale(0.97);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .rules-modal-card {
+      background: #0f131a;
+      border: 1.5px solid rgba(34, 197, 94, 0.4);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 880px;
+      max-height: 92vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), 0 0 50px rgba(34, 197, 94, 0.14);
+      overflow: hidden;
+    }
+
+    .rules-modal-header {
+      background: linear-gradient(180deg, rgba(34, 197, 94, 0.16) 0%, rgba(15, 19, 26, 0.98) 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 22px 28px 18px;
+    }
+
+    .rules-badge {
+      display: inline-block;
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      color: #f87171;
+      font-size: 0.72rem;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 6px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .rules-modal-header h1 {
+      font-size: clamp(1.15rem, 2.5vw, 1.45rem);
+      font-weight: 900;
+      color: #fff;
+      margin: 0 0 4px;
+      letter-spacing: -0.02em;
+    }
+
+    .rules-company {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--green);
+      margin-bottom: 8px;
+    }
+
+    .rules-intro {
+      font-size: 0.84rem;
+      color: #cbd5e1;
+      line-height: 1.45;
+      margin: 0 0 12px;
+    }
+
+    .rules-test-pills {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .rules-test-pills span {
+      font-size: 0.76rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      padding: 4px 10px;
+      border-radius: 6px;
+      color: #e2e8f0;
+    }
+
+    .rules-modal-body {
+      padding: 22px 28px;
+      overflow-y: auto;
+      flex: 1;
+      font-size: 0.88rem;
+      line-height: 1.6;
+      color: #cbd5e1;
+    }
+
+    .rule-block {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 10px;
+      padding: 14px 18px;
+      margin-bottom: 14px;
+    }
+
+    .rule-block h4 {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: #fff;
+      margin: 0 0 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .rule-block .r-num {
+      background: var(--green);
+      color: #000;
+      font-size: 0.72rem;
+      font-weight: 800;
+      min-width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .rule-block ul {
+      margin: 0 0 0 18px;
+      padding: 0;
+    }
+
+    .rule-block li {
+      margin-bottom: 6px;
+      font-size: 0.84rem;
+    }
+
+    .rule-block strong {
+      color: #fff;
+    }
+
+    .terms-link-box {
+      background: rgba(56, 189, 248, 0.08);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-top: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .terms-link-box a {
+      color: #38bdf8;
+      font-weight: 700;
+      text-decoration: none;
+      font-size: 0.84rem;
+    }
+
+    .terms-link-box a:hover {
+      text-decoration: underline;
+    }
+
+    .rules-modal-footer {
+      background: #0d1017;
+      border-top: 1px solid var(--border);
+      padding: 16px 28px;
+    }
+
+    .agreement-label {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      cursor: pointer;
+      background: rgba(34, 197, 94, 0.06);
+      border: 1.5px solid rgba(34, 197, 94, 0.25);
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 14px;
+      transition: all 0.2s;
+    }
+
+    .agreement-label:hover {
+      border-color: var(--green);
+      background: rgba(34, 197, 94, 0.1);
+    }
+
+    .agreement-label input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      accent-color: #22c55e;
+      margin-top: 2px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .agreement-label .checkbox-text {
+      font-size: 0.82rem;
+      color: #f1f5f9;
+      line-height: 1.45;
+    }
+
+    .rules-action-btns {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+  </style>
+
+  <!-- ═══════ Pre-Exam Rules & Disclaimer Modal (Mandatory Gate) ═══════ -->
+  <div id="rulesDisclaimerModal" class="rules-modal-overlay">
+    <div class="rules-modal-card">
+      <div class="rules-modal-header">
+        <div class="rules-badge">⚠️ MANDATORY EXAMINATION INSTRUCTIONS &bull; CONDUCTED BY EXAM PRO</div>
+        <h1>TECHNICAL EXAMINATION RULES &amp; REGULATIONS</h1>
+        <div class="rules-company">Conducted by Exam Pro &bull; Exam Pro</div>
+        <p class="rules-intro">
+          This examination is conducted and proctored by <strong>Exam Pro</strong> on behalf of <strong>Exam
+            Pro</strong> All candidates must carefully read and agree to the following rules before starting the online
+          technical examination.
+        </p>
+
+        <div class="rules-test-pills">
+          <span>🏢 <strong>Exam Pro</strong> Assessment</span>
+          <span>⏱️ <strong>
+              <%= test.duration %> Mins
+            </strong> Time Limit</span>
+          <span>❓ <strong>
+              <%= totalQuestions %>
+            </strong> Questions</span>
+          <span>🏆 <strong>
+              <%= totalMarks %>
+            </strong> Total Marks</span>
+          <span>📚 <strong>
+              <%= test.course %>
+            </strong></span>
         </div>
       </div>
 
-      <!-- Link to full Terms & Conditions -->
-      <div class="terms-link-box">
-        <span>📄 Complete Legal Terms:</span>
-        <a href="/terms" target="_blank" rel="noopener noreferrer">
-          Read Exam Pro Terms &amp; Conditions ↗
-        </a>
-      </div>
-    </div>
-
-    <!-- Mandatory Agreement Checkbox & Actions Footer -->
-    <div class="rules-modal-footer">
-      <label class="agreement-label" for="agreeRulesCheckbox">
-        <input type="checkbox" id="agreeRulesCheckbox" onchange="handleAgreeCheckbox(this)">
-        <span class="checkbox-text">
-          I confirm that I have read, understood, and agree to the <strong>Technical Examination Rules &amp; Regulations</strong> and <strong>Exam Pro Terms &amp; Conditions</strong>. I confirm I will take this test independently without unauthorized assistance, tab switching, or AI tools.
-        </span>
-      </label>
-
-      <div class="rules-action-btns">
-        <a href="/student/dashboard" class="btn btn-outline" onclick="return confirm('Cancel and return to dashboard?');">
-          ← Cancel &amp; Exit
-        </a>
-        <button type="button" class="btn btn-primary btn-lg" id="startExamConfirmedBtn" disabled onclick="beginExamSession()">
-          🚀 I Agree &amp; Start Examination (<%= test.duration %> Mins)
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ═══════ Assessment Container (Protected until agreed) ═══════ -->
-<div id="examContentContainer" style="min-height: 100vh; position: relative; z-index: 1; filter: blur(8px); pointer-events: none; opacity: 0.22; user-select: none; transition: filter 0.3s ease, opacity 0.3s ease;">
-
-  <!-- ═══════ Top bar ═══════ -->
-  <div class="test-topbar">
-    <div class="test-info">
-      <div class="brand" style="font-size: 1.05rem;">
-        <div class="brand-dot"></div>
-        ICUBE <span>Assessment</span>
-      </div>
-      <div style="border-left: 1px solid var(--border); padding-left: 14px;">
-        <h2><%= test.title %></h2>
-        <p><%= test.course %> &bull; <%= totalQuestions %> Questions &bull; <%= totalMarks %> Marks</p>
-      </div>
-    </div>
-    <div class="test-progress">
-      <span id="progressText">0 / <%= totalQuestions %></span>
-      <div class="progress-bar">
-        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
-      </div>
-    </div>
-    <div class="test-timer" id="timer">
-      <span>⏱️</span>
-      <span id="timerDisplay"><%= test.duration %>:00</span>
-    </div>
-  </div>
-
-  <!-- ═══════ Sub-test tabs ═══════ -->
-  <% if (sections.length > 1) { %>
-  <div class="section-tabs">
-    <% sections.forEach((sec, si) => { %>
-      <div class="section-tab <%= si === 0 ? 'active' : '' %>"
-           data-section="<%= si %>" onclick="switchSection(<%= si %>)">
-        <% if (sec.type === 'code') { %>
-          <span class="tab-type code">💻 Code</span>
-        <% } else if (sec.type === 'mixed') { %>
-          <span class="tab-type mixed">🔀 Mixed</span>
-        <% } else { %>
-          <span class="tab-type mcq">📋 MCQ</span>
-        <% } %>
-        <%= sec.name %>
-        <span class="tab-badge"><%= sec.questions.length %> Q</span>
-      </div>
-    <% }) %>
-  </div>
-  <% } %>
-
-  <!-- ═══════ Test Form ═══════ -->
-  <form action="/student/test/<%= test._id %>/submit" method="POST" id="testForm">
-    <input type="hidden" name="timeTaken" id="timeTaken" value="0">
-
-    <% let globalIdx = 0; %>
-    <% sections.forEach((sec, si) => { %>
-      <div class="section-panel <%= si === 0 ? 'active' : '' %>" id="sectionPanel-<%= si %>">
-
-        <% if (sec.description) { %>
-          <p style="color: var(--text-muted); font-size: 0.86rem; margin-bottom: 22px; line-height: 1.5;"><%= sec.description %></p>
-        <% } %>
-
-        <% sec.questions.forEach((q, qi) => { globalIdx++; %>
-          <div class="question-card">
-            <div class="question-header">
-              <span class="question-number"><%= globalIdx %></span>
-              <span class="question-text"><%= q.questionText || 'Refer to the question image below:' %></span>
-              <span class="question-marks"><%= q.marks || 1 %> mark<%= (q.marks || 1) > 1 ? 's' : '' %></span>
-            </div>
-
-            <% if (q.imageUrl) { %>
-              <div class="question-image-box" style="margin: 12px 0 18px 0; background: rgba(0,0,0,0.35); border: 1px solid var(--border); border-radius: 10px; padding: 14px; text-align: center;">
-                <div style="font-size: 0.76rem; color: var(--text-muted); margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between;">
-                  <span>🖼️ Question Image</span>
-                  <a href="<%= q.imageUrl %>" target="_blank" style="color: var(--green); text-decoration: none; font-size: 0.74rem;">🔍 Open Full Image ↗</a>
-                </div>
-                <a href="<%= q.imageUrl %>" target="_blank" title="Click to view full image in a new tab">
-                  <img src="<%= q.imageUrl %>" alt="Question Image" style="max-width: 100%; max-height: 420px; object-fit: contain; border-radius: 6px; box-shadow: 0 4px 14px rgba(0,0,0,0.4); transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.01)'" onmouseout="this.style.transform='scale(1)'">
-                </a>
-              </div>
-            <% } %>
-
-            <% if (sec.type === 'code' || sec.type === 'coding' || q.type === 'code' || q.type === 'coding') { %>
-              <!-- Coding question: textarea -->
-              <div>
-                <div class="code-label" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-                  <span style="font-weight: 600; color: #38bdf8;">💻 Write your solution / code below</span>
-                  <span style="font-size: 0.74rem; color: var(--text-muted); background: rgba(255,255,255,0.06); padding: 2px 8px; border-radius: 4px;">Tab indentation supported</span>
-                </div>
-                <textarea class="code-answer-area"
-                          name="q_<%= q._id %>"
-                          placeholder="// Type your answer or solution code here...&#10;// Tab key inserts indentation"
-                          spellcheck="false"
-                          autocomplete="off"
-                          autocapitalize="off"
-                          oninput="updateProgress()"></textarea>
-              </div>
-            <% } else { %>
-              <!-- MCQ question: radio buttons -->
-              <div class="mcq-options">
-                <div>
-                  <input type="radio" name="q_<%= q._id %>" value="A" id="q_<%= q._id %>_A" class="mcq-option" onchange="updateProgress()">
-                  <label for="q_<%= q._id %>_A" class="mcq-label">
-                    <span class="mcq-marker">A</span>
-                    <span><%= q.optionA %></span>
-                  </label>
-                </div>
-                <div>
-                  <input type="radio" name="q_<%= q._id %>" value="B" id="q_<%= q._id %>_B" class="mcq-option" onchange="updateProgress()">
-                  <label for="q_<%= q._id %>_B" class="mcq-label">
-                    <span class="mcq-marker">B</span>
-                    <span><%= q.optionB %></span>
-                  </label>
-                </div>
-                <div>
-                  <input type="radio" name="q_<%= q._id %>" value="C" id="q_<%= q._id %>_C" class="mcq-option" onchange="updateProgress()">
-                  <label for="q_<%= q._id %>_C" class="mcq-label">
-                    <span class="mcq-marker">C</span>
-                    <span><%= q.optionC %></span>
-                  </label>
-                </div>
-                <div>
-                  <input type="radio" name="q_<%= q._id %>" value="D" id="q_<%= q._id %>_D" class="mcq-option" onchange="updateProgress()">
-                  <label for="q_<%= q._id %>_D" class="mcq-label">
-                    <span class="mcq-marker">D</span>
-                    <span><%= q.optionD %></span>
-                  </label>
-                </div>
-              </div>
-            <% } %>
+      <div class="rules-modal-body">
+        <!-- MANDATORY CRITICAL DISCLAIMER: INTERVIEW QUALIFICATION & CODE QUALITY -->
+        <div
+          style="background: rgba(245, 158, 11, 0.12); border: 1.5px solid rgba(245, 158, 11, 0.45); border-radius: 12px; padding: 16px 20px; margin-bottom: 18px;">
+          <div
+            style="display: flex; align-items: center; gap: 8px; color: #fbbf24; font-weight: 800; font-size: 0.92rem; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.04em;">
+            <span>⚠️</span> Important Disclaimer &bull; Interview Qualification Criteria
           </div>
-        <% }) %>
+          <p style="color: #fef08a; font-size: 0.9rem; line-height: 1.5; margin: 0 0 8px; font-weight: 800;">
+            Exam dili ani pass zala yacha mean asa nahi ki interview sathi qualify hoil. (Appearing for the exam and
+            passing it does NOT automatically qualify you for the interview).
+          </p>
+          <p style="color: #e2e8f0; font-size: 0.84rem; line-height: 1.55; margin: 0;">
+            To qualify for the technical interview, <strong>your code quality must be optimized, efficient, and
+              well-structured</strong>. Our recruitment panel manually evaluates every submitted answer and code
+            implementation. Candidates with unoptimized, inefficient, or brute-force code will not be qualified for the
+            interview, regardless of their test score.
+          </p>
+        </div>
 
+        <!-- 1. Examination Fee & Refund Policy -->
+        <div class="rule-block">
+          <h4><span class="r-num">1</span> Examination Fee &amp; Refund Policy</h4>
+          <ul>
+            <li>The examination fee is <strong>strictly non-refundable</strong>, regardless of whether the candidate
+              passes or fails the examination.</li>
+            <li>No refund will be provided if a candidate abandons, cancels, interrupts, or forcefully closes the
+              examination after starting it.</li>
+            <li>If a candidate needs to retake the examination following a forceful closure or an invalid attempt, a new
+              examination fee must be paid.</li>
+          </ul>
+        </div>
+
+        <!-- 2. Tab Switching & Window Restrictions -->
+        <div class="rule-block">
+          <h4><span class="r-num">2</span> Tab Switching &amp; Window Restrictions</h4>
+          <ul>
+            <li>Switching browser tabs, opening other applications, minimizing the examination window, or refreshing the
+              page is strictly prohibited during the examination.</li>
+            <li>Such activities may be recorded in the examination logs and considered during final evaluation.</li>
+            <li>Candidates must remain on the examination page until the examination is completed and submitted.</li>
+          </ul>
+        </div>
+
+        <!-- 3. Camera Monitoring & Candidate Verification -->
+        <div class="rule-block">
+          <h4><span class="r-num">3</span> Camera Monitoring &amp; Candidate Verification</h4>
+          <ul>
+            <li>The candidate must remain visible in the camera throughout the examination, wherever camera monitoring
+              is enabled.</li>
+            <li>If another person appears in the camera frame, or the candidate leaves the camera view, the incident may
+              be recorded and considered during final evaluation.</li>
+            <li>Candidates must not allow another person to assist them or take the examination on their behalf.</li>
+            <li>These activities may be considered violations even if no immediate warning is displayed.</li>
+          </ul>
+        </div>
+
+        <!-- 4. Code Copying & AI Usage -->
+        <div class="rule-block">
+          <h4><span class="r-num">4</span> Code Copying &amp; AI Usage</h4>
+          <ul>
+            <li>Copying code from external websites, online repositories, messaging applications, or other unauthorized
+              sources is strictly prohibited.</li>
+            <li>Using AI tools such as ChatGPT, GitHub Copilot, Gemini, or other AI assistants to generate answers or
+              code during the examination is not permitted.</li>
+            <li>Candidates must write their own code and submit original work.</li>
+            <li>Plagiarism, unauthorized collaboration, or the use of external assistance may result in
+              disqualification.</li>
+          </ul>
+        </div>
+
+        <!-- 5. Forceful Closure & Auto-Submission -->
+        <div class="rule-block">
+          <h4><span class="r-num">5</span> Forceful Closure &amp; Auto-Submission</h4>
+          <ul>
+            <li>Once the examination has started, forcefully closing the browser, closing the examination window, or
+              terminating the examination session may trigger automatic submission.</li>
+            <li>After auto-submission, the candidate may not be able to resume the same attempt.</li>
+            <li>A new attempt, if permitted, may require payment of the examination fee again.</li>
+            <li>Candidates are responsible for ensuring that their device and browser remain operational throughout the
+              examination.</li>
+          </ul>
+        </div>
+
+        <!-- 6. Refreshing & Technical Interruptions -->
+        <div class="rule-block">
+          <h4><span class="r-num">6</span> Refreshing &amp; Technical Interruptions</h4>
+          <ul>
+            <li>Refreshing the examination page, navigating away from the portal, or minimizing the examination window
+              is strictly prohibited.</li>
+            <li>Candidates must not attempt to bypass examination restrictions or monitoring mechanisms.</li>
+            <li>Candidates experiencing a genuine technical issue should contact the designated examination support team
+              immediately, without repeatedly refreshing or restarting the examination.</li>
+          </ul>
+        </div>
+
+        <!-- 7. Time Limit & Submission -->
+        <div class="rule-block">
+          <h4><span class="r-num">7</span> Time Limit &amp; Submission</h4>
+          <ul>
+            <li>Candidates must complete and submit the examination within the allotted time.</li>
+            <li>The examination may be submitted automatically when the timer expires.</li>
+            <li>Candidates should review their answers before final submission, where the portal permits it.</li>
+            <li>Once submitted, answers may not be editable.</li>
+          </ul>
+        </div>
+
+        <!-- 8. Internet & Device Responsibility -->
+        <div class="rule-block">
+          <h4><span class="r-num">8</span> Internet &amp; Device Responsibility</h4>
+          <ul>
+            <li>Candidates must ensure a stable internet connection, a working device, and a compatible browser before
+              starting.</li>
+            <li>Camera and other required permissions must be enabled before the examination begins.</li>
+            <li>Candidates should close unnecessary applications and disable notifications before starting the test.
+            </li>
+            <li>Any interruption caused by the candidate's device, internet connection, or unauthorized actions may
+              affect the examination attempt.</li>
+          </ul>
+        </div>
+
+        <!-- 9. Code Optimization, Examination Integrity & Interview Qualification -->
+        <div class="rule-block">
+          <h4><span class="r-num">9</span> Code Optimization, Examination Integrity &amp; Interview Qualification</h4>
+          <ul>
+            <li><strong>No Automatic Interview Qualification:</strong> Passing the assessment or securing passing marks
+              does <strong>NOT</strong> mean the candidate is qualified or shortlisted for the interview.</li>
+            <li><strong>Mandatory Code Optimization:</strong> For interview qualification, candidates must submit
+              <strong>optimized, high-quality, and clean code</strong>. Recruiters manually evaluate algorithm
+              efficiency, time &amp; space complexity, clean code architecture, and problem-solving logic.</li>
+            <li>All examination activities, including tab switching, window minimization, suspicious behavior,
+              camera-related incidents, and submission events, are logged and monitored by Exam Pro where supported by
+              the portal.</li>
+            <li>Recorded violations and code quality will be reviewed during final evaluation by Exam Pro and the
+              recruiting assessment committee, even if no immediate warning appears on the screen.</li>
+            <li>Exam Pro and the recruiting company reserve the right to verify submitted answers and code for
+              originality, optimization, and technical depth.</li>
+          </ul>
+        </div>
+
+        <!-- 10. Final Acknowledgment -->
+        <div class="rule-block" style="border-bottom: none; margin-bottom: 0;">
+          <h4><span class="r-num">10</span> Final Acknowledgment</h4>
+          <p>By starting the examination, the candidate confirms that they have read, understood, and agreed to these
+            rules, regulations, code optimization requirements, and proctoring conditions.</p>
+          <p>Candidates are expected to maintain professional conduct, complete the examination independently, write
+            optimized code, and follow all examination instructions.</p>
+          <div
+            style="margin-top: 10px; font-size: 0.82rem; color: #94a3b8; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+            <div>
+              <strong>Conducted by: Exam Pro</strong><br>
+              <em>Online Examination &amp; Assessment Authority</em>
+            </div>
+            <div style="text-align: right;">
+              <strong>Exam Pro</strong><br>
+              <em>Recruitment &amp; Technical Assessment Division</em>
+            </div>
+          </div>
+        </div>
+
+        <!-- Link to full Terms & Conditions -->
+        <div class="terms-link-box">
+          <span>📄 Complete Legal Terms &amp; Policies:</span>
+          <a href="/terms" target="_blank" rel="noopener noreferrer">
+            Read Exam Pro Terms &amp; Conditions ↗
+          </a>
+        </div>
       </div>
-    <% }) %>
 
-    <div class="submit-area">
-      <button type="submit" class="btn btn-primary btn-lg" id="submitBtn" onclick="return confirmSubmit()">
-        📤 Submit Test for Manual Verification
-      </button>
+      <!-- Mandatory Agreement Checkbox & Actions Footer -->
+      <div class="rules-modal-footer">
+        <label class="agreement-label" for="agreeRulesCheckbox">
+          <input type="checkbox" id="agreeRulesCheckbox" onchange="handleAgreeCheckbox(this)">
+          <span class="checkbox-text">
+            I confirm that I have read, understood, and agree to the <strong>Technical Examination Rules &amp;
+              Regulations</strong> and <strong>Exam Pro Terms &amp; Conditions</strong>. I specifically acknowledge that
+            <strong>giving the exam and passing it does NOT mean I am automatically qualified for the
+              interview</strong>, and that <strong>interview qualification strictly requires optimized, high-quality
+              code</strong> evaluated manually by the technical team.
+          </span>
+        </label>
+
+        <div class="rules-action-btns">
+          <a href="/student/dashboard" class="btn btn-outline"
+            onclick="return confirm('Cancel and return to dashboard?');">
+            ← Cancel &amp; Exit
+          </a>
+          <button type="button" class="btn btn-primary btn-lg" id="startExamConfirmedBtn" disabled
+            onclick="beginExamSession()">
+            🚀 I Agree &amp; Start Exam Pro Assessment (<%= test.duration %> Mins)
+          </button>
+        </div>
+      </div>
     </div>
-  </form>
-</div>
-</div> <!-- Close #examContentContainer -->
+  </div>
 
-<script>
-// ── Pre-Exam Gate State ──
-window.examActive = false;
-document.body.style.overflow = 'hidden';
+  <!-- ═══════ Assessment Container (Protected until agreed) ═══════ -->
+  <div id="examContentContainer"
+    style="min-height: 100vh; position: relative; z-index: 1; filter: blur(8px); pointer-events: none; opacity: 0.22; user-select: none; transition: filter 0.3s ease, opacity 0.3s ease;">
 
-function handleAgreeCheckbox(cb) {
-  const btn = document.getElementById('startExamConfirmedBtn');
-  if (btn) {
-    btn.disabled = !cb.checked;
-    if (cb.checked) {
-      btn.style.boxShadow = '0 0 28px rgba(34, 197, 94, 0.5)';
-      btn.style.cursor = 'pointer';
-    } else {
-      btn.style.boxShadow = 'none';
-      btn.style.cursor = 'not-allowed';
+    <!-- ═══════ Top bar ═══════ -->
+    <div class="test-topbar">
+      <div class="test-info">
+        <div class="brand" style="font-size: 1.05rem;">
+          <div class="brand-dot"></div>
+          Exam Pro <span>Assessment</span>
+        </div>
+        <div style="border-left: 1px solid var(--border); padding-left: 14px;">
+          <h2>
+            <%= test.title %>
+          </h2>
+          <p>Conducted by Exam Pro &bull; <%= test.course %> &bull; <%= totalQuestions %> Questions &bull; <%=
+                  totalMarks %> Marks</p>
+        </div>
+      </div>
+      <div class="test-progress">
+        <span id="progressText">0 / <%= totalQuestions %></span>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+        </div>
+      </div>
+      <div class="test-timer" id="timer">
+        <span>⏱️</span>
+        <span id="timerDisplay">
+          <%= test.duration %>:00
+        </span>
+      </div>
+    </div>
+
+    <!-- ═══════ Sub-test tabs ═══════ -->
+    <% if (sections.length> 1) { %>
+      <div class="section-tabs">
+        <% sections.forEach((sec, si)=> { %>
+          <div class="section-tab <%= si === 0 ? 'active' : '' %>" data-section="<%= si %>"
+            onclick="switchSection(<%= si %>)">
+            <% if (sec.type==='code' ) { %>
+              <span class="tab-type code">💻 Code</span>
+              <% } else if (sec.type==='mixed' ) { %>
+                <span class="tab-type mixed">🔀 Mixed</span>
+                <% } else { %>
+                  <span class="tab-type mcq">📋 MCQ</span>
+                  <% } %>
+                    <%= sec.name %>
+                      <span class="tab-badge">
+                        <%= sec.questions.length %> Q
+                      </span>
+          </div>
+          <% }) %>
+      </div>
+      <% } %>
+
+        <!-- ═══════ Test Form ═══════ -->
+        <form action="/student/test/<%= test._id %>/submit" method="POST" id="testForm">
+          <input type="hidden" name="timeTaken" id="timeTaken" value="0">
+
+          <% let globalIdx=0; %>
+            <% sections.forEach((sec, si)=> { %>
+              <div class="section-panel <%= si === 0 ? 'active' : '' %>" id="sectionPanel-<%= si %>">
+
+                <% if (sec.description) { %>
+                  <p style="color: var(--text-muted); font-size: 0.86rem; margin-bottom: 22px; line-height: 1.5;">
+                    <%= sec.description %>
+                  </p>
+                  <% } %>
+
+                    <% sec.questions.forEach((q, qi)=> { globalIdx++; %>
+                      <div class="question-card">
+                        <div class="question-header">
+                          <span class="question-number">
+                            <%= globalIdx %>
+                          </span>
+                          <span class="question-text">
+                            <%= q.questionText || 'Refer to the question image below:' %>
+                          </span>
+                          <span class="question-marks">
+                            <%= q.marks || 1 %> mark<%= (q.marks || 1)> 1 ? 's' : '' %>
+                          </span>
+                        </div>
+
+                        <% if (q.imageUrl) { %>
+                          <div class="question-image-box"
+                            style="margin: 12px 0 18px 0; background: rgba(0,0,0,0.35); border: 1px solid var(--border); border-radius: 10px; padding: 14px; text-align: center;">
+                            <div
+                              style="font-size: 0.76rem; color: var(--text-muted); margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between;">
+                              <span>🖼️ Question Image</span>
+                              <a href="<%= q.imageUrl %>" target="_blank"
+                                style="color: var(--green); text-decoration: none; font-size: 0.74rem;">🔍 Open Full
+                                Image ↗</a>
+                            </div>
+                            <a href="<%= q.imageUrl %>" target="_blank" title="Click to view full image in a new tab">
+                              <img src="<%= q.imageUrl %>" alt="Question Image"
+                                style="max-width: 100%; max-height: 420px; object-fit: contain; border-radius: 6px; box-shadow: 0 4px 14px rgba(0,0,0,0.4); transition: transform 0.2s;"
+                                onmouseover="this.style.transform='scale(1.01)'"
+                                onmouseout="this.style.transform='scale(1)'">
+                            </a>
+                          </div>
+                          <% } %>
+
+                            <% if (sec.type==='code' || sec.type==='coding' || q.type==='code' || q.type==='coding' ) {
+                              %>
+                              <!-- Coding question: textarea -->
+                              <div>
+                                <div class="code-label"
+                                  style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                                  <span style="font-weight: 600; color: #38bdf8;">💻 Write your solution / code
+                                    below</span>
+                                  <span
+                                    style="font-size: 0.74rem; color: var(--text-muted); background: rgba(255,255,255,0.06); padding: 2px 8px; border-radius: 4px;">Tab
+                                    indentation supported</span>
+                                </div>
+                                <textarea class="code-answer-area" name="q_<%= q._id %>"
+                                  placeholder="// Type your answer or solution code here...&#10;// Tab key inserts indentation"
+                                  spellcheck="false" autocomplete="off" autocapitalize="off"
+                                  oninput="updateProgress()"></textarea>
+                              </div>
+                              <% } else { %>
+                                <!-- MCQ question: radio buttons -->
+                                <div class="mcq-options">
+                                  <div>
+                                    <input type="radio" name="q_<%= q._id %>" value="A" id="q_<%= q._id %>_A"
+                                      class="mcq-option" onchange="updateProgress()">
+                                    <label for="q_<%= q._id %>_A" class="mcq-label">
+                                      <span class="mcq-marker">A</span>
+                                      <span>
+                                        <%= q.optionA %>
+                                      </span>
+                                    </label>
+                                  </div>
+                                  <div>
+                                    <input type="radio" name="q_<%= q._id %>" value="B" id="q_<%= q._id %>_B"
+                                      class="mcq-option" onchange="updateProgress()">
+                                    <label for="q_<%= q._id %>_B" class="mcq-label">
+                                      <span class="mcq-marker">B</span>
+                                      <span>
+                                        <%= q.optionB %>
+                                      </span>
+                                    </label>
+                                  </div>
+                                  <div>
+                                    <input type="radio" name="q_<%= q._id %>" value="C" id="q_<%= q._id %>_C"
+                                      class="mcq-option" onchange="updateProgress()">
+                                    <label for="q_<%= q._id %>_C" class="mcq-label">
+                                      <span class="mcq-marker">C</span>
+                                      <span>
+                                        <%= q.optionC %>
+                                      </span>
+                                    </label>
+                                  </div>
+                                  <div>
+                                    <input type="radio" name="q_<%= q._id %>" value="D" id="q_<%= q._id %>_D"
+                                      class="mcq-option" onchange="updateProgress()">
+                                    <label for="q_<%= q._id %>_D" class="mcq-label">
+                                      <span class="mcq-marker">D</span>
+                                      <span>
+                                        <%= q.optionD %>
+                                      </span>
+                                    </label>
+                                  </div>
+                                </div>
+                                <% } %>
+                      </div>
+                      <% }) %>
+
+              </div>
+              <% }) %>
+
+                <div class="submit-area">
+                  <button type="submit" class="btn btn-primary btn-lg" id="submitBtn" onclick="return confirmSubmit()">
+                    📤 Submit Test for Manual Verification
+                  </button>
+                </div>
+        </form>
+  </div>
+  </div> <!-- Close #examContentContainer -->
+
+  <script>
+    // ── Pre-Exam Gate State ──
+    window.examActive = false;
+    document.body.style.overflow = 'hidden';
+
+    function handleAgreeCheckbox(cb) {
+      const btn = document.getElementById('startExamConfirmedBtn');
+      if (btn) {
+        btn.disabled = !cb.checked;
+        if (cb.checked) {
+          btn.style.boxShadow = '0 0 28px rgba(34, 197, 94, 0.5)';
+          btn.style.cursor = 'pointer';
+        } else {
+          btn.style.boxShadow = 'none';
+          btn.style.cursor = 'not-allowed';
+        }
+      }
     }
-  }
-}
 
-function beginExamSession() {
-  const cb = document.getElementById('agreeRulesCheckbox');
-  if (!cb || !cb.checked) {
-    alert('⚠️ You must read and tick the acknowledgment to agree to the Technical Examination Rules & Regulations before starting the exam.');
-    return;
-  }
+    function beginExamSession() {
+      const cb = document.getElementById('agreeRulesCheckbox');
+      if (!cb || !cb.checked) {
+        alert('⚠️ You must read and tick the acknowledgment to agree to the Technical Examination Rules & Regulations before starting the exam.');
+        return;
+      }
 
-  const modal = document.getElementById('rulesDisclaimerModal');
-  if (modal) modal.style.display = 'none';
+      const modal = document.getElementById('rulesDisclaimerModal');
+      if (modal) modal.style.display = 'none';
 
-  const container = document.getElementById('examContentContainer');
-  if (container) {
-    container.style.filter = 'none';
-    container.style.pointerEvents = 'auto';
-    container.style.opacity = '1';
-    container.style.userSelect = 'auto';
-  }
+      const container = document.getElementById('examContentContainer');
+      if (container) {
+        container.style.filter = 'none';
+        container.style.pointerEvents = 'auto';
+        container.style.opacity = '1';
+        container.style.userSelect = 'auto';
+      }
 
-  document.body.style.overflow = 'auto';
-  window.examActive = true;
+      document.body.style.overflow = 'auto';
+      window.examActive = true;
 
-  // Start the countdown timer now
-  if (!timerInterval) {
-    timerInterval = setInterval(updateTimer, 1000);
-  }
+      // Start the countdown timer now
+      if (!timerInterval) {
+        timerInterval = setInterval(updateTimer, 1000);
+      }
 
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-// ── Section tab switching ──
-function switchSection(idx) {
-  document.querySelectorAll('.section-panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.section-tab').forEach(t => t.classList.remove('active'));
-  const targetPanel = document.getElementById('sectionPanel-' + idx);
-  if (targetPanel) targetPanel.classList.add('active');
-  const targetTab = document.querySelector('.section-tab[data-section="' + idx + '"]');
-  if (targetTab) targetTab.classList.add('active');
-}
-
-// ── Timer (Starts ONLY upon agreement and start) ──
-const totalSeconds = <%= test.duration %> * 60;
-let remainingSeconds = totalSeconds;
-let elapsedSeconds = 0;
-let timerInterval = null;
-
-function updateTimer() {
-  const minutes = Math.floor(remainingSeconds / 60);
-  const seconds = remainingSeconds % 60;
-  const display = document.getElementById('timerDisplay');
-  const timer = document.getElementById('timer');
-
-  if (display) {
-    display.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-  }
-
-  if (timer) {
-    if (remainingSeconds <= 60) {
-      timer.className = 'test-timer danger';
-    } else if (remainingSeconds <= 300) {
-      timer.className = 'test-timer warning';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-  }
 
-  if (remainingSeconds <= 0) {
-    if (timerInterval) clearInterval(timerInterval);
-    document.getElementById('timeTaken').value = elapsedSeconds;
-    alert('⏰ Time is up! Your test will be submitted automatically.');
-    document.getElementById('testForm').submit();
-    return;
-  }
+    // ── Section tab switching ──
+    function switchSection(idx) {
+      document.querySelectorAll('.section-panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.section-tab').forEach(t => t.classList.remove('active'));
+      const targetPanel = document.getElementById('sectionPanel-' + idx);
+      if (targetPanel) targetPanel.classList.add('active');
+      const targetTab = document.querySelector('.section-tab[data-section="' + idx + '"]');
+      if (targetTab) targetTab.classList.add('active');
+    }
 
-  remainingSeconds--;
-  elapsedSeconds++;
-  document.getElementById('timeTaken').value = elapsedSeconds;
-}
+    // ── Timer (Starts ONLY upon agreement and start) ──
+    const totalSeconds = <%= test.duration %> * 60;
+    let remainingSeconds = totalSeconds;
+    let elapsedSeconds = 0;
+    let timerInterval = null;
 
-// ── Progress tracking ──
-const totalQuestions = <%= totalQuestions %>;
+    function updateTimer() {
+      const minutes = Math.floor(remainingSeconds / 60);
+      const seconds = remainingSeconds % 60;
+      const display = document.getElementById('timerDisplay');
+      const timer = document.getElementById('timer');
 
-function updateProgress() {
-  const mcqAnswered = document.querySelectorAll('.mcq-option:checked').length;
-  const codeAnswered = Array.from(document.querySelectorAll('.code-answer-area'))
-    .filter(ta => ta.value.trim().length > 0).length;
-  const answered = mcqAnswered + codeAnswered;
+      if (display) {
+        display.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+      }
 
-  const progressText = document.getElementById('progressText');
-  const progressFill = document.getElementById('progressFill');
-  if (progressText) progressText.textContent = `${answered} / ${totalQuestions}`;
-  if (progressFill) progressFill.style.width = `${(answered / totalQuestions) * 100}%`;
-}
+      if (timer) {
+        if (remainingSeconds <= 60) {
+          timer.className = 'test-timer danger';
+        } else if (remainingSeconds <= 300) {
+          timer.className = 'test-timer warning';
+        }
+      }
 
-function confirmSubmit() {
-  if (!window.examActive) return false;
+      if (remainingSeconds <= 0) {
+        if (timerInterval) clearInterval(timerInterval);
+        document.getElementById('timeTaken').value = elapsedSeconds;
+        alert('⏰ Time is up! Your test will be submitted automatically.');
+        document.getElementById('testForm').submit();
+        return;
+      }
 
-  const mcqAnswered = document.querySelectorAll('.mcq-option:checked').length;
-  const codeAnswered = Array.from(document.querySelectorAll('.code-answer-area'))
-    .filter(ta => ta.value.trim().length > 0).length;
-  const answered = mcqAnswered + codeAnswered;
-  const unanswered = totalQuestions - answered;
+      remainingSeconds--;
+      elapsedSeconds++;
+      document.getElementById('timeTaken').value = elapsedSeconds;
+    }
 
-  if (unanswered > 0) {
-    return confirm(`You have ${unanswered} unanswered question(s). Are you sure you want to submit for recruiter review?`);
-  }
-  return confirm('Are you sure you want to submit your assessment?');
-}
+    // ── Progress tracking ──
+    const totalQuestions = <%= totalQuestions %>;
 
-// ── Code textarea Tab indentation support ──
-document.querySelectorAll('.code-answer-area').forEach(ta => {
-  ta.addEventListener('keydown', function(e) {
-    if (e.key === 'Tab') {
+    function updateProgress() {
+      const mcqAnswered = document.querySelectorAll('.mcq-option:checked').length;
+      const codeAnswered = Array.from(document.querySelectorAll('.code-answer-area'))
+        .filter(ta => ta.value.trim().length > 0).length;
+      const answered = mcqAnswered + codeAnswered;
+
+      const progressText = document.getElementById('progressText');
+      const progressFill = document.getElementById('progressFill');
+      if (progressText) progressText.textContent = `${answered} / ${totalQuestions}`;
+      if (progressFill) progressFill.style.width = `${(answered / totalQuestions) * 100}%`;
+    }
+
+    function confirmSubmit() {
+      if (!window.examActive) return false;
+
+      const mcqAnswered = document.querySelectorAll('.mcq-option:checked').length;
+      const codeAnswered = Array.from(document.querySelectorAll('.code-answer-area'))
+        .filter(ta => ta.value.trim().length > 0).length;
+      const answered = mcqAnswered + codeAnswered;
+      const unanswered = totalQuestions - answered;
+
+      if (unanswered > 0) {
+        return confirm(`You have ${unanswered} unanswered question(s). Are you sure you want to submit your Exam Pro assessment for recruiter review?`);
+      }
+      return confirm('Are you sure you want to submit your Exam Pro assessment?');
+    }
+
+    // ── Code textarea Tab indentation support ──
+    document.querySelectorAll('.code-answer-area').forEach(ta => {
+      ta.addEventListener('keydown', function (e) {
+        if (e.key === 'Tab') {
+          e.preventDefault();
+          const start = this.selectionStart;
+          const end = this.selectionEnd;
+          this.value = this.value.substring(0, start) + '  ' + this.value.substring(end);
+          this.selectionStart = this.selectionEnd = start + 2;
+          updateProgress();
+        }
+      });
+    });
+
+    // ── Anti‑cheat: disable right‑click, text selection and common copy shortcuts (except inside code editor) ──
+    document.addEventListener('contextmenu', e => {
+      if (!window.examActive) return;
+      if (e.target && (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT')) return;
       e.preventDefault();
-      const start = this.selectionStart;
-      const end = this.selectionEnd;
-      this.value = this.value.substring(0, start) + '  ' + this.value.substring(end);
-      this.selectionStart = this.selectionEnd = start + 2;
-      updateProgress();
-    }
-  });
-});
+    });
 
-// ── Anti‑cheat: disable right‑click, text selection and common copy shortcuts (except inside code editor) ──
-document.addEventListener('contextmenu', e => {
-  if (!window.examActive) return;
-  if (e.target && (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT')) return;
-  e.preventDefault();
-});
+    document.addEventListener('keydown', e => {
+      if (!window.examActive) return;
+      // Allow normal editing inside candidate answer fields
+      if (e.target && (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT')) {
+        return;
+      }
+      if ((e.ctrlKey || e.metaKey) && ['c', 'v', 'x', 'a'].includes(e.key.toLowerCase())) {
+        e.preventDefault();
+      }
+    });
 
-document.addEventListener('keydown', e => {
-  if (!window.examActive) return;
-  // Allow normal editing inside candidate answer fields
-  if (e.target && (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT')) {
-    return;
-  }
-  if ((e.ctrlKey || e.metaKey) && ['c','v','x','a'].includes(e.key.toLowerCase())) {
-    e.preventDefault();
-  }
-});
+    document.querySelectorAll('.question-card').forEach(card => {
+      // Allow text selection inside code textarea
+      card.querySelectorAll('.question-header, .question-text, .mcq-options, .question-image-box').forEach(el => {
+        el.style.userSelect = 'none';
+      });
+    });
 
-document.querySelectorAll('.question-card').forEach(card => {
-  // Allow text selection inside code textarea
-  card.querySelectorAll('.question-header, .question-text, .mcq-options, .question-image-box').forEach(el => {
-    el.style.userSelect = 'none';
-  });
-});
+    window.addEventListener('beforeunload', e => {
+      if (!window.examActive) return;
+      e.preventDefault();
+      e.returnValue = 'Are you sure you want to leave? Your progress will be lost.';
+    });
 
-window.addEventListener('beforeunload', e => {
-  if (!window.examActive) return;
-  e.preventDefault();
-  e.returnValue = 'Are you sure you want to leave? Your progress will be lost.';
-});
+    document.getElementById('testForm').addEventListener('submit', function () {
+      window.onbeforeunload = null;
+    });
+  </script>
 
-document.getElementById('testForm').addEventListener('submit', function() {
-  window.onbeforeunload = null;
-});
-</script>
-
-<%- include('../partials/footer') %>
+  <%- include('../partials/footer') %>

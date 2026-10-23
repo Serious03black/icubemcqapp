@@ -1,417 +1,556 @@
 <%- include('partials/header') %>
 
-<style>
-  .terms-page {
-    background: #0a0a0a;
-    color: #f1f5f9;
-    min-height: 100vh;
-    padding-bottom: 80px;
-  }
-  .terms-header {
-    background: linear-gradient(180deg, rgba(34, 197, 94, 0.12) 0%, rgba(10, 10, 10, 0) 100%);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    padding: 48px 24px 36px;
-    text-align: center;
-    position: relative;
-  }
-  .terms-header h1 {
-    font-size: clamp(2rem, 3.5vw, 2.75rem);
-    font-weight: 900;
-    letter-spacing: -0.03em;
-    color: #fff;
-    margin-bottom: 8px;
-  }
-  .terms-header h1 span {
-    color: var(--green);
-  }
-  .terms-header h2 {
-    font-size: 1.25rem;
-    color: var(--text-muted);
-    font-weight: 600;
-    margin-bottom: 16px;
-  }
-  .terms-meta {
-    display: inline-flex;
-    gap: 18px;
-    flex-wrap: wrap;
-    justify-content: center;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 999px;
-    padding: 8px 20px;
-    font-size: 0.82rem;
-    color: #cbd5e1;
-  }
-  .terms-container {
-    max-width: 1100px;
-    margin: 40px auto 0;
-    padding: 0 24px;
-    display: grid;
-    grid-template-columns: 280px 1fr;
-    gap: 36px;
-    align-items: flex-start;
-  }
-  @media (max-width: 900px) {
+  <style>
+    .terms-page {
+      background: #0a0a0a;
+      color: #f1f5f9;
+      min-height: 100vh;
+      padding-bottom: 80px;
+    }
+
+    .terms-header {
+      background: linear-gradient(180deg, rgba(34, 197, 94, 0.12) 0%, rgba(10, 10, 10, 0) 100%);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 48px 24px 36px;
+      text-align: center;
+      position: relative;
+    }
+
+    .terms-header h1 {
+      font-size: clamp(2rem, 3.5vw, 2.75rem);
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+
+    .terms-header h1 span {
+      color: var(--green);
+    }
+
+    .terms-header h2 {
+      font-size: 1.25rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+
+    .terms-meta {
+      display: inline-flex;
+      gap: 18px;
+      flex-wrap: wrap;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 999px;
+      padding: 8px 20px;
+      font-size: 0.82rem;
+      color: #cbd5e1;
+    }
+
     .terms-container {
-      grid-template-columns: 1fr;
+      max-width: 1100px;
+      margin: 40px auto 0;
+      padding: 0 24px;
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 36px;
+      align-items: flex-start;
     }
+
+    @media (max-width: 900px) {
+      .terms-container {
+        grid-template-columns: 1fr;
+      }
+
+      .terms-toc {
+        display: none;
+      }
+    }
+
     .terms-toc {
-      display: none;
+      position: sticky;
+      top: 24px;
+      background: #141414;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 20px;
+      max-height: calc(100vh - 48px);
+      overflow-y: auto;
     }
-  }
-  .terms-toc {
-    position: sticky;
-    top: 24px;
-    background: #141414;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 12px;
-    padding: 20px;
-    max-height: calc(100vh - 48px);
-    overflow-y: auto;
-  }
-  .terms-toc h3 {
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--green);
-    margin-bottom: 14px;
-    font-weight: 800;
-  }
-  .terms-toc ol {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-  .terms-toc li {
-    margin-bottom: 8px;
-  }
-  .terms-toc a {
-    color: var(--text-muted);
-    text-decoration: none;
-    font-size: 0.82rem;
-    line-height: 1.4;
-    display: block;
-    padding: 4px 8px;
-    border-radius: 6px;
-    transition: all 0.2s;
-  }
-  .terms-toc a:hover {
-    color: #fff;
-    background: rgba(34, 197, 94, 0.12);
-  }
-  .terms-content {
-    background: #141414;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 14px;
-    padding: 36px 40px;
-    line-height: 1.7;
-    font-size: 0.95rem;
-    color: #cbd5e1;
-  }
-  @media (max-width: 600px) {
+
+    .terms-toc h3 {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--green);
+      margin-bottom: 14px;
+      font-weight: 800;
+    }
+
+    .terms-toc ol {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .terms-toc li {
+      margin-bottom: 8px;
+    }
+
+    .terms-toc a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.82rem;
+      line-height: 1.4;
+      display: block;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+
+    .terms-toc a:hover {
+      color: #fff;
+      background: rgba(34, 197, 94, 0.12);
+    }
+
     .terms-content {
-      padding: 24px 18px;
+      background: #141414;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 36px 40px;
+      line-height: 1.7;
+      font-size: 0.95rem;
+      color: #cbd5e1;
     }
-  }
-  .terms-intro-box {
-    background: linear-gradient(135deg, rgba(34, 197, 94, 0.14), rgba(34, 197, 94, 0.03));
-    border: 1px solid rgba(34, 197, 94, 0.3);
-    border-radius: 10px;
-    padding: 18px 22px;
-    margin-bottom: 32px;
-    color: #e2e8f0;
-  }
-  .terms-section {
-    margin-bottom: 36px;
-    padding-bottom: 28px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    scroll-margin-top: 24px;
-  }
-  .terms-section:last-child {
-    border-bottom: none;
-    margin-bottom: 0;
-    padding-bottom: 0;
-  }
-  .terms-section h3 {
-    font-size: 1.25rem;
-    font-weight: 800;
-    color: #fff;
-    margin-bottom: 14px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .terms-section h3 .sec-num {
-    background: var(--green);
-    color: #000;
-    font-size: 0.76rem;
-    font-weight: 800;
-    border-radius: 6px;
-    padding: 2px 8px;
-  }
-  .terms-section p {
-    margin-bottom: 12px;
-  }
-  .terms-section ul {
-    margin-left: 20px;
-    margin-bottom: 14px;
-  }
-  .terms-section li {
-    margin-bottom: 8px;
-  }
-  .terms-action-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 24px;
-    flex-wrap: wrap;
-    gap: 12px;
-  }
-</style>
 
-<div class="terms-page">
-  <div class="terms-header">
-    <div style="max-width: 1100px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
-      <a href="javascript:history.back()" class="btn btn-outline btn-sm">← Back</a>
-      <div style="display: flex; align-items: center; gap: 10px;">
-        <button onclick="window.print()" class="btn btn-outline btn-sm">🖨️ Print / Save PDF</button>
-        <a href="/exam" class="btn btn-primary btn-sm">Go to Assessment Portal</a>
-      </div>
-    </div>
+    @media (max-width: 600px) {
+      .terms-content {
+        padding: 24px 18px;
+      }
+    }
 
-    <h1># EXAM <span>PRO</span></h1>
-    <h2>Terms &amp; Conditions</h2>
-    <div class="terms-meta">
-      <span><strong>Effective Date:</strong> October 2026</span>
-      <span>&bull;</span>
-      <span><strong>Platform:</strong> Exam Pro</span>
-      <span>&bull;</span>
-      <span><strong>Operated by:</strong> Techminds Software India Pvt. Ltd.</span>
-    </div>
-  </div>
+    .terms-intro-box {
+      background: linear-gradient(135deg, rgba(34, 197, 94, 0.14), rgba(34, 197, 94, 0.03));
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      border-radius: 10px;
+      padding: 18px 22px;
+      margin-bottom: 32px;
+      color: #e2e8f0;
+    }
 
-  <div class="terms-container">
-    <!-- Table of Contents Sidebar -->
-    <div class="terms-toc">
-      <h3>📑 Table of Contents</h3>
-      <ol>
-        <li><a href="#sec-1">1. Eligibility &amp; Account Registration</a></li>
-        <li><a href="#sec-2">2. Examination Fees &amp; Refund Policy</a></li>
-        <li><a href="#sec-3">3. Rules &amp; Candidate Conduct</a></li>
-        <li><a href="#sec-4">4. Browser &amp; Tab Restrictions</a></li>
-        <li><a href="#sec-5">5. Camera Monitoring &amp; Verification</a></li>
-        <li><a href="#sec-6">6. Start, Interruption &amp; Auto-Submission</a></li>
-        <li><a href="#sec-7">7. Technical Requirements</a></li>
-        <li><a href="#sec-8">8. Duration, Scoring &amp; Results</a></li>
-        <li><a href="#sec-9">9. Intellectual Property</a></li>
-        <li><a href="#sec-10">10. Privacy &amp; Monitoring Data</a></li>
-        <li><a href="#sec-11">11. Suspension &amp; Disqualification</a></li>
-        <li><a href="#sec-12">12. Platform Availability</a></li>
-        <li><a href="#sec-13">13. Limitation of Liability</a></li>
-        <li><a href="#sec-14">14. Third-Party Services</a></li>
-        <li><a href="#sec-15">15. Governing Law &amp; Disputes</a></li>
-        <li><a href="#sec-16">16. Contact Information</a></li>
-        <li><a href="#sec-17">17. Acknowledgment &amp; Consent</a></li>
-      </ol>
-    </div>
+    .terms-section {
+      margin-bottom: 36px;
+      padding-bottom: 28px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      scroll-margin-top: 24px;
+    }
 
-    <!-- Main Content -->
-    <div class="terms-content">
-      <div class="terms-intro-box">
-        <p style="margin-bottom: 10px;">
-          Welcome to <strong>Exam Pro</strong>, an online examination and technical assessment platform. These Terms &amp; Conditions govern your access to and use of the platform, including online examinations, technical assessments, candidate verification, examination monitoring, scoring, and related services.
-        </p>
-        <p style="margin: 0; font-size: 0.88rem; color: #fff; font-weight: 600;">
-          By registering for an examination, paying an examination fee, or clicking <strong>&ldquo;I Agree&rdquo;</strong> and starting an examination, you acknowledge that you have read and understood these Terms &amp; Conditions and agree to comply with them.
-        </p>
-      </div>
+    .terms-section:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
 
-      <!-- Section 1 -->
-      <div class="terms-section" id="sec-1">
-        <h3><span class="sec-num">1</span> Eligibility and Account Registration</h3>
-        <p><strong>1.1.</strong> Candidates must provide accurate, complete, and current information when registering for an examination.</p>
-        <p><strong>1.2.</strong> Each candidate must use their own registered account and must not impersonate another individual or allow another person to take an examination on their behalf.</p>
-        <p><strong>1.3.</strong> Candidates are responsible for maintaining the confidentiality of their login credentials.</p>
-        <p><strong>1.4.</strong> Creating duplicate accounts or using multiple accounts to obtain additional attempts or bypass examination restrictions is prohibited.</p>
-        <p><strong>1.5.</strong> Exam Pro reserves the right to verify candidate information and investigate suspected fraudulent activity.</p>
-      </div>
+    .terms-section h3 {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
 
-      <!-- Section 2 -->
-      <div class="terms-section" id="sec-2">
-        <h3><span class="sec-num">2</span> Examination Fees and Refund Policy</h3>
-        <p><strong>2.1.</strong> Where an examination fee applies, the applicable fee and payment terms will be displayed before the candidate completes the payment.</p>
-        <p><strong>2.2.</strong> Examination fees are <strong>strictly non-refundable</strong> once an examination attempt has started, including when the candidate passes, fails, voluntarily exits, or abandons the examination, subject to applicable law and the exceptions expressly stated in the applicable examination policy.</p>
-        <p><strong>2.3.</strong> Candidates should carefully review the examination instructions, technical requirements, duration, and fee policy before making payment or starting the examination.</p>
-        <p><strong>2.4.</strong> If a candidate forcefully closes the examination, loses access due to candidate-controlled actions, or uses up an examination attempt, the attempt may be automatically submitted or marked as incomplete, depending on the platform's functionality.</p>
-        <p><strong>2.5.</strong> A retake may require a new examination fee if the applicable examination policy permits a retake and expressly specifies such a fee.</p>
-        <p><strong>2.6.</strong> Duplicate payments, failed transactions, unauthorized charges, and verified platform-side payment errors will be handled in accordance with the applicable payment and refund policy and relevant law.</p>
-        <p><strong>2.7.</strong> No fee policy in these Terms overrides any mandatory consumer protection or refund rights applicable under law.</p>
-      </div>
+    .terms-section h3 .sec-num {
+      background: var(--green);
+      color: #000;
+      font-size: 0.76rem;
+      font-weight: 800;
+      border-radius: 6px;
+      padding: 2px 8px;
+    }
 
-      <!-- Section 3 -->
-      <div class="terms-section" id="sec-3">
-        <h3><span class="sec-num">3</span> Examination Rules and Candidate Conduct</h3>
-        <p><strong>3.1.</strong> Candidates must complete examinations independently and honestly.</p>
-        <p><strong>3.2.</strong> The following activities are strictly prohibited unless expressly authorized in the examination instructions:</p>
-        <ul>
-          <li>Copying answers or code from external websites, repositories, documents, or other candidates.</li>
-          <li>Using AI tools, including ChatGPT, GitHub Copilot, Gemini, or similar systems, to generate answers or code.</li>
-          <li>Communicating with another person for assistance during the examination.</li>
-          <li>Sharing examination questions, answer keys, solutions, or confidential assessment material.</li>
-          <li>Using unauthorized mobile phones, secondary devices, smartwatches, messaging applications, or external communication tools.</li>
-          <li>Manipulating browser requests, examination data, timers, scores, or portal functionality to gain an unfair advantage.</li>
-          <li>Exploiting software vulnerabilities or attempting to bypass examination restrictions.</li>
-        </ul>
-        <p><strong>3.3.</strong> Candidates must submit their own original work and comply with any additional instructions specific to the examination.</p>
-        <p><strong>3.4.</strong> Violations may result in score invalidation, disqualification, cancellation of the examination attempt, or exclusion from the associated recruitment process, subject to the applicable review procedure.</p>
-      </div>
+    .terms-section p {
+      margin-bottom: 12px;
+    }
 
-      <!-- Section 4 -->
-      <div class="terms-section" id="sec-4">
-        <h3><span class="sec-num">4</span> Browser, Tab Switching, and Window Restrictions</h3>
-        <p><strong>4.1.</strong> Where examination monitoring is enabled, candidates must remain on the examination page and avoid unauthorized tab switching, navigating away, refreshing the page, minimizing the browser window, or exiting fullscreen mode.</p>
-        <p><strong>4.2.</strong> Such activities may be recorded as examination events where supported by the platform and may be considered during the final evaluation.</p>
-        <p><strong>4.3.</strong> The absence of an immediate warning does not necessarily mean that an activity is permitted. Relevant recorded events may be reviewed after submission.</p>
-        <p><strong>4.4.</strong> Candidates must not attempt to bypass browser restrictions or interfere with examination monitoring.</p>
-        <p><strong>4.5.</strong> Monitoring capabilities depend on browser permissions, device compatibility, and the features enabled for the specific examination. Exam Pro does not guarantee detection of every prohibited activity.</p>
-      </div>
+    .terms-section ul {
+      margin-left: 20px;
+      margin-bottom: 14px;
+    }
 
-      <!-- Section 5 -->
-      <div class="terms-section" id="sec-5">
-        <h3><span class="sec-num">5</span> Camera Monitoring and Identity Verification</h3>
-        <p><strong>5.1.</strong> If camera monitoring is required, candidates must grant the necessary permissions and follow the examination's camera instructions before starting.</p>
-        <p><strong>5.2.</strong> Candidates may be required to remain visible in the camera frame throughout the examination.</p>
-        <p><strong>5.3.</strong> The presence of another person, repeated absence from the camera frame, suspected impersonation, or other unusual activity may be flagged for review where monitoring features support it.</p>
-        <p><strong>5.4.</strong> Candidates must not disable or deliberately obstruct required monitoring mechanisms.</p>
-        <p><strong>5.5.</strong> A camera-related event or automated flag is not necessarily conclusive proof of misconduct. Relevant evidence may be reviewed before a final decision is made.</p>
-        <p><strong>5.6.</strong> If camera access fails due to a technical problem, candidates should follow the displayed instructions or contact the designated examination support team.</p>
-      </div>
+    .terms-section li {
+      margin-bottom: 8px;
+    }
 
-      <!-- Section 6 -->
-      <div class="terms-section" id="sec-6">
-        <h3><span class="sec-num">6</span> Examination Start, Interruption, and Auto-Submission</h3>
-        <p><strong>6.1.</strong> Candidates should begin the examination only when they are ready, have a stable internet connection, and have checked their device and browser compatibility.</p>
-        <p><strong>6.2.</strong> Once an examination begins, the timer may continue running until submission or expiry, according to the examination configuration.</p>
-        <p><strong>6.3.</strong> Closing the browser, forcefully terminating the examination session, refreshing the page, or navigating away may interrupt the examination and may trigger automatic submission or loss of access to the current attempt, depending on the platform's actual functionality.</p>
-        <p><strong>6.4.</strong> An automatically submitted or expired attempt may not be reopened. Any retake will be governed by the applicable examination policy.</p>
-        <p><strong>6.5.</strong> Candidates must not assume that their progress can be recovered after closing or abandoning an examination.</p>
-        <p><strong>6.6.</strong> Where the platform supports automatic saving, answers may be saved periodically. Automatic saving does not guarantee that every answer will be recovered following a device failure, network interruption, or unexpected session termination.</p>
-      </div>
+    .terms-action-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+  </style>
 
-      <!-- Section 7 -->
-      <div class="terms-section" id="sec-7">
-        <h3><span class="sec-num">7</span> Technical Requirements and Connectivity</h3>
-        <p><strong>7.1.</strong> Candidates are responsible for using a compatible device, supported browser, working camera where required, and reliable internet connection.</p>
-        <p><strong>7.2.</strong> Candidates should close unnecessary applications and disable disruptive notifications before starting.</p>
-        <p><strong>7.3.</strong> In the event of a genuine technical issue, candidates should contact the designated support channel as soon as reasonably possible and provide relevant details.</p>
-        <p><strong>7.4.</strong> Exam Pro or the examination administrator may review verified technical incidents and determine an appropriate remedy, such as resuming, rescheduling, or authorizing a replacement attempt, where permitted by the applicable policy.</p>
-        <p><strong>7.5.</strong> Any technical remedy will depend on the circumstances, available evidence, platform functionality, and applicable law.</p>
-      </div>
-
-      <!-- Section 8 -->
-      <div class="terms-section" id="sec-8">
-        <h3><span class="sec-num">8</span> Examination Duration, Scoring, and Results</h3>
-        <p><strong>8.1.</strong> Each examination may have a defined duration, question count, marking scheme, passing criteria, and submission deadline.</p>
-        <p><strong>8.2.</strong> Candidates must submit their answers within the allotted time. The examination may be automatically submitted when the timer expires.</p>
-        <p><strong>8.3.</strong> Scores may be determined through automated evaluation, manual review, or a combination of both, depending on the examination type.</p>
-        <p><strong>8.4.</strong> Technical assessments may evaluate correctness, logic, code quality, originality, security, edge cases, and compliance with the question requirements.</p>
-        <p><strong>8.5.</strong> Exam Pro or the relevant examination administrator may review suspicious submissions, technical errors, or potential evaluation anomalies.</p>
-        <p><strong>8.6.</strong> A passing score does not guarantee an interview, job offer, certification, or employment unless expressly stated in the applicable examination or recruitment terms.</p>
-        <p><strong>8.7.</strong> Candidates may submit a result-review request through the designated support channel within the period specified in the applicable examination policy.</p>
-      </div>
-
-      <!-- Section 9 -->
-      <div class="terms-section" id="sec-9">
-        <h3><span class="sec-num">9</span> Intellectual Property and Confidentiality</h3>
-        <p><strong>9.1.</strong> Examination questions, answer keys, assessment materials, platform content, and related intellectual property belong to Exam Pro, the relevant examination administrator, or their respective rights holders.</p>
-        <p><strong>9.2.</strong> Candidates may use examination materials solely for the purpose of completing the authorized examination.</p>
-        <p><strong>9.3.</strong> Unauthorized copying, recording, publishing, distributing, selling, or sharing of examination content is prohibited.</p>
-        <p><strong>9.4.</strong> Candidates retain ownership of their pre-existing intellectual property, subject to any separate, clearly communicated agreement applicable to a specific assessment or recruitment process.</p>
-        <p><strong>9.5.</strong> Submitted answers may be reviewed for evaluation, integrity verification, and investigation of suspected misconduct in accordance with the applicable privacy policy and law.</p>
-      </div>
-
-      <!-- Section 10 -->
-      <div class="terms-section" id="sec-10">
-        <h3><span class="sec-num">10</span> Privacy and Examination Monitoring Data</h3>
-        <p><strong>10.1.</strong> Exam Pro may process personal information necessary to provide examination services, manage candidate accounts, record submissions, calculate scores, investigate suspected misconduct, and provide support.</p>
-        <p><strong>10.2.</strong> Depending on the examination configuration, information collected may include registration details, examination responses, timestamps, activity logs, browser events, camera status, photographs, recordings, and technical diagnostic information.</p>
-        <p><strong>10.3.</strong> Candidates must be informed of applicable monitoring and data-processing practices before the relevant collection begins.</p>
-        <p><strong>10.4.</strong> Personal information will be handled in accordance with the applicable Privacy Policy and relevant data protection laws.</p>
-        <p><strong>10.5.</strong> Access to examination data will be restricted to authorized personnel and service providers who require it for legitimate examination-related purposes, subject to appropriate safeguards.</p>
-        <p><strong>10.6.</strong> Examination information will be retained only as permitted by the applicable retention policy and law.</p>
-        <p><strong>10.7.</strong> Candidates may exercise applicable privacy rights or raise data-related concerns through the designated privacy contact.</p>
-      </div>
-
-      <!-- Section 11 -->
-      <div class="terms-section" id="sec-11">
-        <h3><span class="sec-num">11</span> Suspension, Cancellation, and Disqualification</h3>
-        <p><strong>11.1.</strong> Exam Pro or the authorized examination administrator may suspend, invalidate, or cancel an examination attempt where there is reasonable evidence of cheating, impersonation, unauthorized assistance, system manipulation, or another material violation of these Terms.</p>
-        <p><strong>11.2.</strong> Where appropriate, a candidate may be given an opportunity to explain a suspected violation before a final decision is made.</p>
-        <p><strong>11.3.</strong> Automated monitoring alerts may be used to identify events requiring review but should not automatically be treated as conclusive proof of misconduct without considering the applicable review process.</p>
-        <p><strong>11.4.</strong> Serious or repeated violations may result in restrictions on future examination attempts or referral to the relevant recruitment administrator.</p>
-      </div>
-
-      <!-- Section 12 -->
-      <div class="terms-section" id="sec-12">
-        <h3><span class="sec-num">12</span> Platform Availability and Changes</h3>
-        <p><strong>12.1.</strong> Exam Pro aims to provide a reliable examination service but does not guarantee uninterrupted availability, error-free operation, or compatibility with every device and browser.</p>
-        <p><strong>12.2.</strong> The platform may undergo maintenance, updates, or security changes that affect availability or functionality.</p>
-        <p><strong>12.3.</strong> Where reasonably practicable, material examination disruptions will be addressed through the applicable technical-support and examination policies.</p>
-        <p><strong>12.4.</strong> Exam Pro may update these Terms from time to time. Material changes will be communicated as required by applicable law.</p>
-      </div>
-
-      <!-- Section 13 -->
-      <div class="terms-section" id="sec-13">
-        <h3><span class="sec-num">13</span> Limitation of Liability</h3>
-        <p><strong>13.1.</strong> To the extent permitted by applicable law, Exam Pro is not responsible for disruptions caused by candidate-controlled devices, unsupported browsers, unstable internet connections, unauthorized software, or third-party services outside its reasonable control.</p>
-        <p><strong>13.2.</strong> Nothing in these Terms excludes or limits liability that cannot lawfully be excluded or limited, including any mandatory rights available to candidates under applicable law.</p>
-      </div>
-
-      <!-- Section 14 -->
-      <div class="terms-section" id="sec-14">
-        <h3><span class="sec-num">14</span> Third-Party Services</h3>
-        <p><strong>14.1.</strong> The platform may rely on third-party services for payments, hosting, authentication, communications, or other functionality.</p>
-        <p><strong>14.2.</strong> The availability and processing practices of such services may be subject to their own terms and privacy policies.</p>
-        <p><strong>14.3.</strong> Exam Pro will take reasonable steps to manage third-party dependencies used to deliver its services, subject to applicable law.</p>
-      </div>
-
-      <!-- Section 15 -->
-      <div class="terms-section" id="sec-15">
-        <h3><span class="sec-num">15</span> Governing Law and Dispute Resolution</h3>
-        <p><strong>15.1.</strong> These Terms are subject to the laws applicable to the legal entity operating Exam Pro, without removing any mandatory legal rights available to candidates.</p>
-        <p><strong>15.2.</strong> Candidates should first contact the designated support team to seek resolution of examination-related concerns.</p>
-        <p><strong>15.3.</strong> Any dispute that cannot be resolved through the support process will be handled by the competent forum in accordance with applicable law.</p>
-      </div>
-
-      <!-- Section 16 -->
-      <div class="terms-section" id="sec-16">
-        <h3><span class="sec-num">16</span> Contact Information</h3>
-        <p>For examination support, policy questions, privacy requests, or complaints, contact:</p>
-        <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-top: 10px;">
-          <p style="margin-bottom: 6px;"><strong>Platform:</strong> Exam Pro</p>
-          <p style="margin-bottom: 6px;"><strong>Operating Entity:</strong> Techminds Software India Pvt. Ltd. / ICUBE Info Solution</p>
-          <p style="margin-bottom: 6px;"><strong>Support Email:</strong> support@icubeinfosolution.com</p>
-          <p style="margin-bottom: 0;"><strong>Recruitment Team:</strong> hr@techmindssoftware.com</p>
+  <div class="terms-page">
+    <div class="terms-header">
+      <div
+        style="max-width: 1100px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
+        <a href="javascript:history.back()" class="btn btn-outline btn-sm">← Back</a>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <button onclick="window.print()" class="btn btn-outline btn-sm">🖨️ Print / Save PDF</button>
+          <a href="/exam" class="btn btn-primary btn-sm">Go to Assessment Portal</a>
         </div>
       </div>
 
-      <!-- Section 17 -->
-      <div class="terms-section" id="sec-17" style="background: rgba(34, 197, 94, 0.06); border: 1px solid rgba(34, 197, 94, 0.25); border-radius: 10px; padding: 22px;">
-        <h3 style="color: var(--green);"><span class="sec-num">17</span> Candidate Acknowledgment and Consent</h3>
-        <p style="color: #fff; font-weight: 600;">By selecting <strong>&ldquo;I Agree&rdquo;</strong> and starting the examination, I confirm that:</p>
-        <ul>
-          <li>I have read and understood the applicable Terms &amp; Conditions.</li>
-          <li>I agree to comply with the examination rules and restrictions.</li>
-          <li>I understand the applicable examination fee, refund, submission, and retake policies.</li>
-          <li>I understand that permitted examination activity logs and monitoring information may be reviewed under the applicable policy.</li>
-          <li>I will complete the examination independently and will not use unauthorized assistance, copied answers, or AI-generated solutions where prohibited.</li>
-        </ul>
-        <div style="margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 0.85rem; color: var(--text-muted); text-align: center;">
-          <strong>Exam Pro &mdash; Online Examination and Assessment Platform</strong>
+      <h1># EXAM <span>PRO</span></h1>
+      <h2>Terms &amp; Conditions</h2>
+      <div class="terms-meta">
+        <span><strong>Effective Date:</strong> October 2026</span>
+        <span>&bull;</span>
+        <span><strong>Examination Authority:</strong> Exam Pro (Exam Pro Assessment Services)</span>
+        <span>&bull;</span>
+        <span><strong>Client / Organization:</strong> Exam Pro</span>
+      </div>
+    </div>
+
+    <div class="terms-container">
+      <!-- Table of Contents Sidebar -->
+      <div class="terms-toc">
+        <h3>📑 Table of Contents</h3>
+        <ol>
+          <li><a href="#sec-1">1. Eligibility &amp; Account Registration</a></li>
+          <li><a href="#sec-2">2. Examination Fees &amp; Refund Policy</a></li>
+          <li><a href="#sec-3">3. Rules &amp; Candidate Conduct</a></li>
+          <li><a href="#sec-4">4. Browser &amp; Tab Restrictions</a></li>
+          <li><a href="#sec-5">5. Camera Monitoring &amp; Verification</a></li>
+          <li><a href="#sec-6">6. Start, Interruption &amp; Auto-Submission</a></li>
+          <li><a href="#sec-7">7. Technical Requirements</a></li>
+          <li><a href="#sec-8">8. Duration, Scoring &amp; Results</a></li>
+          <li><a href="#sec-9">9. Intellectual Property</a></li>
+          <li><a href="#sec-10">10. Privacy &amp; Monitoring Data</a></li>
+          <li><a href="#sec-11">11. Suspension &amp; Disqualification</a></li>
+          <li><a href="#sec-12">12. Platform Availability</a></li>
+          <li><a href="#sec-13">13. Limitation of Liability</a></li>
+          <li><a href="#sec-14">14. Third-Party Services</a></li>
+          <li><a href="#sec-15">15. Governing Law &amp; Disputes</a></li>
+          <li><a href="#sec-16">16. Contact Information</a></li>
+          <li><a href="#sec-17">17. Acknowledgment &amp; Consent</a></li>
+        </ol>
+      </div>
+
+      <!-- Main Content -->
+      <div class="terms-content">
+        <div class="terms-intro-box">
+          <p style="margin-bottom: 10px;">
+            Welcome to <strong>Exam Pro</strong>, an online examination and technical assessment platform. All candidate
+            technical assessments and online examinations on this platform are conducted, proctored, and evaluated by
+            <strong>Exam Pro</strong> on behalf of <strong>Exam Pro</strong> These Terms &amp; Conditions govern your
+            access to and use of the platform, including online examinations, technical assessments, candidate
+            verification, examination monitoring, scoring, and related services.
+          </p>
+          <p style="margin: 0; font-size: 0.88rem; color: #fff; font-weight: 600;">
+            By registering for an examination, paying an examination fee, or clicking <strong>&ldquo;I
+              Agree&rdquo;</strong> and starting an examination conducted by Exam Pro, you acknowledge that you have
+            read and understood these Terms &amp; Conditions and agree to comply with them.
+          </p>
+        </div>
+
+        <!-- Section 1 -->
+        <div class="terms-section" id="sec-1">
+          <h3><span class="sec-num">1</span> Eligibility and Account Registration</h3>
+          <p><strong>1.1.</strong> Candidates must provide accurate, complete, and current information when registering
+            for an examination.</p>
+          <p><strong>1.2.</strong> Each candidate must use their own registered account and must not impersonate another
+            individual or allow another person to take an examination on their behalf.</p>
+          <p><strong>1.3.</strong> Candidates are responsible for maintaining the confidentiality of their login
+            credentials.</p>
+          <p><strong>1.4.</strong> Creating duplicate accounts or using multiple accounts to obtain additional attempts
+            or bypass examination restrictions is prohibited.</p>
+          <p><strong>1.5.</strong> Exam Pro reserves the right to verify candidate information and investigate suspected
+            fraudulent activity.</p>
+        </div>
+
+        <!-- Section 2 -->
+        <div class="terms-section" id="sec-2">
+          <h3><span class="sec-num">2</span> Examination Fees and Refund Policy</h3>
+          <p><strong>2.1.</strong> Where an examination fee applies, the applicable fee and payment terms will be
+            displayed before the candidate completes the payment.</p>
+          <p><strong>2.2.</strong> Examination fees are <strong>strictly non-refundable</strong> once an examination
+            attempt has started, including when the candidate passes, fails, voluntarily exits, or abandons the
+            examination, subject to applicable law and the exceptions expressly stated in the applicable examination
+            policy.</p>
+          <p><strong>2.3.</strong> Candidates should carefully review the examination instructions, technical
+            requirements, duration, and fee policy before making payment or starting the examination.</p>
+          <p><strong>2.4.</strong> If a candidate forcefully closes the examination, loses access due to
+            candidate-controlled actions, or uses up an examination attempt, the attempt may be automatically submitted
+            or marked as incomplete, depending on the platform's functionality.</p>
+          <p><strong>2.5.</strong> A retake may require a new examination fee if the applicable examination policy
+            permits a retake and expressly specifies such a fee.</p>
+          <p><strong>2.6.</strong> Duplicate payments, failed transactions, unauthorized charges, and verified
+            platform-side payment errors will be handled in accordance with the applicable payment and refund policy and
+            relevant law.</p>
+          <p><strong>2.7.</strong> No fee policy in these Terms overrides any mandatory consumer protection or refund
+            rights applicable under law.</p>
+        </div>
+
+        <!-- Section 3 -->
+        <div class="terms-section" id="sec-3">
+          <h3><span class="sec-num">3</span> Examination Rules and Candidate Conduct</h3>
+          <p><strong>3.1.</strong> Candidates must complete examinations independently and honestly.</p>
+          <p><strong>3.2.</strong> The following activities are strictly prohibited unless expressly authorized in the
+            examination instructions:</p>
+          <ul>
+            <li>Copying answers or code from external websites, repositories, documents, or other candidates.</li>
+            <li>Using AI tools, including ChatGPT, GitHub Copilot, Gemini, or similar systems, to generate answers or
+              code.</li>
+            <li>Communicating with another person for assistance during the examination.</li>
+            <li>Sharing examination questions, answer keys, solutions, or confidential assessment material.</li>
+            <li>Using unauthorized mobile phones, secondary devices, smartwatches, messaging applications, or external
+              communication tools.</li>
+            <li>Manipulating browser requests, examination data, timers, scores, or portal functionality to gain an
+              unfair advantage.</li>
+            <li>Exploiting software vulnerabilities or attempting to bypass examination restrictions.</li>
+          </ul>
+          <p><strong>3.3.</strong> Candidates must submit their own original work and comply with any additional
+            instructions specific to the examination.</p>
+          <p><strong>3.4.</strong> Violations may result in score invalidation, disqualification, cancellation of the
+            examination attempt, or exclusion from the associated recruitment process, subject to the applicable review
+            procedure.</p>
+        </div>
+
+        <!-- Section 4 -->
+        <div class="terms-section" id="sec-4">
+          <h3><span class="sec-num">4</span> Browser, Tab Switching, and Window Restrictions</h3>
+          <p><strong>4.1.</strong> Where examination monitoring is enabled, candidates must remain on the examination
+            page and avoid unauthorized tab switching, navigating away, refreshing the page, minimizing the browser
+            window, or exiting fullscreen mode.</p>
+          <p><strong>4.2.</strong> Such activities may be recorded as examination events where supported by the platform
+            and may be considered during the final evaluation.</p>
+          <p><strong>4.3.</strong> The absence of an immediate warning does not necessarily mean that an activity is
+            permitted. Relevant recorded events may be reviewed after submission.</p>
+          <p><strong>4.4.</strong> Candidates must not attempt to bypass browser restrictions or interfere with
+            examination monitoring.</p>
+          <p><strong>4.5.</strong> Monitoring capabilities depend on browser permissions, device compatibility, and the
+            features enabled for the specific examination. Exam Pro does not guarantee detection of every prohibited
+            activity.</p>
+        </div>
+
+        <!-- Section 5 -->
+        <div class="terms-section" id="sec-5">
+          <h3><span class="sec-num">5</span> Camera Monitoring and Identity Verification</h3>
+          <p><strong>5.1.</strong> If camera monitoring is required, candidates must grant the necessary permissions and
+            follow the examination's camera instructions before starting.</p>
+          <p><strong>5.2.</strong> Candidates may be required to remain visible in the camera frame throughout the
+            examination.</p>
+          <p><strong>5.3.</strong> The presence of another person, repeated absence from the camera frame, suspected
+            impersonation, or other unusual activity may be flagged for review where monitoring features support it.</p>
+          <p><strong>5.4.</strong> Candidates must not disable or deliberately obstruct required monitoring mechanisms.
+          </p>
+          <p><strong>5.5.</strong> A camera-related event or automated flag is not necessarily conclusive proof of
+            misconduct. Relevant evidence may be reviewed before a final decision is made.</p>
+          <p><strong>5.6.</strong> If camera access fails due to a technical problem, candidates should follow the
+            displayed instructions or contact the designated examination support team.</p>
+        </div>
+
+        <!-- Section 6 -->
+        <div class="terms-section" id="sec-6">
+          <h3><span class="sec-num">6</span> Examination Start, Interruption, and Auto-Submission</h3>
+          <p><strong>6.1.</strong> Candidates should begin the examination only when they are ready, have a stable
+            internet connection, and have checked their device and browser compatibility.</p>
+          <p><strong>6.2.</strong> Once an examination begins, the timer may continue running until submission or
+            expiry, according to the examination configuration.</p>
+          <p><strong>6.3.</strong> Closing the browser, forcefully terminating the examination session, refreshing the
+            page, or navigating away may interrupt the examination and may trigger automatic submission or loss of
+            access to the current attempt, depending on the platform's actual functionality.</p>
+          <p><strong>6.4.</strong> An automatically submitted or expired attempt may not be reopened. Any retake will be
+            governed by the applicable examination policy.</p>
+          <p><strong>6.5.</strong> Candidates must not assume that their progress can be recovered after closing or
+            abandoning an examination.</p>
+          <p><strong>6.6.</strong> Where the platform supports automatic saving, answers may be saved periodically.
+            Automatic saving does not guarantee that every answer will be recovered following a device failure, network
+            interruption, or unexpected session termination.</p>
+        </div>
+
+        <!-- Section 7 -->
+        <div class="terms-section" id="sec-7">
+          <h3><span class="sec-num">7</span> Technical Requirements and Connectivity</h3>
+          <p><strong>7.1.</strong> Candidates are responsible for using a compatible device, supported browser, working
+            camera where required, and reliable internet connection.</p>
+          <p><strong>7.2.</strong> Candidates should close unnecessary applications and disable disruptive notifications
+            before starting.</p>
+          <p><strong>7.3.</strong> In the event of a genuine technical issue, candidates should contact the designated
+            support channel as soon as reasonably possible and provide relevant details.</p>
+          <p><strong>7.4.</strong> Exam Pro or the examination administrator may review verified technical incidents and
+            determine an appropriate remedy, such as resuming, rescheduling, or authorizing a replacement attempt, where
+            permitted by the applicable policy.</p>
+          <p><strong>7.5.</strong> Any technical remedy will depend on the circumstances, available evidence, platform
+            functionality, and applicable law.</p>
+        </div>
+
+        <!-- Section 8 -->
+        <div class="terms-section" id="sec-8">
+          <h3><span class="sec-num">8</span> Examination Duration, Scoring, and Results</h3>
+          <p><strong>8.1.</strong> Each examination may have a defined duration, question count, marking scheme, passing
+            criteria, and submission deadline.</p>
+          <p><strong>8.2.</strong> Candidates must submit their answers within the allotted time. The examination may be
+            automatically submitted when the timer expires.</p>
+          <p><strong>8.3.</strong> Scores may be determined through automated evaluation, manual review, or a
+            combination of both, depending on the examination type.</p>
+          <p><strong>8.4.</strong> Technical assessments may evaluate correctness, logic, code quality, originality,
+            security, edge cases, and compliance with the question requirements.</p>
+          <p><strong>8.5.</strong> Exam Pro or the relevant examination administrator may review suspicious submissions,
+            technical errors, or potential evaluation anomalies.</p>
+          <p><strong>8.6.</strong> <strong>Interview Qualification &amp; Code Optimization Policy:</strong> Passing the
+            examination or obtaining passing marks does NOT mean that the candidate is qualified or shortlisted for an
+            interview. Qualification for the interview round strictly requires <strong>optimized, high-quality, and
+              clean code</strong>. The technical evaluation committee manually inspects submitted code for algorithmic
+            efficiency, time and space complexity, architectural cleanliness, and originality. Unoptimized, inefficient,
+            or brute-force code will not qualify for interview scheduling regardless of marks obtained.</p>
+          <p><strong>8.7.</strong> Candidates may submit a result-review request through the designated support channel
+            within the period specified in the applicable examination policy.</p>
+        </div>
+
+        <!-- Section 9 -->
+        <div class="terms-section" id="sec-9">
+          <h3><span class="sec-num">9</span> Intellectual Property and Confidentiality</h3>
+          <p><strong>9.1.</strong> Examination questions, answer keys, assessment materials, platform content, and
+            related intellectual property belong to Exam Pro, the relevant examination administrator, or their
+            respective rights holders.</p>
+          <p><strong>9.2.</strong> Candidates may use examination materials solely for the purpose of completing the
+            authorized examination.</p>
+          <p><strong>9.3.</strong> Unauthorized copying, recording, publishing, distributing, selling, or sharing of
+            examination content is prohibited.</p>
+          <p><strong>9.4.</strong> Candidates retain ownership of their pre-existing intellectual property, subject to
+            any separate, clearly communicated agreement applicable to a specific assessment or recruitment process.</p>
+          <p><strong>9.5.</strong> Submitted answers may be reviewed for evaluation, integrity verification, and
+            investigation of suspected misconduct in accordance with the applicable privacy policy and law.</p>
+        </div>
+
+        <!-- Section 10 -->
+        <div class="terms-section" id="sec-10">
+          <h3><span class="sec-num">10</span> Privacy and Examination Monitoring Data</h3>
+          <p><strong>10.1.</strong> Exam Pro may process personal information necessary to provide examination services,
+            manage candidate accounts, record submissions, calculate scores, investigate suspected misconduct, and
+            provide support.</p>
+          <p><strong>10.2.</strong> Depending on the examination configuration, information collected may include
+            registration details, examination responses, timestamps, activity logs, browser events, camera status,
+            photographs, recordings, and technical diagnostic information.</p>
+          <p><strong>10.3.</strong> Candidates must be informed of applicable monitoring and data-processing practices
+            before the relevant collection begins.</p>
+          <p><strong>10.4.</strong> Personal information will be handled in accordance with the applicable Privacy
+            Policy and relevant data protection laws.</p>
+          <p><strong>10.5.</strong> Access to examination data will be restricted to authorized personnel and service
+            providers who require it for legitimate examination-related purposes, subject to appropriate safeguards.</p>
+          <p><strong>10.6.</strong> Examination information will be retained only as permitted by the applicable
+            retention policy and law.</p>
+          <p><strong>10.7.</strong> Candidates may exercise applicable privacy rights or raise data-related concerns
+            through the designated privacy contact.</p>
+        </div>
+
+        <!-- Section 11 -->
+        <div class="terms-section" id="sec-11">
+          <h3><span class="sec-num">11</span> Suspension, Cancellation, and Disqualification</h3>
+          <p><strong>11.1.</strong> Exam Pro or the authorized examination administrator may suspend, invalidate, or
+            cancel an examination attempt where there is reasonable evidence of cheating, impersonation, unauthorized
+            assistance, system manipulation, or another material violation of these Terms.</p>
+          <p><strong>11.2.</strong> Where appropriate, a candidate may be given an opportunity to explain a suspected
+            violation before a final decision is made.</p>
+          <p><strong>11.3.</strong> Automated monitoring alerts may be used to identify events requiring review but
+            should not automatically be treated as conclusive proof of misconduct without considering the applicable
+            review process.</p>
+          <p><strong>11.4.</strong> Serious or repeated violations may result in restrictions on future examination
+            attempts or referral to the relevant recruitment administrator.</p>
+        </div>
+
+        <!-- Section 12 -->
+        <div class="terms-section" id="sec-12">
+          <h3><span class="sec-num">12</span> Platform Availability and Changes</h3>
+          <p><strong>12.1.</strong> Exam Pro aims to provide a reliable examination service but does not guarantee
+            uninterrupted availability, error-free operation, or compatibility with every device and browser.</p>
+          <p><strong>12.2.</strong> The platform may undergo maintenance, updates, or security changes that affect
+            availability or functionality.</p>
+          <p><strong>12.3.</strong> Where reasonably practicable, material examination disruptions will be addressed
+            through the applicable technical-support and examination policies.</p>
+          <p><strong>12.4.</strong> Exam Pro may update these Terms from time to time. Material changes will be
+            communicated as required by applicable law.</p>
+        </div>
+
+        <!-- Section 13 -->
+        <div class="terms-section" id="sec-13">
+          <h3><span class="sec-num">13</span> Limitation of Liability</h3>
+          <p><strong>13.1.</strong> To the extent permitted by applicable law, Exam Pro is not responsible for
+            disruptions caused by candidate-controlled devices, unsupported browsers, unstable internet connections,
+            unauthorized software, or third-party services outside its reasonable control.</p>
+          <p><strong>13.2.</strong> Nothing in these Terms excludes or limits liability that cannot lawfully be excluded
+            or limited, including any mandatory rights available to candidates under applicable law.</p>
+        </div>
+
+        <!-- Section 14 -->
+        <div class="terms-section" id="sec-14">
+          <h3><span class="sec-num">14</span> Third-Party Services</h3>
+          <p><strong>14.1.</strong> The platform may rely on third-party services for payments, hosting, authentication,
+            communications, or other functionality.</p>
+          <p><strong>14.2.</strong> The availability and processing practices of such services may be subject to their
+            own terms and privacy policies.</p>
+          <p><strong>14.3.</strong> Exam Pro will take reasonable steps to manage third-party dependencies used to
+            deliver its services, subject to applicable law.</p>
+        </div>
+
+        <!-- Section 15 -->
+        <div class="terms-section" id="sec-15">
+          <h3><span class="sec-num">15</span> Governing Law and Dispute Resolution</h3>
+          <p><strong>15.1.</strong> These Terms are subject to the laws applicable to the legal entity operating Exam
+            Pro, without removing any mandatory legal rights available to candidates.</p>
+          <p><strong>15.2.</strong> Candidates should first contact the designated support team to seek resolution of
+            examination-related concerns.</p>
+          <p><strong>15.3.</strong> Any dispute that cannot be resolved through the support process will be handled by
+            the competent forum in accordance with applicable law.</p>
+        </div>
+
+        <!-- Section 16 -->
+        <div class="terms-section" id="sec-16">
+          <h3><span class="sec-num">16</span> Contact Information</h3>
+          <p>For examination support, policy questions, privacy requests, or complaints, contact:</p>
+          <div
+            style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-top: 10px;">
+            <p style="margin-bottom: 6px;"><strong>Examination Conducting Company:</strong> Exam Pro (Online Examination
+              &amp; Assessment Authority)</p>
+            <p style="margin-bottom: 6px;"><strong>Hiring / Corporate Partner:</strong> Exam Pro / ICUBE Info Solution
+            </p>
+            <p style="margin-bottom: 6px;"><strong>Exam Pro Support Email:</strong> support@exampro.in /
+              support@icubeinfosolution.com</p>
+            <p style="margin-bottom: 0;"><strong>Technical Recruitment Team:</strong> hr@techmindssoftware.com</p>
+          </div>
+        </div>
+
+        <!-- Section 17 -->
+        <div class="terms-section" id="sec-17"
+          style="background: rgba(34, 197, 94, 0.06); border: 1px solid rgba(34, 197, 94, 0.25); border-radius: 10px; padding: 22px;">
+          <h3 style="color: var(--green);"><span class="sec-num">17</span> Candidate Acknowledgment and Consent</h3>
+          <p style="color: #fff; font-weight: 600;">By selecting <strong>&ldquo;I Agree&rdquo;</strong> and starting the
+            examination, I confirm that:</p>
+          <ul>
+            <li>I have read and understood the applicable Terms &amp; Conditions.</li>
+            <li>I agree to comply with the examination rules and restrictions.</li>
+            <li>I understand the applicable examination fee, refund, submission, and retake policies.</li>
+            <li>I understand that permitted examination activity logs and monitoring information may be reviewed under
+              the applicable policy.</li>
+            <li>I will complete the examination independently and will not use unauthorized assistance, copied answers,
+              or AI-generated solutions where prohibited.</li>
+            <li>I specifically understand and agree that <strong>passing the examination does NOT guarantee or mean
+                interview qualification</strong>, and that <strong>interview qualification strictly requires optimized,
+                high-quality code</strong> evaluated manually by the technical team.</li>
+          </ul>
+          <div
+            style="margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 0.85rem; color: var(--text-muted); text-align: center;">
+            <strong>Exam Pro &mdash; Online Examination and Assessment Platform</strong>
+          </div>
         </div>
       </div>
     </div>
   </div>
-</div>
 
-<%- include('partials/footer') %>
+  <%- include('partials/footer') %>

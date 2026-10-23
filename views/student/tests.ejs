@@ -1,4 +1,4 @@
-﻿<%- include('../partials/header') %>
+<%- include('../partials/header') %>
 
 <div class="dashboard-layout">
   <%- include('../partials/student-sidebar', { active: 'tests' }) %>
@@ -8,7 +8,7 @@
       <div class="page-header-actions">
         <div>
           <h1>📋 Browse Assessments</h1>
-          <p>All available technical evaluations open for candidates</p>
+          <p>Technical assessments conducted by Exam Pro for candidate evaluation</p>
         </div>
         <span class="badge badge-success" style="font-size: 0.9rem; padding: 8px 16px;">
           <%= tests.length %> Available
@@ -20,13 +20,18 @@
       <%- include('../partials/alerts') %>
 
       <!-- Info Banner -->
-      <div style="background: linear-gradient(135deg, rgba(34,197,94,.16), rgba(34,197,94,.04)); border: 1px solid rgba(34,197,94,.32); border-radius: 12px; padding: 14px 18px; margin-bottom: 24px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
-        <span style="background: var(--green); color: #000; font-weight: 800; font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; padding: 5px 11px; border-radius: 6px; white-space: nowrap;">
-          📌 Open to All Candidates
-        </span>
-        <div style="font-size: .86rem; color: #e2e8f0; line-height: 1.45;">
-          All active assessments are available for every registered candidate. Paid tests require payment before access.
+      <div style="background: linear-gradient(135deg, rgba(34,197,94,.16), rgba(34,197,94,.04)); border: 1px solid rgba(34,197,94,.32); border-radius: 12px; padding: 14px 18px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+          <span style="background: var(--green); color: #000; font-weight: 800; font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; padding: 5px 11px; border-radius: 6px; white-space: nowrap;">
+            🏢 Conducted by Exam Pro
+          </span>
+          <div style="font-size: .86rem; color: #e2e8f0; line-height: 1.45;">
+            All assessments are administered by <strong>Exam Pro</strong>. Paid tests require payment before access.
+          </div>
         </div>
+        <a href="/terms" target="_blank" style="color: var(--green); font-size: 0.82rem; font-weight: 700; text-decoration: underline;">
+          Exam Pro Rules &amp; T&amp;C ↗
+        </a>
       </div>
 
       <% if (tests.length === 0) { %>

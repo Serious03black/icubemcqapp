@@ -1,7 +1,7 @@
 {
   "name": "techminds-mcq-test-app",
   "version": "1.0.0",
-  "description": "MCQ Test Application by TechMinds Software India Pvt. Ltd.",
+  "description": "MCQ Test Application by Exam Pro",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

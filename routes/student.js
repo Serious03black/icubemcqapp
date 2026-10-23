@@ -132,10 +132,10 @@ router.get('/test/:id', async (req, res) => {
         };
       });
     } else {
-      // Legacy flat questions
+      // Deliver all questions added to the test by default (no 30 question artificial cap)
       const pool = [...test.questions];
-      const requestedCount = parseInt(req.query.count) || test.questionCount || 30;
-      const count = (requestedCount > 0 && requestedCount < pool.length) ? requestedCount : pool.length;
+      const requestedCount = parseInt(req.query.count) || (test.questionCount && test.questionCount > 0 ? test.questionCount : null);
+      const count = (requestedCount && requestedCount > 0 && requestedCount < pool.length) ? requestedCount : pool.length;
       const selected = shuffle(pool).slice(0, count);
 
       selected.forEach(q => allQuestionIds.push(q._id.toString()));
@@ -161,7 +161,7 @@ router.get('/test/:id', async (req, res) => {
       sum + s.questions.reduce((qs, q) => qs + (q.marks || 1), 0), 0);
 
     res.render('student/take-test', {
-      title: `${test.title} - ICUBE Info Solution`,
+      title: `${test.title} - Exam Pro Assessment`,
       test: test.toObject(),
       sections,
       totalQuestions,
@@ -297,7 +297,7 @@ router.get('/pay/:id', async (req, res) => {
       return res.redirect(`/student/test/${test._id}`);
     }
     const razorpayKey = process.env.RAZORPAY_KEY_ID || '';
-    res.render('student/payment', { title: 'Pay for Test', test, razorpayKey });
+    res.render('student/payment', { title: 'Exam Pro Assessment Fee - ' + test.title, test, razorpayKey });
   } catch (err) {
     console.error(err);
     req.flash('error', 'Unable to load payment page');
@@ -388,7 +388,7 @@ router.get('/history', async (req, res) => {
     const results = await Result.find({ student: req.session.user.id })
       .sort({ submittedAt: -1 })
       .populate('test', 'title course');
-    res.render('student/history', { title: 'My Exam History', results });
+    res.render('student/history', { title: 'My Exam History - Exam Pro', results });
   } catch (err) {
     console.error(err);
     req.flash('error', 'Failed to load exam history');
