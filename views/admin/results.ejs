@@ -23,6 +23,7 @@
                 <th>Score</th>
                 <th>Percentage</th>
                 <th>Result</th>
+                <th>Proctoring</th>
                 <th>Date</th>
                 <th>Action</th>
               </tr>
@@ -30,7 +31,7 @@
             <tbody>
               <% if (results.length === 0) { %>
                 <tr>
-                  <td colspan="8">
+                  <td colspan="9">
                     <div class="empty-state">
                       <span class="empty-icon">📈</span>
                       <h3>No submissions yet</h3>
@@ -57,6 +58,17 @@
                       <span class="badge <%= result.isPassed ? 'badge-success' : 'badge-danger' %>">
                         <%= result.isPassed ? '✅ Passed' : '❌ Failed' %>
                       </span>
+                    </td>
+                    <td>
+                      <% const tabCount = result.tabSwitchesCount || 0; %>
+                      <% const fsCount = result.fullscreenExitsCount || 0; %>
+                      <% if (tabCount > 0 || fsCount > 0) { %>
+                        <span class="badge badge-danger" title="<%= tabCount %> tab switch(es), <%= fsCount %> fullscreen exit(s)">
+                          🚨 <%= tabCount %> Tab Switch<%= tabCount !== 1 ? 'es' : '' %>
+                        </span>
+                      <% } else { %>
+                        <span class="badge badge-success">🛡️ Clean</span>
+                      <% } %>
                     </td>
                     <td><%= new Date(result.submittedAt).toLocaleDateString('en-IN') %></td>
                     <td style="display: flex; gap: 6px; align-items: center;">

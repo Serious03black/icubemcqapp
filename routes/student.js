@@ -110,48 +110,72 @@ router.get('/test/:id', async (req, res) => {
       return array;
     }
 
-    // Build sections from subTests (or fall back to flat questions)
+    // Check if student already has an active ongoing attempt for this test (resuming after refresh)
+    req.session.activeAttempts = req.session.activeAttempts || {};
+    const testIdStr = test._id.toString();
+    const existingAttempt = req.session.activeAttempts[testIdStr];
+
     let sections = [];
     let allQuestionIds = [];
+    let initialElapsedSeconds = 0;
+    let initialRemainingSeconds = test.duration * 60;
+    let isResumed = false;
 
-    if (test.subTests && test.subTests.length > 0) {
-      sections = test.subTests.map(st => {
-        const pool = [...(st.questions || [])];
-        const count = (st.questionCount && st.questionCount > 0 && st.questionCount < pool.length)
-          ? st.questionCount : pool.length;
+    if (existingAttempt && existingAttempt.startedAt && existingAttempt.sections) {
+      // Resume existing ongoing exam attempt
+      isResumed = true;
+      sections = existingAttempt.sections;
+      allQuestionIds = existingAttempt.questionIds;
+      initialElapsedSeconds = Math.max(0, Math.floor((Date.now() - existingAttempt.startedAt) / 1000));
+      initialRemainingSeconds = Math.max(0, (test.duration * 60) - initialElapsedSeconds);
+    } else {
+      // First-time exam creation
+      if (test.subTests && test.subTests.length > 0) {
+        sections = test.subTests.map(st => {
+          const pool = [...(st.questions || [])];
+          const count = (st.questionCount && st.questionCount > 0 && st.questionCount < pool.length)
+            ? st.questionCount : pool.length;
+          const selected = shuffle(pool).slice(0, count);
+
+          selected.forEach(q => allQuestionIds.push(q._id.toString()));
+
+          return {
+            _id: st._id,
+            name: st.name,
+            type: st.type || 'mcq',
+            description: st.description || '',
+            questions: selected
+          };
+        });
+      } else {
+        // Deliver all questions added to the test by default (no 30 question artificial cap)
+        const pool = [...test.questions];
+        const requestedCount = parseInt(req.query.count) || (test.questionCount && test.questionCount > 0 ? test.questionCount : null);
+        const count = (requestedCount && requestedCount > 0 && requestedCount < pool.length) ? requestedCount : pool.length;
         const selected = shuffle(pool).slice(0, count);
 
         selected.forEach(q => allQuestionIds.push(q._id.toString()));
 
-        return {
-          _id: st._id,
-          name: st.name,
-          type: st.type || 'mcq',
-          description: st.description || '',
+        sections = [{
+          _id: 'flat',
+          name: test.title,
+          type: 'mcq',
+          description: '',
           questions: selected
-        };
-      });
-    } else {
-      // Deliver all questions added to the test by default (no 30 question artificial cap)
-      const pool = [...test.questions];
-      const requestedCount = parseInt(req.query.count) || (test.questionCount && test.questionCount > 0 ? test.questionCount : null);
-      const count = (requestedCount && requestedCount > 0 && requestedCount < pool.length) ? requestedCount : pool.length;
-      const selected = shuffle(pool).slice(0, count);
+        }];
+      }
 
-      selected.forEach(q => allQuestionIds.push(q._id.toString()));
-
-      sections = [{
-        _id: 'flat',
-        name: test.title,
-        type: 'mcq',
-        description: '',
-        questions: selected
-      }];
+      req.session.activeAttempts[testIdStr] = {
+        testId: testIdStr,
+        questionIds: allQuestionIds,
+        sections: sections,
+        startedAt: Date.now()
+      };
     }
 
     // Store in session for submission verification
     req.session.currentTest = {
-      testId: test._id.toString(),
+      testId: testIdStr,
       questionIds: allQuestionIds
     };
 
@@ -165,7 +189,10 @@ router.get('/test/:id', async (req, res) => {
       test: test.toObject(),
       sections,
       totalQuestions,
-      totalMarks
+      totalMarks,
+      isResumed,
+      initialRemainingSeconds,
+      initialElapsedSeconds
     });
   } catch (err) {
     console.error(err);
@@ -199,7 +226,7 @@ router.post('/test/:id/submit', async (req, res) => {
       return res.redirect('/student/dashboard');
     }
 
-    const { timeTaken } = req.body;
+    const { timeTaken, tabSwitchesCount, fullscreenExitsCount, copyPasteAttempts, proctoringLogs } = req.body;
     const answers = [];
     let obtainedMarks = 0;
     let totalMarks = 0;
@@ -257,6 +284,13 @@ router.post('/test/:id/submit', async (req, res) => {
 
     const percentage = totalMarks > 0 ? Math.round((obtainedMarks / totalMarks) * 100) : 0;
 
+    let parsedLogs = [];
+    try {
+      if (proctoringLogs) parsedLogs = JSON.parse(proctoringLogs);
+    } catch (e) {
+      parsedLogs = [];
+    }
+
     const result = new Result({
       student: req.session.user.id,
       test: test._id,
@@ -265,11 +299,18 @@ router.post('/test/:id/submit', async (req, res) => {
       obtainedMarks,
       percentage,
       isPassed: obtainedMarks >= test.passingMarks,
-      timeTaken: parseInt(timeTaken) || 0
+      timeTaken: parseInt(timeTaken) || 0,
+      tabSwitchesCount: parseInt(tabSwitchesCount) || 0,
+      fullscreenExitsCount: parseInt(fullscreenExitsCount) || 0,
+      copyPasteAttempts: parseInt(copyPasteAttempts) || 0,
+      proctoringLogs: Array.isArray(parsedLogs) ? parsedLogs : []
     });
 
     await result.save();
     delete req.session.currentTest;
+    if (req.session.activeAttempts) {
+      delete req.session.activeAttempts[test._id.toString()];
+    }
     req.flash('success', 'Test submitted successfully!');
     res.redirect('/student/dashboard');
   } catch (err) {

@@ -55,6 +55,24 @@ const resultSchema = new mongoose.Schema({
     type: Number, // in seconds
     default: 0
   },
+  // Proctoring and Anti-Cheat metrics
+  tabSwitchesCount: {
+    type: Number,
+    default: 0
+  },
+  fullscreenExitsCount: {
+    type: Number,
+    default: 0
+  },
+  copyPasteAttempts: {
+    type: Number,
+    default: 0
+  },
+  proctoringLogs: [{
+    action: { type: String }, // 'tab_switch', 'fullscreen_exit', 'copy_paste_attempt', 'window_minimize'
+    message: { type: String },
+    timestamp: { type: Date, default: Date.now }
+  }],
   submittedAt: {
     type: Date,
     default: Date.now

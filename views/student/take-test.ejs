@@ -552,6 +552,40 @@
       justify-content: space-between;
       gap: 12px;
     }
+
+    /* ── Proctoring Alert Modals ── */
+    .proctor-alert-overlay {
+      position: fixed; inset: 0; z-index: 100000;
+      background: rgba(3, 7, 12, 0.94);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px;
+      animation: fadeInRules 0.2s ease;
+    }
+    .proctor-alert-card {
+      background: #0f131a;
+      border-radius: 16px;
+      width: 100%; max-width: 560px;
+      padding: 30px 26px;
+      text-align: center;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.95);
+    }
+    .proctor-alert-card.danger-card {
+      border: 2px solid #ef4444;
+      box-shadow: 0 0 50px rgba(239, 68, 68, 0.4);
+    }
+    .proctor-alert-card.warning-card {
+      border: 2px solid #f59e0b;
+      box-shadow: 0 0 50px rgba(245, 158, 11, 0.4);
+    }
+    .proctor-icon { font-size: 3rem; margin-bottom: 12px; }
+    .proctor-alert-card h3 { font-size: 1.3rem; font-weight: 900; margin-bottom: 10px; }
+    .danger-card h3 { color: #f87171; }
+    .warning-card h3 { color: #fbbf24; }
+    .alert-count-pill { font-size: 0.92rem; font-weight: 800; color: #fff; background: rgba(255,255,255,0.08); display: inline-block; padding: 4px 16px; border-radius: 99px; margin-bottom: 12px; }
+    .alert-desc { font-size: 0.9rem; color: #cbd5e1; line-height: 1.6; margin-bottom: 14px; }
+    .alert-sub { font-size: 0.8rem; color: #94a3b8; margin-bottom: 20px; line-height: 1.45; }
   </style>
 
   <!-- ═══════ Pre-Exam Rules & Disclaimer Modal (Mandatory Gate) ═══════ -->
@@ -560,71 +594,55 @@
       <div class="rules-modal-header">
         <div class="rules-badge">⚠️ MANDATORY EXAMINATION INSTRUCTIONS &bull; CONDUCTED BY EXAM PRO</div>
         <h1>TECHNICAL EXAMINATION RULES &amp; REGULATIONS</h1>
-        <div class="rules-company">Conducted by Exam Pro &bull; Exam Pro</div>
+        <div class="rules-company">Conducted by Exam Pro &bull; Techminds Software India Pvt. Ltd.</div>
         <p class="rules-intro">
-          This examination is conducted and proctored by <strong>Exam Pro</strong> on behalf of <strong>Exam
-            Pro</strong> All candidates must carefully read and agree to the following rules before starting the online
-          technical examination.
+          This examination is conducted and proctored by <strong>Exam Pro</strong> on behalf of <strong>Techminds Software India Pvt. Ltd.</strong> All candidates must carefully read and agree to the following rules before starting the online technical examination.
         </p>
 
         <div class="rules-test-pills">
           <span>🏢 <strong>Exam Pro</strong> Assessment</span>
-          <span>⏱️ <strong>
-              <%= test.duration %> Mins
-            </strong> Time Limit</span>
-          <span>❓ <strong>
-              <%= totalQuestions %>
-            </strong> Questions</span>
-          <span>🏆 <strong>
-              <%= totalMarks %>
-            </strong> Total Marks</span>
-          <span>📚 <strong>
-              <%= test.course %>
-            </strong></span>
+          <span>⏱️ <strong><%= test.duration %> Mins</strong> Time Limit</span>
+          <span>❓ <strong><%= totalQuestions %></strong> Questions</span>
+          <span>🏆 <strong><%= totalMarks %></strong> Total Marks</span>
+          <span>📚 <strong><%= test.course %></strong></span>
         </div>
       </div>
 
       <div class="rules-modal-body">
         <!-- MANDATORY CRITICAL DISCLAIMER: INTERVIEW QUALIFICATION & CODE QUALITY -->
-        <div
-          style="background: rgba(245, 158, 11, 0.12); border: 1.5px solid rgba(245, 158, 11, 0.45); border-radius: 12px; padding: 16px 20px; margin-bottom: 18px;">
-          <div
-            style="display: flex; align-items: center; gap: 8px; color: #fbbf24; font-weight: 800; font-size: 0.92rem; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.04em;">
-            <span>⚠️</span> Important Disclaimer &bull; Interview Qualification Criteria
+        <div style="background: rgba(245, 158, 11, 0.12); border: 1.5px solid rgba(245, 158, 11, 0.45); border-radius: 12px; padding: 16px 20px; margin-bottom: 18px;">
+          <div style="display: flex; align-items: center; gap: 8px; color: #fbbf24; font-weight: 800; font-size: 0.92rem; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.04em;">
+            <span>⚠️</span> Important Disclaimer &bull; Interview Qualification Criteria &amp; System Lock
           </div>
           <p style="color: #fef08a; font-size: 0.9rem; line-height: 1.5; margin: 0 0 8px; font-weight: 800;">
-            (Appearing for the exam and
-            passing it does NOT automatically qualify you for the interview).
+            Exam dili ani pass zala yacha mean asa nahi ki interview sathi qualify hoil. (Appearing for the exam and passing it does NOT automatically qualify you for the interview).
           </p>
-          <p style="color: #e2e8f0; font-size: 0.84rem; line-height: 1.55; margin: 0;">
-            To qualify for the technical interview, <strong>your code quality must be optimized, efficient, and
-              well-structured</strong>. Our recruitment panel manually evaluates every submitted answer and code
-            implementation. Candidates with unoptimized, inefficient, or brute-force code will not be qualified for the
-            interview, regardless of their test score.
+          <p style="color: #e2e8f0; font-size: 0.84rem; line-height: 1.55; margin: 0 0 10px;">
+            To qualify for the technical interview, <strong>your code quality must be optimized, efficient, and well-structured</strong>. Our recruitment panel manually evaluates every submitted answer and code implementation. Candidates with unoptimized, inefficient, or brute-force code will not be qualified for the interview, regardless of their test score.
           </p>
+          <div style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 8px; padding: 10px 14px; font-size: 0.83rem; color: #fca5a5; line-height: 1.5;">
+            🔒 <strong>STRICT TAB &amp; APP RESTRICTION:</strong> No extra browser tab or background application is permitted while giving the exam. <strong>ONLY this ICUBE / Exam Pro examination tab has to be open.</strong> Fullscreen mode is compulsory. Every tab switch, window minimization, or fullscreen exit is tracked and directly reported to the recruitment administrator.
+          </div>
         </div>
 
         <!-- 1. Examination Fee & Refund Policy -->
         <div class="rule-block">
           <h4><span class="r-num">1</span> Examination Fee &amp; Refund Policy</h4>
           <ul>
-            <li>The examination fee is <strong>strictly non-refundable</strong>, regardless of whether the candidate
-              passes or fails the examination.</li>
-            <li>No refund will be provided if a candidate abandons, cancels, interrupts, or forcefully closes the
-              examination after starting it.</li>
-            <li>If a candidate needs to retake the examination following a forceful closure or an invalid attempt, a new
-              examination fee must be paid.</li>
+            <li>The examination fee is <strong>strictly non-refundable</strong>, regardless of whether the candidate passes or fails the examination.</li>
+            <li>No refund will be provided if a candidate abandons, cancels, interrupts, or forcefully closes the examination after starting it.</li>
+            <li>If a candidate needs to retake the examination following a forceful closure or an invalid attempt, a new examination fee must be paid.</li>
           </ul>
         </div>
 
-        <!-- 2. Tab Switching & Window Restrictions -->
+        <!-- 2. Tab Switching, Fullscreen & Window Restrictions -->
         <div class="rule-block">
-          <h4><span class="r-num">2</span> Tab Switching &amp; Window Restrictions</h4>
+          <h4><span class="r-num">2</span> Tab Switching, Fullscreen &amp; Application Restrictions</h4>
           <ul>
-            <li>Switching browser tabs, opening other applications, minimizing the examination window, or refreshing the
-              page is strictly prohibited during the examination.</li>
-            <li>Such activities may be recorded in the examination logs and considered during final evaluation.</li>
-            <li>Candidates must remain on the examination page until the examination is completed and submitted.</li>
+            <li><strong>Only Exam Tab Allowed:</strong> No extra browser tab, secondary window, messaging tool, or background application may be running during the test. <strong>ONLY the ICUBE assessment tab must remain open.</strong></li>
+            <li><strong>Compulsory Fullscreen:</strong> The examination must be taken in full screen mode. Minimizing the browser or exiting fullscreen is strictly recorded.</li>
+            <li><strong>Real-Time Admin Reporting:</strong> Every tab switch, window minimization, and fullscreen exit is recorded with exact timestamps and included in the final administrator report.</li>
+            <li>Refreshing the page will not reset the examination timer; your elapsed time and remaining time will be preserved.</li>
           </ul>
         </div>
 
@@ -838,7 +856,11 @@
 
         <!-- ═══════ Test Form ═══════ -->
         <form action="/student/test/<%= test._id %>/submit" method="POST" id="testForm">
-          <input type="hidden" name="timeTaken" id="timeTaken" value="0">
+          <input type="hidden" name="timeTaken" id="timeTaken" value="<%= initialElapsedSeconds %>">
+          <input type="hidden" name="tabSwitchesCount" id="tabSwitchesCount" value="0">
+          <input type="hidden" name="fullscreenExitsCount" id="fullscreenExitsCount" value="0">
+          <input type="hidden" name="copyPasteAttempts" id="copyPasteAttempts" value="0">
+          <input type="hidden" name="proctoringLogs" id="proctoringLogs" value="[]">
 
           <% let globalIdx=0; %>
             <% sections.forEach((sec, si)=> { %>
@@ -960,11 +982,181 @@
   </div>
   </div> <!-- Close #examContentContainer -->
 
+  <!-- ═══════ Proctoring Alert: Tab Switch Warning Modal ═══════ -->
+  <div id="tabSwitchWarningModal" class="proctor-alert-overlay" style="display: none;">
+    <div class="proctor-alert-card danger-card">
+      <div class="proctor-icon">🚨</div>
+      <h3>WARNING: TAB SWITCH DETECTED!</h3>
+      <div class="alert-count-pill">Recorded Incident #<span id="tabSwitchCountDisplay">1</span></div>
+      <p class="alert-desc">
+        Switching browser tabs, opening another application, minimizing the window, or navigating away is <strong>strictly prohibited</strong> during this examination.
+      </p>
+      <p class="alert-sub">
+        ⚠️ This incident has been logged with an exact timestamp and will be reported to the recruitment assessment administrator. Continued violations will lead to disqualification.
+      </p>
+      <button type="button" class="btn btn-primary btn-lg" onclick="dismissTabWarning()">
+        ⚠️ I Understand &amp; Return to Fullscreen Exam
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══════ Proctoring Alert: Fullscreen Required Modal ═══════ -->
+  <div id="fullscreenRequiredModal" class="proctor-alert-overlay" style="display: none;">
+    <div class="proctor-alert-card warning-card">
+      <div class="proctor-icon">🖥️</div>
+      <h3>COMPULSORY FULLSCREEN MODE</h3>
+      <div class="alert-count-pill">Fullscreen Exited: <span id="fullscreenExitCountDisplay">1</span> time(s)</div>
+      <p class="alert-desc">
+        This examination must be conducted in <strong>strict fullscreen mode</strong>. You cannot interact with or view examination questions outside of fullscreen.
+      </p>
+      <p class="alert-sub">
+        🔒 Only the ICUBE examination tab is permitted to be open. Re-enter fullscreen immediately to continue your assessment.
+      </p>
+      <button type="button" class="btn btn-primary btn-lg" onclick="reenterFullscreen()">
+        🔲 Re-enter Fullscreen Mode to Continue
+      </button>
+    </div>
+  </div>
+
   <script>
-    // ── Pre-Exam Gate State ──
+    // ── Examination & Proctoring Configuration ──
+    const TEST_ID = '<%= test._id %>';
+    const USER_ID = '<%= currentUser.id %>';
+    const STORAGE_KEY = 'icube_exam_answers_' + TEST_ID + '_' + USER_ID;
+    const PROCTOR_KEY = 'icube_exam_proctor_' + TEST_ID + '_' + USER_ID;
+    const AGREED_KEY = 'icube_exam_agreed_' + TEST_ID + '_' + USER_ID;
+
+    const isResumed = <%= isResumed ? 'true' : 'false' %>;
+    let remainingSeconds = <%= initialRemainingSeconds %>;
+    let elapsedSeconds = <%= initialElapsedSeconds %>;
+    let timerInterval = null;
+
+    let tabSwitchesCount = 0;
+    let fullscreenExitsCount = 0;
+    let copyPasteAttempts = 0;
+    let proctorLogs = [];
+
+    // Restore cached proctor metrics from session if user refreshed
+    try {
+      const cached = JSON.parse(sessionStorage.getItem(PROCTOR_KEY) || '{}');
+      if (cached.tabSwitchesCount) tabSwitchesCount = cached.tabSwitchesCount;
+      if (cached.fullscreenExitsCount) fullscreenExitsCount = cached.fullscreenExitsCount;
+      if (cached.copyPasteAttempts) copyPasteAttempts = cached.copyPasteAttempts;
+      if (Array.isArray(cached.logs)) proctorLogs = cached.logs;
+    } catch (e) {}
+
+    // Initialize hidden fields
+    document.getElementById('tabSwitchesCount').value = tabSwitchesCount;
+    document.getElementById('fullscreenExitsCount').value = fullscreenExitsCount;
+    document.getElementById('copyPasteAttempts').value = copyPasteAttempts;
+    document.getElementById('proctoringLogs').value = JSON.stringify(proctorLogs);
+    document.getElementById('timeTaken').value = elapsedSeconds;
+
     window.examActive = false;
     document.body.style.overflow = 'hidden';
 
+    function logProctorEvent(action, message) {
+      const entry = {
+        action,
+        message,
+        timestamp: new Date().toISOString()
+      };
+      proctorLogs.push(entry);
+      document.getElementById('proctoringLogs').value = JSON.stringify(proctorLogs);
+      try {
+        sessionStorage.setItem(PROCTOR_KEY, JSON.stringify({
+          tabSwitchesCount,
+          fullscreenExitsCount,
+          copyPasteAttempts,
+          logs: proctorLogs
+        }));
+      } catch (e) {}
+    }
+
+    // ── Fullscreen Helpers ──
+    function requestExamFullscreen() {
+      const elem = document.documentElement;
+      if (elem.requestFullscreen) {
+        elem.requestFullscreen().catch(() => {});
+      } else if (elem.webkitRequestFullscreen) {
+        elem.webkitRequestFullscreen();
+      } else if (elem.msRequestFullscreen) {
+        elem.msRequestFullscreen();
+      }
+    }
+
+    function handleFullscreenChange() {
+      if (!window.examActive) return;
+      const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement);
+      if (!isFs) {
+        fullscreenExitsCount++;
+        document.getElementById('fullscreenExitsCount').value = fullscreenExitsCount;
+        document.getElementById('fullscreenExitCountDisplay').textContent = fullscreenExitsCount;
+        logProctorEvent('fullscreen_exit', `Exited fullscreen mode (#${fullscreenExitsCount})`);
+        document.getElementById('fullscreenRequiredModal').style.display = 'flex';
+      } else {
+        document.getElementById('fullscreenRequiredModal').style.display = 'none';
+      }
+    }
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+
+    function reenterFullscreen() {
+      requestExamFullscreen();
+      document.getElementById('fullscreenRequiredModal').style.display = 'none';
+    }
+
+    // ── Tab Switching & Focus Loss Detection ──
+    let lastBlurTimestamp = 0;
+    document.addEventListener('visibilitychange', () => {
+      if (!window.examActive) return;
+      if (document.hidden) {
+        triggerTabSwitchAlert('Candidate switched browser tab or minimized window');
+      }
+    });
+
+    window.addEventListener('blur', () => {
+      if (!window.examActive) return;
+      const now = Date.now();
+      // Debounce if visibilitychange already caught it within 1 second
+      if (now - lastBlurTimestamp > 1000) {
+        triggerTabSwitchAlert('Examination window lost focus (switched application or secondary window)');
+      }
+    });
+
+    function triggerTabSwitchAlert(reason) {
+      lastBlurTimestamp = Date.now();
+      tabSwitchesCount++;
+      document.getElementById('tabSwitchesCount').value = tabSwitchesCount;
+      document.getElementById('tabSwitchCountDisplay').textContent = tabSwitchesCount;
+      logProctorEvent('tab_switch', `${reason} (#${tabSwitchesCount})`);
+      document.getElementById('tabSwitchWarningModal').style.display = 'flex';
+    }
+
+    function dismissTabWarning() {
+      document.getElementById('tabSwitchWarningModal').style.display = 'none';
+      requestExamFullscreen();
+    }
+
+    // ── Copy, Cut, Paste Tracking ──
+    ['copy', 'cut'].forEach(evt => {
+      document.addEventListener(evt, e => {
+        if (!window.examActive) return;
+        copyPasteAttempts++;
+        document.getElementById('copyPasteAttempts').value = copyPasteAttempts;
+        logProctorEvent('copy_paste_attempt', `Attempted ${evt} operation (#${copyPasteAttempts})`);
+      });
+    });
+
+    document.addEventListener('paste', e => {
+      if (!window.examActive) return;
+      copyPasteAttempts++;
+      document.getElementById('copyPasteAttempts').value = copyPasteAttempts;
+      logProctorEvent('copy_paste_attempt', `Attempted paste operation (#${copyPasteAttempts})`);
+    });
+
+    // ── Checkbox Enablement ──
     function handleAgreeCheckbox(cb) {
       const btn = document.getElementById('startExamConfirmedBtn');
       if (btn) {
@@ -979,6 +1171,7 @@
       }
     }
 
+    // ── Start Exam Session ──
     function beginExamSession() {
       const cb = document.getElementById('agreeRulesCheckbox');
       if (!cb || !cb.checked) {
@@ -986,6 +1179,13 @@
         return;
       }
 
+      requestExamFullscreen();
+      sessionStorage.setItem(AGREED_KEY, '1');
+
+      activateExamUI();
+    }
+
+    function activateExamUI() {
       const modal = document.getElementById('rulesDisclaimerModal');
       if (modal) modal.style.display = 'none';
 
@@ -1000,12 +1200,73 @@
       document.body.style.overflow = 'auto';
       window.examActive = true;
 
-      // Start the countdown timer now
       if (!timerInterval) {
         timerInterval = setInterval(updateTimer, 1000);
       }
+      updateTimer();
 
       window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ── Local Storage Answer Persistence (Immune to Refresh) ──
+    function saveAnswersToLocalStorage() {
+      const data = {};
+      document.querySelectorAll('.mcq-option:checked').forEach(r => {
+        data[r.name] = r.value;
+      });
+      document.querySelectorAll('.code-answer-area').forEach(ta => {
+        if (ta.value.trim().length > 0) {
+          data[ta.name] = ta.value;
+        }
+      });
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      } catch (e) {}
+    }
+
+    function restoreAnswersFromLocalStorage() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        const data = JSON.parse(raw);
+        Object.keys(data).forEach(fieldName => {
+          const val = data[fieldName];
+          const radio = document.querySelector(`input[name="${fieldName}"][value="${val}"]`);
+          if (radio) radio.checked = true;
+
+          const ta = document.querySelector(`textarea[name="${fieldName}"]`);
+          if (ta) ta.value = val;
+        });
+        updateProgress();
+      } catch (e) {}
+    }
+
+    document.addEventListener('change', e => {
+      if (e.target && e.target.classList.contains('mcq-option')) {
+        saveAnswersToLocalStorage();
+        updateProgress();
+      }
+    });
+
+    document.addEventListener('input', e => {
+      if (e.target && e.target.classList.contains('code-answer-area')) {
+        saveAnswersToLocalStorage();
+        updateProgress();
+      }
+    });
+
+    // Restore answers immediately on DOM load
+    restoreAnswersFromLocalStorage();
+
+    // ── Resume check if page was refreshed ──
+    if (isResumed || sessionStorage.getItem(AGREED_KEY) === '1') {
+      logProctorEvent('page_refresh', 'Page was refreshed by candidate. Resumed ongoing session without resetting timer.');
+      activateExamUI();
+
+      if (remainingSeconds <= 0) {
+        alert('⏰ Time has expired! Your test will be submitted automatically.');
+        document.getElementById('testForm').submit();
+      }
     }
 
     // ── Section tab switching ──
@@ -1018,12 +1279,7 @@
       if (targetTab) targetTab.classList.add('active');
     }
 
-    // ── Timer (Starts ONLY upon agreement and start) ──
-    const totalSeconds = <%= test.duration %> * 60;
-    let remainingSeconds = totalSeconds;
-    let elapsedSeconds = 0;
-    let timerInterval = null;
-
+    // ── Timer Logic ──
     function updateTimer() {
       const minutes = Math.floor(remainingSeconds / 60);
       const seconds = remainingSeconds % 60;
@@ -1094,12 +1350,13 @@
           const end = this.selectionEnd;
           this.value = this.value.substring(0, start) + '  ' + this.value.substring(end);
           this.selectionStart = this.selectionEnd = start + 2;
+          saveAnswersToLocalStorage();
           updateProgress();
         }
       });
     });
 
-    // ── Anti‑cheat: disable right‑click, text selection and common copy shortcuts (except inside code editor) ──
+    // ── Anti-cheat: Right-click & shortcut prevention ──
     document.addEventListener('contextmenu', e => {
       if (!window.examActive) return;
       if (e.target && (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT')) return;
@@ -1108,7 +1365,6 @@
 
     document.addEventListener('keydown', e => {
       if (!window.examActive) return;
-      // Allow normal editing inside candidate answer fields
       if (e.target && (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT')) {
         return;
       }
@@ -1118,7 +1374,6 @@
     });
 
     document.querySelectorAll('.question-card').forEach(card => {
-      // Allow text selection inside code textarea
       card.querySelectorAll('.question-header, .question-text, .mcq-options, .question-image-box').forEach(el => {
         el.style.userSelect = 'none';
       });
@@ -1127,11 +1382,16 @@
     window.addEventListener('beforeunload', e => {
       if (!window.examActive) return;
       e.preventDefault();
-      e.returnValue = 'Are you sure you want to leave? Your progress will be lost.';
+      e.returnValue = 'Are you sure you want to leave? Your timer will continue running.';
     });
 
     document.getElementById('testForm').addEventListener('submit', function () {
       window.onbeforeunload = null;
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+        sessionStorage.removeItem(AGREED_KEY);
+        sessionStorage.removeItem(PROCTOR_KEY);
+      } catch (e) {}
     });
   </script>
 
