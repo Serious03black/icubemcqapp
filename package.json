@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
+    "build:client": "npm --prefix ../icube-solutions-website-main/icube-solutions-website-main run build && powershell -Command Copy-Item -Path ../icube-solutions-website-main/icube-solutions-website-main/dist -Destination ./client-dist -Recurse -Force",
     "seed": "node seed.js"
   },
   "dependencies": {

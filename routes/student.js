@@ -8,8 +8,8 @@ const Payment = require('../models/Payment');
 const { isStudent } = require('../middleware/auth');
 
 const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID || 'rzp_live_Tra23GH7GQR2McTdZAPyl6d2se',
-  key_secret: process.env.RAZORPAY_KEY_SECRET || 'a23GH7GQR2McTdZAPyl6d2se'
+  key_id: process.env.RAZORPAY_KEY_ID || 'rzp_live_TqZBXaoUiElbST',
+  key_secret: process.env.RAZORPAY_KEY_SECRET || 'pPcdEDdMnukUnZlaa8AtI5hT'
 });
 
 
@@ -334,7 +334,7 @@ router.post('/pay/:id/verify', express.json(), async (req, res) => {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
 
     // Verify HMAC signature
-    const secret = process.env.RAZORPAY_KEY_SECRET || '';
+    const secret = process.env.RAZORPAY_KEY_SECRET || 'pPcdEDdMnukUnZlaa8AtI5hT';
     const generated = crypto
       .createHmac('sha256', secret)
       .update(`${razorpay_order_id}|${razorpay_payment_id}`)
