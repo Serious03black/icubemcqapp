@@ -5,61 +5,139 @@
 
   <div class="main-content">
     <div class="page-header">
-      <h1>✏️ Edit Question</h1>
-      <p>Update question for "<%= test.title %>"</p>
+      <div class="page-header-actions">
+        <div>
+          <h1>✏️ Edit Question</h1>
+          <p>Update question for "<%= test.title %>" <%= (typeof subTest !== 'undefined' && subTest) ? ('• Section: ' + subTest.name) : '' %></p>
+        </div>
+        <a href="/admin/tests/<%= test._id %>/questions" class="btn btn-outline">← Back to Questions</a>
+      </div>
     </div>
 
     <div class="page-body">
       <%- include('../partials/alerts') %>
 
-      <div class="card" style="max-width: 640px;">
+      <div class="card" style="max-width: 760px; margin: 0 auto;">
         <div class="card-body">
-          <form action="/admin/tests/<%= test._id %>/questions/<%= question._id %>/edit" method="POST">
-            <div class="form-group">
-              <label class="form-label">Question Text *</label>
-              <textarea class="form-input" name="questionText" rows="3" required><%= question.questionText %></textarea>
-            </div>
+          <form action="<%= (typeof subTest !== 'undefined' && subTest) ? ('/admin/tests/' + test._id + '/subtests/' + subTest._id + '/questions/' + question._id + '/edit') : ('/admin/tests/' + test._id + '/questions/' + question._id + '/edit') %>"
+                method="POST"
+                enctype="multipart/form-data"
+                id="editQuestionForm">
 
+            <!-- Question Type & Marks -->
             <div class="form-row">
               <div class="form-group">
-                <label class="form-label">Option A *</label>
-                <input type="text" class="form-input" name="optionA" value="<%= question.optionA %>" required>
-              </div>
-              <div class="form-group">
-                <label class="form-label">Option B *</label>
-                <input type="text" class="form-input" name="optionB" value="<%= question.optionB %>" required>
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label class="form-label">Option C *</label>
-                <input type="text" class="form-input" name="optionC" value="<%= question.optionC %>" required>
-              </div>
-              <div class="form-group">
-                <label class="form-label">Option D *</label>
-                <input type="text" class="form-input" name="optionD" value="<%= question.optionD %>" required>
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label class="form-label">Correct Option *</label>
-                <select class="form-select" name="correctOption" required>
-                  <option value="A" <%= question.correctOption === 'A' ? 'selected' : '' %>>A</option>
-                  <option value="B" <%= question.correctOption === 'B' ? 'selected' : '' %>>B</option>
-                  <option value="C" <%= question.correctOption === 'C' ? 'selected' : '' %>>C</option>
-                  <option value="D" <%= question.correctOption === 'D' ? 'selected' : '' %>>D</option>
+                <label class="form-label">Question Type *</label>
+                <select class="form-select" name="type" id="editQuestionType" onchange="toggleEditType(this.value)" required>
+                  <option value="mcq" <%= (question.type === 'mcq' || !question.type) ? 'selected' : '' %>>📋 Multiple Choice (MCQ)</option>
+                  <option value="coding" <%= (question.type === 'coding' || question.type === 'code') ? 'selected' : '' %>>💻 Coding Question (Textarea Code Answer)</option>
                 </select>
               </div>
               <div class="form-group">
                 <label class="form-label">Marks</label>
-                <input type="number" class="form-input" name="marks" value="<%= question.marks || 1 %>" min="1" max="10">
+                <input type="number" class="form-input" name="marks" value="<%= question.marks || 1 %>" min="1" max="100">
               </div>
             </div>
 
-            <div style="display: flex; gap: 12px; margin-top: 8px;">
-              <button type="submit" class="btn btn-primary btn-lg">Update Question</button>
+            <!-- Question Text -->
+            <div class="form-group">
+              <label class="form-label">Question Text / Problem Statement</label>
+              <textarea class="form-input" name="questionText" id="editQuestionText" rows="3" placeholder="Enter problem statement or description (optional if an image is provided)..."><%= question.questionText || '' %></textarea>
+              <small style="color: var(--text-muted); font-size: 0.76rem;">You can leave text empty if you are using an image as the question.</small>
+            </div>
+
+            <!-- Question Image Section -->
+            <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                <label class="form-label" style="margin-bottom: 0; display: flex; align-items: center; gap: 8px;">
+                  <span>🖼️ Question Image (Upload File or Image URL)</span>
+                  <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: normal;">Optional</span>
+                </label>
+                <% if (question.imageUrl) { %>
+                  <a href="<%= question.imageUrl %>" target="_blank" style="font-size: 0.74rem; color: var(--green);">View Current Image ↗</a>
+                <% } %>
+              </div>
+
+              <% if (question.imageUrl) { %>
+                <div style="display: flex; align-items: center; gap: 14px; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px; margin-bottom: 12px;">
+                  <img src="<%= question.imageUrl %>" alt="Current Question Image" style="max-height: 70px; max-width: 120px; object-fit: contain; border-radius: 4px; border: 1px solid var(--border);">
+                  <div style="flex: 1; font-size: 0.8rem;">
+                    <span style="color: var(--green); font-weight: 600;">Current image attached</span>
+                    <p style="margin: 2px 0 0; color: var(--text-muted); font-size: 0.74rem; word-break: break-all;"><%= question.imageUrl %></p>
+                  </div>
+                </div>
+              <% } %>
+
+              <div class="form-row" style="margin-bottom: 0;">
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label style="font-size: 0.76rem; color: var(--text-muted);">Upload New Image File</label>
+                  <input type="file" class="form-input" name="questionImage" accept="image/*" onchange="previewEditFile(this)">
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label style="font-size: 0.76rem; color: var(--text-muted);">OR Image URL</label>
+                  <input type="url" class="form-input" name="imageUrl" id="editImageUrl" value="<%= question.imageUrl || '' %>" placeholder="https://example.com/question.png" oninput="previewEditUrl(this.value)">
+                </div>
+              </div>
+
+              <div id="editImagePreview" style="display: none; margin-top: 12px; text-align: center; padding: 10px; background: rgba(0,0,0,0.35); border-radius: 6px;">
+                <div style="font-size: 0.74rem; color: var(--text-muted); margin-bottom: 6px;">New Image Preview:</div>
+                <img id="editImagePreviewImg" src="" alt="Preview" style="max-height: 180px; max-width: 100%; object-fit: contain; border-radius: 4px;">
+              </div>
+            </div>
+
+            <!-- Coding Question Notice -->
+            <div id="codingNotice" style="display: <%= (question.type === 'coding' || question.type === 'code') ? 'block' : 'none' %>; background: rgba(56, 189, 248, 0.08); border: 1px dashed rgba(56, 189, 248, 0.35); border-radius: 8px; padding: 14px 18px; margin-bottom: 20px;">
+              <div style="display: flex; align-items: flex-start; gap: 10px;">
+                <span style="font-size: 1.25rem;">💻</span>
+                <div>
+                  <strong style="color: #38bdf8; font-size: 0.9rem;">Coding Question Mode Enabled</strong>
+                  <p style="margin: 4px 0 0; color: var(--text-muted); font-size: 0.8rem; line-height: 1.5;">
+                    The student will be provided a dedicated code editor/textarea during the exam to write and submit their solution. No multiple-choice options are required.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- MCQ Options Section -->
+            <div id="mcqOptionsSection" style="display: <%= (question.type === 'coding' || question.type === 'code') ? 'none' : 'block' %>;">
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Option A *</label>
+                  <input type="text" class="form-input" name="optionA" id="editOptA" value="<%= question.optionA || '' %>">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Option B *</label>
+                  <input type="text" class="form-input" name="optionB" id="editOptB" value="<%= question.optionB || '' %>">
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Option C *</label>
+                  <input type="text" class="form-input" name="optionC" id="editOptC" value="<%= question.optionC || '' %>">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Option D *</label>
+                  <input type="text" class="form-input" name="optionD" id="editOptD" value="<%= question.optionD || '' %>">
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Correct Option *</label>
+                  <select class="form-select" name="correctOption" id="editCorrectOption">
+                    <option value="">Select correct answer</option>
+                    <option value="A" <%= question.correctOption === 'A' ? 'selected' : '' %>>Option A</option>
+                    <option value="B" <%= question.correctOption === 'B' ? 'selected' : '' %>>Option B</option>
+                    <option value="C" <%= question.correctOption === 'C' ? 'selected' : '' %>>Option C</option>
+                    <option value="D" <%= question.correctOption === 'D' ? 'selected' : '' %>>Option D</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 12px; margin-top: 14px;">
+              <button type="submit" class="btn btn-primary btn-lg">💾 Update Question</button>
               <a href="/admin/tests/<%= test._id %>/questions" class="btn btn-outline btn-lg">Cancel</a>
             </div>
           </form>
@@ -68,5 +146,65 @@
     </div>
   </div>
 </div>
+
+<script>
+  function toggleEditType(type) {
+    const isCoding = (type === 'coding' || type === 'code');
+    const mcqSec = document.getElementById('mcqOptionsSection');
+    const codingNotice = document.getElementById('codingNotice');
+    const optA = document.getElementById('editOptA');
+    const optB = document.getElementById('editOptB');
+    const optC = document.getElementById('editOptC');
+    const optD = document.getElementById('editOptD');
+    const correct = document.getElementById('editCorrectOption');
+
+    if (isCoding) {
+      mcqSec.style.display = 'none';
+      codingNotice.style.display = 'block';
+      if (optA) optA.required = false;
+      if (optB) optB.required = false;
+      if (optC) optC.required = false;
+      if (optD) optD.required = false;
+      if (correct) correct.required = false;
+    } else {
+      mcqSec.style.display = 'block';
+      codingNotice.style.display = 'none';
+      if (optA) optA.required = true;
+      if (optB) optB.required = true;
+      if (optC) optC.required = true;
+      if (optD) optD.required = true;
+      if (correct) correct.required = true;
+    }
+  }
+
+  function previewEditFile(input) {
+    const previewBox = document.getElementById('editImagePreview');
+    const previewImg = document.getElementById('editImagePreviewImg');
+    if (input.files && input.files[0]) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        previewImg.src = e.target.result;
+        previewBox.style.display = 'block';
+      };
+      reader.readAsDataURL(input.files[0]);
+    }
+  }
+
+  function previewEditUrl(url) {
+    const previewBox = document.getElementById('editImagePreview');
+    const previewImg = document.getElementById('editImagePreviewImg');
+    if (url && url.trim().length > 5) {
+      previewImg.src = url.trim();
+      previewBox.style.display = 'block';
+    } else {
+      previewBox.style.display = 'none';
+    }
+  }
+
+  // Initialize validation states
+  document.addEventListener('DOMContentLoaded', function() {
+    toggleEditType(document.getElementById('editQuestionType').value);
+  });
+</script>
 
 <%- include('../partials/footer') %>

@@ -118,4 +118,12 @@ router.get('/logout', (req, res) => {
   });
 });
 
+// GET Terms & Conditions Page
+router.get(['/terms', '/terms-and-conditions'], (req, res) => {
+  res.render('terms', {
+    title: 'Terms & Conditions - Exam Pro',
+    currentUser: req.session.user || null
+  });
+});
+
 module.exports = router;

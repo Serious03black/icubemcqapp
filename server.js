@@ -27,6 +27,11 @@ app.set('views', path.join(__dirname, 'views'));
 
 // Middleware & Static Files
 app.use(express.static(path.join(__dirname, 'public')));
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+app.use('/uploads', express.static(uploadsDir));
 if (fs.existsSync(websiteDistPath)) {
   app.use(express.static(websiteDistPath));
 }
@@ -96,7 +101,7 @@ app.get(['/', '/about', '/services', '/contact'], serveReactWebsite);
 // 404 handler
 app.use((req, res) => {
   // If exam or backend route, render 404 EJS page
-  if (req.path.startsWith('/admin') || req.path.startsWith('/student') || req.path === '/exam' || req.path === '/login' || req.path === '/signup') {
+  if (req.path.startsWith('/admin') || req.path.startsWith('/student') || req.path === '/exam' || req.path === '/login' || req.path === '/signup' || req.path === '/terms' || req.path === '/terms-and-conditions') {
     return res.status(404).render('404', { title: '404 - Page Not Found' });
   }
 

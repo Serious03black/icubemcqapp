@@ -231,11 +231,12 @@ router.post('/test/:id/submit', async (req, res) => {
       const qMarks = question.marks || 1;
       totalMarks += qMarks;
 
-      if (sectionType === 'code' || question.type === 'code') {
+      if (sectionType === 'code' || sectionType === 'coding' || question.type === 'code' || question.type === 'coding') {
         // Code/programming answer — stored as text, admin grades manually
         answers.push({
           questionId: question._id,
           selectedOption: submittedAnswer,  // textarea text
+          codeAnswer: submittedAnswer,
           isCorrect: false,                 // admin grades later
           marks: 0
         });

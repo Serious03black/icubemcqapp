@@ -7,7 +7,10 @@ const answerSchema = new mongoose.Schema({
   },
   selectedOption: {
     type: String,
-    enum: ['A', 'B', 'C', 'D', ''],
+    default: ''
+  },
+  codeAnswer: {
+    type: String,
     default: ''
   },
   isCorrect: {

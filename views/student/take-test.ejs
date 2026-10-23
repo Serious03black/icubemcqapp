@@ -120,9 +120,291 @@
 
   /* ── Submit area ── */
   .submit-area { text-align: center; padding: 40px 0 60px; }
+
+  /* ── Pre-Exam Rules & Disclaimer Modal Gate ── */
+  .rules-modal-overlay {
+    position: fixed; inset: 0; z-index: 99999;
+    background: rgba(3, 7, 12, 0.94);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 18px;
+    animation: fadeInRules 0.25s ease;
+  }
+  @keyframes fadeInRules {
+    from { opacity: 0; transform: scale(0.97); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  .rules-modal-card {
+    background: #0f131a;
+    border: 1.5px solid rgba(34, 197, 94, 0.4);
+    border-radius: 16px;
+    width: 100%; max-width: 880px;
+    max-height: 92vh;
+    display: flex; flex-direction: column;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), 0 0 50px rgba(34, 197, 94, 0.14);
+    overflow: hidden;
+  }
+  .rules-modal-header {
+    background: linear-gradient(180deg, rgba(34, 197, 94, 0.16) 0%, rgba(15, 19, 26, 0.98) 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 22px 28px 18px;
+  }
+  .rules-badge {
+    display: inline-block;
+    background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.35);
+    color: #f87171; font-size: 0.72rem; font-weight: 800;
+    padding: 4px 10px; border-radius: 6px; letter-spacing: 0.06em; text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .rules-modal-header h1 {
+    font-size: clamp(1.15rem, 2.5vw, 1.45rem); font-weight: 900; color: #fff; margin: 0 0 4px;
+    letter-spacing: -0.02em;
+  }
+  .rules-company {
+    font-size: 0.92rem; font-weight: 700; color: var(--green); margin-bottom: 8px;
+  }
+  .rules-intro {
+    font-size: 0.84rem; color: #cbd5e1; line-height: 1.45; margin: 0 0 12px;
+  }
+  .rules-test-pills {
+    display: flex; gap: 8px; flex-wrap: wrap;
+  }
+  .rules-test-pills span {
+    font-size: 0.76rem; background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+    padding: 4px 10px; border-radius: 6px; color: #e2e8f0;
+  }
+  .rules-modal-body {
+    padding: 22px 28px;
+    overflow-y: auto;
+    flex: 1;
+    font-size: 0.88rem;
+    line-height: 1.6;
+    color: #cbd5e1;
+  }
+  .rule-block {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin-bottom: 14px;
+  }
+  .rule-block h4 {
+    font-size: 0.92rem; font-weight: 700; color: #fff; margin: 0 0 8px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .rule-block .r-num {
+    background: var(--green); color: #000; font-size: 0.72rem; font-weight: 800;
+    min-width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+  }
+  .rule-block ul {
+    margin: 0 0 0 18px; padding: 0;
+  }
+  .rule-block li {
+    margin-bottom: 6px; font-size: 0.84rem;
+  }
+  .rule-block strong {
+    color: #fff;
+  }
+  .terms-link-box {
+    background: rgba(56, 189, 248, 0.08);
+    border: 1px solid rgba(56, 189, 248, 0.25);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-top: 14px;
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+  }
+  .terms-link-box a {
+    color: #38bdf8; font-weight: 700; text-decoration: none; font-size: 0.84rem;
+  }
+  .terms-link-box a:hover {
+    text-decoration: underline;
+  }
+  .rules-modal-footer {
+    background: #0d1017;
+    border-top: 1px solid var(--border);
+    padding: 16px 28px;
+  }
+  .agreement-label {
+    display: flex; align-items: flex-start; gap: 12px; cursor: pointer;
+    background: rgba(34, 197, 94, 0.06); border: 1.5px solid rgba(34, 197, 94, 0.25);
+    border-radius: 10px; padding: 12px 14px; margin-bottom: 14px;
+    transition: all 0.2s;
+  }
+  .agreement-label:hover {
+    border-color: var(--green);
+    background: rgba(34, 197, 94, 0.1);
+  }
+  .agreement-label input[type="checkbox"] {
+    width: 20px; height: 20px; accent-color: #22c55e; margin-top: 2px; cursor: pointer; flex-shrink: 0;
+  }
+  .agreement-label .checkbox-text {
+    font-size: 0.82rem; color: #f1f5f9; line-height: 1.45;
+  }
+  .rules-action-btns {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  }
 </style>
 
-<div style="min-height: 100vh; position: relative; z-index: 1;">
+<!-- ═══════ Pre-Exam Rules & Disclaimer Modal (Mandatory Gate) ═══════ -->
+<div id="rulesDisclaimerModal" class="rules-modal-overlay">
+  <div class="rules-modal-card">
+    <div class="rules-modal-header">
+      <div class="rules-badge">⚠️ MANDATORY EXAMINATION INSTRUCTIONS</div>
+      <h1>TECHNICAL EXAMINATION RULES &amp; REGULATIONS</h1>
+      <div class="rules-company">Techminds Software India Pvt. Ltd.</div>
+      <p class="rules-intro">
+        All candidates must carefully read and agree to the following rules before starting the online technical examination.
+      </p>
+
+      <div class="rules-test-pills">
+        <span>⏱️ <strong><%= test.duration %> Mins</strong> Time Limit</span>
+        <span>❓ <strong><%= totalQuestions %></strong> Questions</span>
+        <span>🏆 <strong><%= totalMarks %></strong> Total Marks</span>
+        <span>📚 <strong><%= test.course %></strong></span>
+      </div>
+    </div>
+
+    <div class="rules-modal-body">
+      <!-- 1. Examination Fee & Refund Policy -->
+      <div class="rule-block">
+        <h4><span class="r-num">1</span> Examination Fee &amp; Refund Policy</h4>
+        <ul>
+          <li>The examination fee is <strong>strictly non-refundable</strong>, regardless of whether the candidate passes or fails the examination.</li>
+          <li>No refund will be provided if a candidate abandons, cancels, interrupts, or forcefully closes the examination after starting it.</li>
+          <li>If a candidate needs to retake the examination following a forceful closure or an invalid attempt, a new examination fee must be paid.</li>
+        </ul>
+      </div>
+
+      <!-- 2. Tab Switching & Window Restrictions -->
+      <div class="rule-block">
+        <h4><span class="r-num">2</span> Tab Switching &amp; Window Restrictions</h4>
+        <ul>
+          <li>Switching browser tabs, opening other applications, minimizing the examination window, or refreshing the page is strictly prohibited during the examination.</li>
+          <li>Such activities may be recorded in the examination logs and considered during final evaluation.</li>
+          <li>Candidates must remain on the examination page until the examination is completed and submitted.</li>
+        </ul>
+      </div>
+
+      <!-- 3. Camera Monitoring & Candidate Verification -->
+      <div class="rule-block">
+        <h4><span class="r-num">3</span> Camera Monitoring &amp; Candidate Verification</h4>
+        <ul>
+          <li>The candidate must remain visible in the camera throughout the examination, wherever camera monitoring is enabled.</li>
+          <li>If another person appears in the camera frame, or the candidate leaves the camera view, the incident may be recorded and considered during final evaluation.</li>
+          <li>Candidates must not allow another person to assist them or take the examination on their behalf.</li>
+          <li>These activities may be considered violations even if no immediate warning is displayed.</li>
+        </ul>
+      </div>
+
+      <!-- 4. Code Copying & AI Usage -->
+      <div class="rule-block">
+        <h4><span class="r-num">4</span> Code Copying &amp; AI Usage</h4>
+        <ul>
+          <li>Copying code from external websites, online repositories, messaging applications, or other unauthorized sources is strictly prohibited.</li>
+          <li>Using AI tools such as ChatGPT, GitHub Copilot, Gemini, or other AI assistants to generate answers or code during the examination is not permitted.</li>
+          <li>Candidates must write their own code and submit original work.</li>
+          <li>Plagiarism, unauthorized collaboration, or the use of external assistance may result in disqualification.</li>
+        </ul>
+      </div>
+
+      <!-- 5. Forceful Closure & Auto-Submission -->
+      <div class="rule-block">
+        <h4><span class="r-num">5</span> Forceful Closure &amp; Auto-Submission</h4>
+        <ul>
+          <li>Once the examination has started, forcefully closing the browser, closing the examination window, or terminating the examination session may trigger automatic submission.</li>
+          <li>After auto-submission, the candidate may not be able to resume the same attempt.</li>
+          <li>A new attempt, if permitted, may require payment of the examination fee again.</li>
+          <li>Candidates are responsible for ensuring that their device and browser remain operational throughout the examination.</li>
+        </ul>
+      </div>
+
+      <!-- 6. Refreshing & Technical Interruptions -->
+      <div class="rule-block">
+        <h4><span class="r-num">6</span> Refreshing &amp; Technical Interruptions</h4>
+        <ul>
+          <li>Refreshing the examination page, navigating away from the portal, or minimizing the examination window is strictly prohibited.</li>
+          <li>Candidates must not attempt to bypass examination restrictions or monitoring mechanisms.</li>
+          <li>Candidates experiencing a genuine technical issue should contact the designated examination support team immediately, without repeatedly refreshing or restarting the examination.</li>
+        </ul>
+      </div>
+
+      <!-- 7. Time Limit & Submission -->
+      <div class="rule-block">
+        <h4><span class="r-num">7</span> Time Limit &amp; Submission</h4>
+        <ul>
+          <li>Candidates must complete and submit the examination within the allotted time.</li>
+          <li>The examination may be submitted automatically when the timer expires.</li>
+          <li>Candidates should review their answers before final submission, where the portal permits it.</li>
+          <li>Once submitted, answers may not be editable.</li>
+        </ul>
+      </div>
+
+      <!-- 8. Internet & Device Responsibility -->
+      <div class="rule-block">
+        <h4><span class="r-num">8</span> Internet &amp; Device Responsibility</h4>
+        <ul>
+          <li>Candidates must ensure a stable internet connection, a working device, and a compatible browser before starting.</li>
+          <li>Camera and other required permissions must be enabled before the examination begins.</li>
+          <li>Candidates should close unnecessary applications and disable notifications before starting the test.</li>
+          <li>Any interruption caused by the candidate's device, internet connection, or unauthorized actions may affect the examination attempt.</li>
+        </ul>
+      </div>
+
+      <!-- 9. Examination Integrity & Evaluation -->
+      <div class="rule-block">
+        <h4><span class="r-num">9</span> Examination Integrity &amp; Evaluation</h4>
+        <ul>
+          <li>All examination activities, including tab switching, window minimization, suspicious behavior, camera-related incidents, and submission events, may be logged where supported by the portal.</li>
+          <li>Recorded violations will be reviewed during final evaluation, even if no immediate warning appears on the screen.</li>
+          <li>Depending on the nature and severity of the violation, the examination may be marked invalid or the candidate may be disqualified from the selection process.</li>
+          <li>The company reserves the right to verify submitted answers and code for originality and technical accuracy.</li>
+        </ul>
+      </div>
+
+      <!-- 10. Final Acknowledgment -->
+      <div class="rule-block" style="border-bottom: none; margin-bottom: 0;">
+        <h4><span class="r-num">10</span> Final Acknowledgment</h4>
+        <p>By starting the examination, the candidate confirms that they have read, understood, and agreed to these rules and regulations.</p>
+        <p>Candidates are expected to maintain professional conduct, complete the examination independently, and follow all examination instructions.</p>
+        <div style="margin-top: 10px; font-size: 0.82rem; color: #94a3b8;">
+          <strong>Techminds Software India Pvt. Ltd.</strong><br>
+          <em>Recruitment &amp; Technical Assessment Team</em>
+        </div>
+      </div>
+
+      <!-- Link to full Terms & Conditions -->
+      <div class="terms-link-box">
+        <span>📄 Complete Legal Terms:</span>
+        <a href="/terms" target="_blank" rel="noopener noreferrer">
+          Read Exam Pro Terms &amp; Conditions ↗
+        </a>
+      </div>
+    </div>
+
+    <!-- Mandatory Agreement Checkbox & Actions Footer -->
+    <div class="rules-modal-footer">
+      <label class="agreement-label" for="agreeRulesCheckbox">
+        <input type="checkbox" id="agreeRulesCheckbox" onchange="handleAgreeCheckbox(this)">
+        <span class="checkbox-text">
+          I confirm that I have read, understood, and agree to the <strong>Technical Examination Rules &amp; Regulations</strong> and <strong>Exam Pro Terms &amp; Conditions</strong>. I confirm I will take this test independently without unauthorized assistance, tab switching, or AI tools.
+        </span>
+      </label>
+
+      <div class="rules-action-btns">
+        <a href="/student/dashboard" class="btn btn-outline" onclick="return confirm('Cancel and return to dashboard?');">
+          ← Cancel &amp; Exit
+        </a>
+        <button type="button" class="btn btn-primary btn-lg" id="startExamConfirmedBtn" disabled onclick="beginExamSession()">
+          🚀 I Agree &amp; Start Examination (<%= test.duration %> Mins)
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ Assessment Container (Protected until agreed) ═══════ -->
+<div id="examContentContainer" style="min-height: 100vh; position: relative; z-index: 1; filter: blur(8px); pointer-events: none; opacity: 0.22; user-select: none; transition: filter 0.3s ease, opacity 0.3s ease;">
 
   <!-- ═══════ Top bar ═══════ -->
   <div class="test-topbar">
@@ -184,19 +466,35 @@
           <div class="question-card">
             <div class="question-header">
               <span class="question-number"><%= globalIdx %></span>
-              <span class="question-text"><%= q.questionText %></span>
+              <span class="question-text"><%= q.questionText || 'Refer to the question image below:' %></span>
               <span class="question-marks"><%= q.marks || 1 %> mark<%= (q.marks || 1) > 1 ? 's' : '' %></span>
             </div>
 
-            <% if (sec.type === 'code' || q.type === 'code') { %>
+            <% if (q.imageUrl) { %>
+              <div class="question-image-box" style="margin: 12px 0 18px 0; background: rgba(0,0,0,0.35); border: 1px solid var(--border); border-radius: 10px; padding: 14px; text-align: center;">
+                <div style="font-size: 0.76rem; color: var(--text-muted); margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between;">
+                  <span>🖼️ Question Image</span>
+                  <a href="<%= q.imageUrl %>" target="_blank" style="color: var(--green); text-decoration: none; font-size: 0.74rem;">🔍 Open Full Image ↗</a>
+                </div>
+                <a href="<%= q.imageUrl %>" target="_blank" title="Click to view full image in a new tab">
+                  <img src="<%= q.imageUrl %>" alt="Question Image" style="max-width: 100%; max-height: 420px; object-fit: contain; border-radius: 6px; box-shadow: 0 4px 14px rgba(0,0,0,0.4); transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.01)'" onmouseout="this.style.transform='scale(1)'">
+                </a>
+              </div>
+            <% } %>
+
+            <% if (sec.type === 'code' || sec.type === 'coding' || q.type === 'code' || q.type === 'coding') { %>
               <!-- Coding question: textarea -->
               <div>
-                <div class="code-label">
-                  <span>💻</span> Write your answer / solution code below
+                <div class="code-label" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                  <span style="font-weight: 600; color: #38bdf8;">💻 Write your solution / code below</span>
+                  <span style="font-size: 0.74rem; color: var(--text-muted); background: rgba(255,255,255,0.06); padding: 2px 8px; border-radius: 4px;">Tab indentation supported</span>
                 </div>
                 <textarea class="code-answer-area"
                           name="q_<%= q._id %>"
-                          placeholder="Type your code or answer here..."
+                          placeholder="// Type your answer or solution code here...&#10;// Tab key inserts indentation"
+                          spellcheck="false"
+                          autocomplete="off"
+                          autocapitalize="off"
                           oninput="updateProgress()"></textarea>
               </div>
             <% } else { %>
@@ -245,8 +543,56 @@
     </div>
   </form>
 </div>
+</div> <!-- Close #examContentContainer -->
 
 <script>
+// ── Pre-Exam Gate State ──
+window.examActive = false;
+document.body.style.overflow = 'hidden';
+
+function handleAgreeCheckbox(cb) {
+  const btn = document.getElementById('startExamConfirmedBtn');
+  if (btn) {
+    btn.disabled = !cb.checked;
+    if (cb.checked) {
+      btn.style.boxShadow = '0 0 28px rgba(34, 197, 94, 0.5)';
+      btn.style.cursor = 'pointer';
+    } else {
+      btn.style.boxShadow = 'none';
+      btn.style.cursor = 'not-allowed';
+    }
+  }
+}
+
+function beginExamSession() {
+  const cb = document.getElementById('agreeRulesCheckbox');
+  if (!cb || !cb.checked) {
+    alert('⚠️ You must read and tick the acknowledgment to agree to the Technical Examination Rules & Regulations before starting the exam.');
+    return;
+  }
+
+  const modal = document.getElementById('rulesDisclaimerModal');
+  if (modal) modal.style.display = 'none';
+
+  const container = document.getElementById('examContentContainer');
+  if (container) {
+    container.style.filter = 'none';
+    container.style.pointerEvents = 'auto';
+    container.style.opacity = '1';
+    container.style.userSelect = 'auto';
+  }
+
+  document.body.style.overflow = 'auto';
+  window.examActive = true;
+
+  // Start the countdown timer now
+  if (!timerInterval) {
+    timerInterval = setInterval(updateTimer, 1000);
+  }
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
 // ── Section tab switching ──
 function switchSection(idx) {
   document.querySelectorAll('.section-panel').forEach(p => p.classList.remove('active'));
@@ -257,10 +603,11 @@ function switchSection(idx) {
   if (targetTab) targetTab.classList.add('active');
 }
 
-// ── Timer ──
+// ── Timer (Starts ONLY upon agreement and start) ──
 const totalSeconds = <%= test.duration %> * 60;
 let remainingSeconds = totalSeconds;
 let elapsedSeconds = 0;
+let timerInterval = null;
 
 function updateTimer() {
   const minutes = Math.floor(remainingSeconds / 60);
@@ -281,7 +628,7 @@ function updateTimer() {
   }
 
   if (remainingSeconds <= 0) {
-    clearInterval(timerInterval);
+    if (timerInterval) clearInterval(timerInterval);
     document.getElementById('timeTaken').value = elapsedSeconds;
     alert('⏰ Time is up! Your test will be submitted automatically.');
     document.getElementById('testForm').submit();
@@ -292,8 +639,6 @@ function updateTimer() {
   elapsedSeconds++;
   document.getElementById('timeTaken').value = elapsedSeconds;
 }
-
-const timerInterval = setInterval(updateTimer, 1000);
 
 // ── Progress tracking ──
 const totalQuestions = <%= totalQuestions %>;
@@ -311,6 +656,8 @@ function updateProgress() {
 }
 
 function confirmSubmit() {
+  if (!window.examActive) return false;
+
   const mcqAnswered = document.querySelectorAll('.mcq-option:checked').length;
   const codeAnswered = Array.from(document.querySelectorAll('.code-answer-area'))
     .filter(ta => ta.value.trim().length > 0).length;
@@ -323,20 +670,47 @@ function confirmSubmit() {
   return confirm('Are you sure you want to submit your assessment?');
 }
 
-// ── Anti‑cheat: disable right‑click, text selection and common copy shortcuts ──
-document.addEventListener('contextmenu', e => e.preventDefault());
+// ── Code textarea Tab indentation support ──
+document.querySelectorAll('.code-answer-area').forEach(ta => {
+  ta.addEventListener('keydown', function(e) {
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      const start = this.selectionStart;
+      const end = this.selectionEnd;
+      this.value = this.value.substring(0, start) + '  ' + this.value.substring(end);
+      this.selectionStart = this.selectionEnd = start + 2;
+      updateProgress();
+    }
+  });
+});
+
+// ── Anti‑cheat: disable right‑click, text selection and common copy shortcuts (except inside code editor) ──
+document.addEventListener('contextmenu', e => {
+  if (!window.examActive) return;
+  if (e.target && (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT')) return;
+  e.preventDefault();
+});
 
 document.addEventListener('keydown', e => {
+  if (!window.examActive) return;
+  // Allow normal editing inside candidate answer fields
+  if (e.target && (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT')) {
+    return;
+  }
   if ((e.ctrlKey || e.metaKey) && ['c','v','x','a'].includes(e.key.toLowerCase())) {
     e.preventDefault();
   }
 });
 
 document.querySelectorAll('.question-card').forEach(card => {
-  card.style.userSelect = 'none';
+  // Allow text selection inside code textarea
+  card.querySelectorAll('.question-header, .question-text, .mcq-options, .question-image-box').forEach(el => {
+    el.style.userSelect = 'none';
+  });
 });
 
 window.addEventListener('beforeunload', e => {
+  if (!window.examActive) return;
   e.preventDefault();
   e.returnValue = 'Are you sure you want to leave? Your progress will be lost.';
 });

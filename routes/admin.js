@@ -9,6 +9,8 @@ const Result = require('../models/Result');
 const Payment = require('../models/Payment');
 const { isAdmin } = require('../middleware/auth');
 
+const fs = require('fs');
+
 // Multer config for Excel uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -30,6 +32,35 @@ const upload = multer({
     }
   },
   limits: { fileSize: 5 * 1024 * 1024 } // 5MB
+});
+
+// Multer config for Question Image uploads
+const imageStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = path.join(__dirname, '..', 'uploads');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase();
+    cb(null, `q_img_${Date.now()}_${Math.round(Math.random() * 1e6)}${ext}`);
+  }
+});
+
+const uploadImage = multer({
+  storage: imageStorage,
+  fileFilter: (req, file, cb) => {
+    const allowedExts = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (allowedExts.includes(ext) || (file.mimetype && file.mimetype.startsWith('image/'))) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files (JPG, PNG, GIF, WebP, SVG) are allowed'));
+    }
+  },
+  limits: { fileSize: 10 * 1024 * 1024 } // 10MB
 });
 
 // Apply admin middleware to all routes
@@ -477,37 +508,51 @@ router.get('/tests/:id/questions', async (req, res) => {
 });
 
 // Add single question
-router.post('/tests/:id/questions/add', async (req, res) => {
+router.post('/tests/:id/questions/add', uploadImage.single('questionImage'), async (req, res) => {
   try {
-    const { questionText, optionA, optionB, optionC, optionD, correctOption, marks } = req.body;
-    const test = await Test.findById(req.params.id);
+    const { questionText, type, optionA, optionB, optionC, optionD, correctOption, marks } = req.body;
+    let imageUrl = req.body.imageUrl ? req.body.imageUrl.trim() : '';
+    if (req.file) {
+      imageUrl = `/uploads/${req.file.filename}`;
+    }
 
+    const qType = (type === 'coding' || type === 'code') ? 'coding' : 'mcq';
+
+    // Must have either question text or image
+    if (!questionText && !imageUrl) {
+      req.flash('error', 'Please provide either question text or a question image.');
+      return res.redirect(`/admin/tests/${req.params.id}/questions`);
+    }
+
+    const test = await Test.findById(req.params.id);
     if (!test) {
       req.flash('error', 'Test not found');
       return res.redirect('/admin/tests');
     }
 
     test.questions.push({
-      questionText,
-      optionA,
-      optionB,
-      optionC,
-      optionD,
-      correctOption,
-      marks: parseInt(marks) || 1
+      type: qType,
+      questionText: (questionText || '').trim(),
+      imageUrl,
+      marks: parseInt(marks) || 1,
+      optionA: qType === 'coding' ? '' : (optionA || '').trim(),
+      optionB: qType === 'coding' ? '' : (optionB || '').trim(),
+      optionC: qType === 'coding' ? '' : (optionC || '').trim(),
+      optionD: qType === 'coding' ? '' : (optionD || '').trim(),
+      correctOption: qType === 'coding' ? '' : (correctOption || '').trim().toUpperCase()
     });
 
     await test.save();
-    req.flash('success', 'Question added successfully!');
+    req.flash('success', `${qType === 'coding' ? 'Coding' : 'MCQ'} question added successfully!`);
     res.redirect(`/admin/tests/${req.params.id}/questions`);
   } catch (err) {
     console.error(err);
-    req.flash('error', 'Failed to add question');
+    req.flash('error', 'Failed to add question: ' + err.message);
     res.redirect(`/admin/tests/${req.params.id}/questions`);
   }
 });
 
-// Edit question
+// Edit question (flat test)
 router.get('/tests/:testId/questions/:qId/edit', async (req, res) => {
   try {
     const test = await Test.findById(req.params.testId);
@@ -523,6 +568,7 @@ router.get('/tests/:testId/questions/:qId/edit', async (req, res) => {
     res.render('admin/edit-question', {
       title: 'Edit Question - TechMinds',
       test,
+      subTest: null,
       question
     });
   } catch (err) {
@@ -532,31 +578,50 @@ router.get('/tests/:testId/questions/:qId/edit', async (req, res) => {
   }
 });
 
-router.post('/tests/:testId/questions/:qId/edit', async (req, res) => {
+router.post('/tests/:testId/questions/:qId/edit', uploadImage.single('questionImage'), async (req, res) => {
   try {
-    const { questionText, optionA, optionB, optionC, optionD, correctOption, marks } = req.body;
+    const { questionText, type, optionA, optionB, optionC, optionD, correctOption, marks } = req.body;
     const test = await Test.findById(req.params.testId);
+    if (!test) {
+      req.flash('error', 'Test not found');
+      return res.redirect('/admin/tests');
+    }
     const question = test.questions.id(req.params.qId);
+    if (!question) {
+      req.flash('error', 'Question not found');
+      return res.redirect(`/admin/tests/${req.params.testId}/questions`);
+    }
 
-    question.questionText = questionText;
-    question.optionA = optionA;
-    question.optionB = optionB;
-    question.optionC = optionC;
-    question.optionD = optionD;
-    question.correctOption = correctOption;
+    const qType = (type === 'coding' || type === 'code') ? 'coding' : 'mcq';
+    let imageUrl = question.imageUrl || '';
+    if (req.body.imageUrl !== undefined) {
+      imageUrl = req.body.imageUrl.trim();
+    }
+    if (req.file) {
+      imageUrl = `/uploads/${req.file.filename}`;
+    }
+
+    question.type = qType;
+    question.questionText = (questionText || '').trim();
+    question.imageUrl = imageUrl;
     question.marks = parseInt(marks) || 1;
+    question.optionA = qType === 'coding' ? '' : (optionA || '').trim();
+    question.optionB = qType === 'coding' ? '' : (optionB || '').trim();
+    question.optionC = qType === 'coding' ? '' : (optionC || '').trim();
+    question.optionD = qType === 'coding' ? '' : (optionD || '').trim();
+    question.correctOption = qType === 'coding' ? '' : (correctOption || '').trim().toUpperCase();
 
     await test.save();
     req.flash('success', 'Question updated successfully!');
     res.redirect(`/admin/tests/${req.params.testId}/questions`);
   } catch (err) {
     console.error(err);
-    req.flash('error', 'Failed to update question');
+    req.flash('error', 'Failed to update question: ' + err.message);
     res.redirect(`/admin/tests/${req.params.testId}/questions`);
   }
 });
 
-// Delete question
+// Delete question (flat test)
 router.post('/tests/:testId/questions/:qId/delete', async (req, res) => {
   try {
     const test = await Test.findById(req.params.testId);
@@ -599,27 +664,48 @@ router.post('/tests/:id/questions/upload', upload.single('excelFile'), async (re
     let errorCount = 0;
 
     for (const row of data) {
-      const question = row['Question'] || row['question'] || row['QuestionText'] || row['questionText'];
-      const optA = row['Option A'] || row['optionA'] || row['OptionA'] || row['A'];
-      const optB = row['Option B'] || row['optionB'] || row['OptionB'] || row['B'];
-      const optC = row['Option C'] || row['optionC'] || row['OptionC'] || row['C'];
-      const optD = row['Option D'] || row['optionD'] || row['OptionD'] || row['D'];
-      const correct = (row['Correct Option'] || row['correctOption'] || row['CorrectOption'] || row['Answer'] || row['answer'] || '').toString().toUpperCase().trim();
+      const question = row['Question'] || row['question'] || row['QuestionText'] || row['questionText'] || '';
+      const img = (row['Image'] || row['image'] || row['ImageUrl'] || row['imageUrl'] || row['Image URL'] || '').toString().trim();
+      const qTypeRaw = (row['Type'] || row['type'] || '').toString().toLowerCase().trim();
+      const isCode = qTypeRaw === 'code' || qTypeRaw === 'coding';
       const marks = parseInt(row['Marks'] || row['marks'] || 1);
 
-      if (question && optA && optB && optC && optD && ['A', 'B', 'C', 'D'].includes(correct)) {
+      if (isCode && (question || img)) {
         test.questions.push({
+          type: 'coding',
           questionText: question.toString().trim(),
-          optionA: optA.toString().trim(),
-          optionB: optB.toString().trim(),
-          optionC: optC.toString().trim(),
-          optionD: optD.toString().trim(),
-          correctOption: correct,
+          imageUrl: img,
+          optionA: '',
+          optionB: '',
+          optionC: '',
+          optionD: '',
+          correctOption: '',
           marks: marks || 1
         });
         addedCount++;
       } else {
-        errorCount++;
+        const optA = row['Option A'] || row['optionA'] || row['OptionA'] || row['A'];
+        const optB = row['Option B'] || row['optionB'] || row['OptionB'] || row['B'];
+        const optC = row['Option C'] || row['optionC'] || row['OptionC'] || row['C'];
+        const optD = row['Option D'] || row['optionD'] || row['OptionD'] || row['D'];
+        const correct = (row['Correct Option'] || row['correctOption'] || row['CorrectOption'] || row['Answer'] || row['answer'] || '').toString().toUpperCase().trim();
+
+        if ((question || img) && optA && optB && optC && optD && ['A', 'B', 'C', 'D'].includes(correct)) {
+          test.questions.push({
+            type: 'mcq',
+            questionText: question ? question.toString().trim() : '',
+            imageUrl: img,
+            optionA: optA.toString().trim(),
+            optionB: optB.toString().trim(),
+            optionC: optC.toString().trim(),
+            optionD: optD.toString().trim(),
+            correctOption: correct,
+            marks: marks || 1
+          });
+          addedCount++;
+        } else {
+          errorCount++;
+        }
       }
     }
 
@@ -675,27 +761,48 @@ router.post('/tests/:id/subtests/:stId/upload', upload.single('excelFile'), asyn
 
     let addedCount = 0, errorCount = 0;
     for (const row of data) {
-      const question   = row['Question'] || row['question'] || row['QuestionText'] || row['questionText'];
-      const optA       = row['Option A']  || row['optionA']  || row['OptionA']  || row['A'];
-      const optB       = row['Option B']  || row['optionB']  || row['OptionB']  || row['B'];
-      const optC       = row['Option C']  || row['optionC']  || row['OptionC']  || row['C'];
-      const optD       = row['Option D']  || row['optionD']  || row['OptionD']  || row['D'];
-      const correct    = (row['Correct Option'] || row['correctOption'] || row['CorrectOption'] || row['Answer'] || row['answer'] || '').toString().toUpperCase().trim();
-      const marks      = parseInt(row['Marks'] || row['marks'] || 1);
+      const question = row['Question'] || row['question'] || row['QuestionText'] || row['questionText'] || '';
+      const img = (row['Image'] || row['image'] || row['ImageUrl'] || row['imageUrl'] || row['Image URL'] || '').toString().trim();
+      const qTypeRaw = (row['Type'] || row['type'] || '').toString().toLowerCase().trim();
+      const isCode = qTypeRaw === 'code' || qTypeRaw === 'coding' || subTest.type === 'code' || subTest.type === 'coding';
+      const marks = parseInt(row['Marks'] || row['marks'] || 1);
 
-      if (question && optA && optB && optC && optD && ['A','B','C','D'].includes(correct)) {
+      if (isCode && (question || img)) {
         subTest.questions.push({
-          questionText:  question.toString().trim(),
-          optionA:  optA.toString().trim(),
-          optionB:  optB.toString().trim(),
-          optionC:  optC.toString().trim(),
-          optionD:  optD.toString().trim(),
-          correctOption: correct,
+          type: 'coding',
+          questionText: question.toString().trim(),
+          imageUrl: img,
+          optionA: '',
+          optionB: '',
+          optionC: '',
+          optionD: '',
+          correctOption: '',
           marks: marks || 1
         });
         addedCount++;
       } else {
-        errorCount++;
+        const optA = row['Option A'] || row['optionA'] || row['OptionA'] || row['A'];
+        const optB = row['Option B'] || row['optionB'] || row['OptionB'] || row['B'];
+        const optC = row['Option C'] || row['optionC'] || row['OptionC'] || row['C'];
+        const optD = row['Option D'] || row['optionD'] || row['OptionD'] || row['D'];
+        const correct = (row['Correct Option'] || row['correctOption'] || row['CorrectOption'] || row['Answer'] || row['answer'] || '').toString().toUpperCase().trim();
+
+        if ((question || img) && optA && optB && optC && optD && ['A','B','C','D'].includes(correct)) {
+          subTest.questions.push({
+            type: 'mcq',
+            questionText: question ? question.toString().trim() : '',
+            imageUrl: img,
+            optionA: optA.toString().trim(),
+            optionB: optB.toString().trim(),
+            optionC: optC.toString().trim(),
+            optionD: optD.toString().trim(),
+            correctOption: correct,
+            marks: marks || 1
+          });
+          addedCount++;
+        } else {
+          errorCount++;
+        }
       }
     }
 
@@ -712,6 +819,136 @@ router.post('/tests/:id/subtests/:stId/upload', upload.single('excelFile'), asyn
     console.error(err);
     req.flash('error', 'Failed to process Excel file.');
     res.redirect(`/admin/tests/${req.params.id}/questions`);
+  }
+});
+
+// ── Add single question directly into a specific sub-test ──
+router.post('/tests/:id/subtests/:stId/questions/add', uploadImage.single('questionImage'), async (req, res) => {
+  try {
+    const { questionText, type, optionA, optionB, optionC, optionD, correctOption, marks } = req.body;
+    let imageUrl = req.body.imageUrl ? req.body.imageUrl.trim() : '';
+    if (req.file) {
+      imageUrl = `/uploads/${req.file.filename}`;
+    }
+
+    const test = await Test.findById(req.params.id);
+    if (!test) {
+      req.flash('error', 'Test not found');
+      return res.redirect('/admin/tests');
+    }
+
+    const subTest = test.subTests.id(req.params.stId);
+    if (!subTest) {
+      req.flash('error', 'Sub-test not found');
+      return res.redirect(`/admin/tests/${req.params.id}/questions`);
+    }
+
+    const qType = (type === 'coding' || type === 'code' || subTest.type === 'code' || subTest.type === 'coding') ? 'coding' : 'mcq';
+
+    if (!questionText && !imageUrl) {
+      req.flash('error', 'Please provide question text or an image.');
+      return res.redirect(`/admin/tests/${req.params.id}/questions`);
+    }
+
+    subTest.questions.push({
+      type: qType,
+      questionText: (questionText || '').trim(),
+      imageUrl,
+      marks: parseInt(marks) || 1,
+      optionA: qType === 'coding' ? '' : (optionA || '').trim(),
+      optionB: qType === 'coding' ? '' : (optionB || '').trim(),
+      optionC: qType === 'coding' ? '' : (optionC || '').trim(),
+      optionD: qType === 'coding' ? '' : (optionD || '').trim(),
+      correctOption: qType === 'coding' ? '' : (correctOption || '').trim().toUpperCase()
+    });
+
+    await test.save();
+    req.flash('success', `${qType === 'coding' ? 'Coding' : 'MCQ'} question added to "${subTest.name}"!`);
+    res.redirect(`/admin/tests/${req.params.id}/questions`);
+  } catch (err) {
+    console.error(err);
+    req.flash('error', 'Failed to add question: ' + err.message);
+    res.redirect(`/admin/tests/${req.params.id}/questions`);
+  }
+});
+
+// ── Edit a question from a specific sub-test ──
+router.get('/tests/:testId/subtests/:stId/questions/:qId/edit', async (req, res) => {
+  try {
+    const test = await Test.findById(req.params.testId);
+    if (!test) {
+      req.flash('error', 'Test not found');
+      return res.redirect('/admin/tests');
+    }
+    const subTest = test.subTests.id(req.params.stId);
+    if (!subTest) {
+      req.flash('error', 'Sub-test not found');
+      return res.redirect(`/admin/tests/${req.params.testId}/questions`);
+    }
+    const question = subTest.questions.id(req.params.qId);
+    if (!question) {
+      req.flash('error', 'Question not found');
+      return res.redirect(`/admin/tests/${req.params.testId}/questions`);
+    }
+
+    res.render('admin/edit-question', {
+      title: 'Edit Question - TechMinds',
+      test,
+      subTest,
+      question
+    });
+  } catch (err) {
+    console.error(err);
+    req.flash('error', 'Failed to load question');
+    res.redirect('/admin/tests');
+  }
+});
+
+router.post('/tests/:testId/subtests/:stId/questions/:qId/edit', uploadImage.single('questionImage'), async (req, res) => {
+  try {
+    const { questionText, type, optionA, optionB, optionC, optionD, correctOption, marks } = req.body;
+    const test = await Test.findById(req.params.testId);
+    if (!test) {
+      req.flash('error', 'Test not found');
+      return res.redirect('/admin/tests');
+    }
+    const subTest = test.subTests.id(req.params.stId);
+    if (!subTest) {
+      req.flash('error', 'Sub-test not found');
+      return res.redirect(`/admin/tests/${req.params.testId}/questions`);
+    }
+    const question = subTest.questions.id(req.params.qId);
+    if (!question) {
+      req.flash('error', 'Question not found');
+      return res.redirect(`/admin/tests/${req.params.testId}/questions`);
+    }
+
+    const qType = (type === 'coding' || type === 'code') ? 'coding' : 'mcq';
+    let imageUrl = question.imageUrl || '';
+    if (req.body.imageUrl !== undefined) {
+      imageUrl = req.body.imageUrl.trim();
+    }
+    if (req.file) {
+      imageUrl = `/uploads/${req.file.filename}`;
+    }
+
+    question.type = qType;
+    question.questionText = (questionText || '').trim();
+    question.imageUrl = imageUrl;
+    question.marks = parseInt(marks) || 1;
+    question.optionA = qType === 'coding' ? '' : (optionA || '').trim();
+    question.optionB = qType === 'coding' ? '' : (optionB || '').trim();
+    question.optionC = qType === 'coding' ? '' : (optionC || '').trim();
+    question.optionD = qType === 'coding' ? '' : (optionD || '').trim();
+    question.correctOption = qType === 'coding' ? '' : (correctOption || '').trim().toUpperCase();
+
+    await test.save();
+    req.flash('success', 'Sub-test question updated successfully!');
+    res.redirect(`/admin/tests/${req.params.testId}/questions`);
+  } catch (err) {
+    console.error(err);
+    req.flash('error', 'Failed to update question: ' + err.message);
+    res.redirect(`/admin/tests/${req.params.testId}/questions`);
   }
 });
 

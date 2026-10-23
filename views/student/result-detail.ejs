@@ -61,41 +61,84 @@
       </div>
 
       <!-- Answer Review -->
-      <% if (result.test && result.test.questions) { %>
+      <%
+        let reviewQuestions = [];
+        if (result.test) {
+          if (result.test.questions && result.test.questions.length > 0) {
+            reviewQuestions.push(...result.test.questions);
+          }
+          if (result.test.subTests && result.test.subTests.length > 0) {
+            result.test.subTests.forEach(st => {
+              if (st.questions && st.questions.length > 0) {
+                reviewQuestions.push(...st.questions);
+              }
+            });
+          }
+        }
+      %>
+      <% if (reviewQuestions.length > 0) { %>
         <div class="card">
           <div class="card-header">
             <h3>📋 Answer Review</h3>
           </div>
           <div class="card-body">
-            <% result.test.questions.forEach((q, index) => { %>
+            <% reviewQuestions.forEach((q, index) => { %>
               <% const answer = result.answers.find(a => a.questionId.toString() === q._id.toString()); %>
               <div class="question-card">
-                <div style="margin-bottom: 12px;">
-                  <span class="question-number"><%= index + 1 %></span>
-                  <span class="question-text"><%= q.questionText %></span>
-                  <% if (answer) { %>
-                    <span class="badge <%= answer.isCorrect ? 'badge-success' : 'badge-danger' %>" style="margin-left: 8px;">
+                <div style="margin-bottom: 12px; display: flex; align-items: flex-start; justify-content: space-between;">
+                  <div>
+                    <span class="question-number"><%= index + 1 %></span>
+                    <span class="question-text"><%= q.questionText || 'Refer to the question image below:' %></span>
+                    <span class="badge <%= (q.type === 'coding' || q.type === 'code') ? 'badge-warning' : 'badge-primary' %>" style="margin-left: 8px; font-size: 0.72rem;">
+                      <%= (q.type === 'coding' || q.type === 'code') ? '💻 Coding' : '📋 MCQ' %>
+                    </span>
+                  </div>
+                  <% if (answer && (q.type !== 'coding' && q.type !== 'code')) { %>
+                    <span class="badge <%= answer.isCorrect ? 'badge-success' : 'badge-danger' %>">
                       <%= answer.isCorrect ? '✅ Correct' : '❌ Wrong' %>
                     </span>
                   <% } %>
                 </div>
 
-                <div class="options-grid">
-                  <% ['A', 'B', 'C', 'D'].forEach(opt => { %>
-                    <%
-                      let optClass = '';
-                      if (q.correctOption === opt) optClass = 'correct';
-                      if (answer && answer.selectedOption === opt && !answer.isCorrect) optClass = 'wrong';
-                      if (answer && answer.selectedOption === opt && answer.isCorrect) optClass = 'correct';
-                    %>
-                    <div class="option-item <%= optClass %>">
-                      <span class="option-label"><%= opt %></span>
-                      <span><%= q['option' + opt] %></span>
-                      <% if (q.correctOption === opt) { %><small style="margin-left: auto; opacity: 0.7;">✓ correct</small><% } %>
-                      <% if (answer && answer.selectedOption === opt && answer.selectedOption !== q.correctOption) { %><small style="margin-left: auto; opacity: 0.7;">✗ your answer</small><% } %>
+                <% if (q.imageUrl) { %>
+                  <div style="margin: 10px 0 14px 0; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 8px; padding: 10px; text-align: center;">
+                    <a href="<%= q.imageUrl %>" target="_blank" title="Click to view full image">
+                      <img src="<%= q.imageUrl %>" alt="Question Image" style="max-height: 260px; max-width: 100%; object-fit: contain; border-radius: 6px;">
+                    </a>
+                  </div>
+                <% } %>
+
+                <% if (q.type === 'coding' || q.type === 'code') { %>
+                  <div style="margin-top: 10px; background: rgba(0,0,0,0.35); border: 1px solid var(--border); border-radius: 8px; padding: 14px;">
+                    <div style="font-size: 0.78rem; font-weight: 700; color: #38bdf8; text-transform: uppercase; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between;">
+                      <span>💻 Your Submitted Solution:</span>
+                      <span class="badge" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; font-size: 0.72rem;">Code Submission</span>
                     </div>
-                  <% }) %>
-                </div>
+                    <% const codeText = (answer && (answer.codeAnswer || answer.selectedOption)) ? (answer.codeAnswer || answer.selectedOption) : ''; %>
+                    <% if (codeText.trim()) { %>
+                      <pre style="margin: 0; padding: 12px; background: rgba(0,0,0,0.5); border-radius: 6px; color: #e2e8f0; font-family: 'JetBrains Mono', Consolas, monospace; font-size: 0.88rem; overflow-x: auto; white-space: pre-wrap; word-break: break-all;"><code><%= codeText %></code></pre>
+                    <% } else { %>
+                      <p style="color: var(--text-muted); font-style: italic; margin: 0; font-size: 0.85rem;">No code was submitted for this question.</p>
+                    <% } %>
+                  </div>
+                <% } else { %>
+                  <div class="options-grid">
+                    <% ['A', 'B', 'C', 'D'].forEach(opt => { %>
+                      <%
+                        let optClass = '';
+                        if (q.correctOption === opt) optClass = 'correct';
+                        if (answer && answer.selectedOption === opt && !answer.isCorrect) optClass = 'wrong';
+                        if (answer && answer.selectedOption === opt && answer.isCorrect) optClass = 'correct';
+                      %>
+                      <div class="option-item <%= optClass %>">
+                        <span class="option-label"><%= opt %></span>
+                        <span><%= q['option' + opt] %></span>
+                        <% if (q.correctOption === opt) { %><small style="margin-left: auto; opacity: 0.7;">✓ correct</small><% } %>
+                        <% if (answer && answer.selectedOption === opt && answer.selectedOption !== q.correctOption) { %><small style="margin-left: auto; opacity: 0.7;">✗ your answer</small><% } %>
+                      </div>
+                    <% }) %>
+                  </div>
+                <% } %>
               </div>
             <% }) %>
           </div>

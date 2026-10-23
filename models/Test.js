@@ -1,16 +1,17 @@
 const mongoose = require('mongoose');
 
-// Question schema supports MCQ and coding types
+// Question schema supports MCQ and coding types with optional image
 const questionSchema = new mongoose.Schema({
-  questionText: { type: String, required: true, trim: true },
-  optionA:       { type: String, required: true, trim: true },
-  optionB:       { type: String, required: true, trim: true },
-  optionC:       { type: String, required: true, trim: true },
-  optionD:       { type: String, required: true, trim: true },
-  correctOption: { type: String, required: true, enum: ['A','B','C','D'] },
+  questionText: { type: String, trim: true, default: '' },
+  imageUrl:     { type: String, trim: true, default: '' },
+  optionA:       { type: String, trim: true, default: '' },
+  optionB:       { type: String, trim: true, default: '' },
+  optionC:       { type: String, trim: true, default: '' },
+  optionD:       { type: String, trim: true, default: '' },
+  correctOption: { type: String, enum: ['A','B','C','D',''], default: '' },
   marks:         { type: Number, default: 1 },
-  // 'mcq' for multiple‑choice, 'code' for programming / code answer
-  type:          { type: String, enum: ['mcq','code'], default: 'mcq' }
+  // 'mcq' for multiple-choice, 'coding' / 'code' for programming / code answer
+  type:          { type: String, enum: ['mcq','code','coding'], default: 'mcq' }
 });
 
 // Test schema now supports hierarchical sub‑tests (sections)
@@ -35,8 +36,8 @@ const testSchema = new mongoose.Schema({
     description: { type: String },
     // Number of questions to present when drawing for a student (optional)
     questionCount: { type: Number },
-    // Allowed values: mcq, code, mixed
-    type: { type: String, enum: ['mcq','code','mixed'], default: 'mcq' },
+    // Allowed values: mcq, code, coding, mixed
+    type: { type: String, enum: ['mcq','code','coding','mixed'], default: 'mcq' },
     questions: [questionSchema]
   }],
   isActive: { type: Boolean, default: true },

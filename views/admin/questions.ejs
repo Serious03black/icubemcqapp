@@ -210,23 +210,99 @@
                   </div>
                 </form>
 
+                <!-- Quick Manual Add to Sub-test -->
+                <button type="button" class="btn btn-sm btn-outline" style="width:100%; margin-bottom:10px; font-size:0.78rem;" onclick="toggleSubtestForm('<%= si %>')">
+                  ➕ Add Question Manually
+                </button>
+
+                <div id="subtestForm-<%= si %>" style="display:none; background: rgba(0,0,0,0.3); border:1px solid var(--border); border-radius:8px; padding:12px; margin-bottom:14px;">
+                  <form action="/admin/tests/<%= test._id %>/subtests/<%= st._id %>/questions/add" method="POST" enctype="multipart/form-data">
+                    <div class="form-row" style="margin-bottom:8px;">
+                      <div class="form-group" style="margin-bottom:0;">
+                        <label style="font-size:0.74rem; color:var(--text-muted);">Type</label>
+                        <select class="form-select form-input-sm" name="type" id="stType-<%= si %>" onchange="toggleStType('<%= si %>', this.value)">
+                          <option value="mcq" <%= st.type === 'code' ? '' : 'selected' %>>📋 MCQ</option>
+                          <option value="coding" <%= st.type === 'code' ? 'selected' : '' %>>💻 Coding</option>
+                        </select>
+                      </div>
+                      <div class="form-group" style="margin-bottom:0;">
+                        <label style="font-size:0.74rem; color:var(--text-muted);">Marks</label>
+                        <input type="number" class="form-input form-input-sm" name="marks" value="1" min="1" max="100">
+                      </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom:8px;">
+                      <label style="font-size:0.74rem; color:var(--text-muted);">Question Text / Description</label>
+                      <textarea class="form-input form-input-sm" name="questionText" rows="2" placeholder="Enter problem statement..."></textarea>
+                    </div>
+
+                    <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:6px; padding:8px; margin-bottom:8px;">
+                      <label style="font-size:0.72rem; color:var(--green); margin-bottom:4px; display:block;">🖼️ Question Image (Optional)</label>
+                      <input type="file" class="form-input form-input-sm" name="questionImage" accept="image/*" style="margin-bottom:4px;">
+                      <input type="url" class="form-input form-input-sm" name="imageUrl" placeholder="OR paste image URL...">
+                    </div>
+
+                    <div id="stMcq-<%= si %>" style="display: <%= st.type === 'code' ? 'none' : 'block' %>;">
+                      <div class="form-row" style="margin-bottom:6px;">
+                        <input type="text" class="form-input form-input-sm" name="optionA" placeholder="Opt A" id="stA-<%= si %>">
+                        <input type="text" class="form-input form-input-sm" name="optionB" placeholder="Opt B" id="stB-<%= si %>">
+                      </div>
+                      <div class="form-row" style="margin-bottom:6px;">
+                        <input type="text" class="form-input form-input-sm" name="optionC" placeholder="Opt C" id="stC-<%= si %>">
+                        <input type="text" class="form-input form-input-sm" name="optionD" placeholder="Opt D" id="stD-<%= si %>">
+                      </div>
+                      <div class="form-group" style="margin-bottom:8px;">
+                        <select class="form-select form-input-sm" name="correctOption" id="stCorrect-<%= si %>">
+                          <option value="">Correct Option (A/B/C/D)</option>
+                          <option value="A">A</option>
+                          <option value="B">B</option>
+                          <option value="C">C</option>
+                          <option value="D">D</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div style="display:flex; gap:6px;">
+                      <button type="submit" class="btn btn-primary btn-sm" style="flex:1;">➕ Save Question</button>
+                      <button type="button" class="btn btn-outline btn-sm" onclick="toggleSubtestForm('<%= si %>')">Cancel</button>
+                    </div>
+                  </form>
+                </div>
+
                 <!-- Questions list -->
                 <% if (st.questions.length === 0) { %>
                   <div style="text-align:center; padding:20px 0; color:rgba(255,255,255,0.25); font-size:0.82rem;">
-                    No questions yet — upload an Excel file above.
+                    No questions yet — upload an Excel file or add manually above.
                   </div>
                 <% } else { %>
                   <% st.questions.forEach((q, qi) => { %>
                     <div class="q-mini-card">
-                      <div class="q-text"><%= qi + 1 %>. <%= q.questionText %></div>
-                      <div class="q-meta">
-                        <span class="q-correct">✅ Option <%= q.correctOption %></span>
-                        <span class="q-marks"><%= q.marks || 1 %> mark<%= (q.marks || 1) > 1 ? 's' : '' %></span>
+                      <div class="q-text">
+                        <strong><%= qi + 1 %>.</strong> <%= q.questionText || 'Image Question' %>
                       </div>
-                      <div class="q-actions">
+
+                      <% if (q.imageUrl) { %>
+                        <div style="margin: 6px 0; text-align: center; background: rgba(0,0,0,0.3); border-radius: 4px; padding: 4px;">
+                          <a href="<%= q.imageUrl %>" target="_blank" title="Click to open image">
+                            <img src="<%= q.imageUrl %>" alt="Question" style="max-height: 55px; max-width: 100%; object-fit: contain; border-radius: 3px;">
+                          </a>
+                        </div>
+                      <% } %>
+
+                      <div class="q-meta" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 4px;">
+                        <% if (q.type === 'coding' || q.type === 'code') { %>
+                          <span class="badge badge-warning" style="font-size:0.68rem;">💻 Coding</span>
+                        <% } else { %>
+                          <span class="q-correct">✅ Opt <%= q.correctOption %></span>
+                        <% } %>
+                        <span class="q-marks"><%= q.marks || 1 %> m</span>
+                      </div>
+
+                      <div class="q-actions" style="display: flex; gap: 6px; margin-top: 6px;">
+                        <a href="/admin/tests/<%= test._id %>/subtests/<%= st._id %>/questions/<%= q._id %>/edit" class="btn btn-sm btn-outline" style="padding: 2px 8px; font-size: 0.72rem;">✏️ Edit</a>
                         <form action="/admin/tests/<%= test._id %>/subtests/<%= st._id %>/questions/<%= q._id %>/delete"
                               method="POST" onsubmit="return confirm('Remove this question?')">
-                          <button type="submit" class="btn btn-sm btn-danger">🗑️</button>
+                          <button type="submit" class="btn btn-sm btn-danger" style="padding: 2px 8px; font-size: 0.72rem;">🗑️</button>
                         </form>
                       </div>
                     </div>
@@ -237,13 +313,13 @@
           <% }) %>
         </div>
       <% } else { %>
-        <!-- No sub-tests: show legacy flat upload / add question -->
+        <!-- No sub-tests: show flat upload / add question -->
         <div class="card" style="margin-bottom: 24px;">
           <div class="card-header"><h3>📤 Upload Questions via Excel</h3></div>
           <div class="card-body">
             <div class="format-hint">
               Columns: <code>Question</code>, <code>Option A</code>, <code>Option B</code>,
-              <code>Option C</code>, <code>Option D</code>, <code>Correct Option</code> (A/B/C/D), <code>Marks</code>
+              <code>Option C</code>, <code>Option D</code>, <code>Correct Option</code> (A/B/C/D), <code>Marks</code>, <code>Image URL</code> (optional), <code>Type</code> (MCQ / Coding)
             </div>
             <form action="/admin/tests/<%= test._id %>/questions/upload"
                   method="POST" enctype="multipart/form-data" id="uploadFormFlat">
@@ -265,48 +341,102 @@
         <div class="card" style="margin-bottom: 24px;">
           <div class="card-header"><h3>➕ Add Question Manually</h3></div>
           <div class="card-body">
-            <form action="/admin/tests/<%= test._id %>/questions/add" method="POST">
-              <div class="form-group">
-                <label class="form-label">Question Text *</label>
-                <textarea class="form-input" name="questionText" placeholder="Enter the question..." rows="2" required></textarea>
-              </div>
+            <form action="/admin/tests/<%= test._id %>/questions/add" method="POST" enctype="multipart/form-data" id="flatAddForm">
+              
+              <!-- Question Type & Marks -->
               <div class="form-row">
                 <div class="form-group">
-                  <label class="form-label">Option A *</label>
-                  <input type="text" class="form-input" name="optionA" placeholder="Option A" required>
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Option B *</label>
-                  <input type="text" class="form-input" name="optionB" placeholder="Option B" required>
-                </div>
-              </div>
-              <div class="form-row">
-                <div class="form-group">
-                  <label class="form-label">Option C *</label>
-                  <input type="text" class="form-input" name="optionC" placeholder="Option C" required>
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Option D *</label>
-                  <input type="text" class="form-input" name="optionD" placeholder="Option D" required>
-                </div>
-              </div>
-              <div class="form-row">
-                <div class="form-group">
-                  <label class="form-label">Correct Option *</label>
-                  <select class="form-select" name="correctOption" required>
-                    <option value="">Select correct answer</option>
-                    <option value="A">A</option>
-                    <option value="B">B</option>
-                    <option value="C">C</option>
-                    <option value="D">D</option>
+                  <label class="form-label">Question Type *</label>
+                  <select class="form-select" name="type" id="flatQuestionType" onchange="toggleFlatType(this.value)" required>
+                    <option value="mcq" selected>📋 Multiple Choice (MCQ)</option>
+                    <option value="coding">💻 Coding Question (Textarea Code Answer)</option>
                   </select>
                 </div>
                 <div class="form-group">
                   <label class="form-label">Marks</label>
-                  <input type="number" class="form-input" name="marks" value="1" min="1" max="10">
+                  <input type="number" class="form-input" name="marks" value="1" min="1" max="100">
                 </div>
               </div>
-              <button type="submit" class="btn btn-primary">➕ Add Question</button>
+
+              <!-- Question Text -->
+              <div class="form-group">
+                <label class="form-label">Question Text / Problem Statement</label>
+                <textarea class="form-input" name="questionText" id="flatQuestionText" placeholder="Enter problem statement or question (optional if image is uploaded)..." rows="3"></textarea>
+                <small style="color: var(--text-muted); font-size: 0.76rem;">You can leave text empty if you upload or provide an image as the question.</small>
+              </div>
+
+              <!-- Question Image Upload / URL -->
+              <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 18px;">
+                <label class="form-label" style="display: flex; align-items: center; justify-content: space-between;">
+                  <span>🖼️ Question Image (Upload File or Image URL)</span>
+                  <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: normal;">Optional</span>
+                </label>
+                <div class="form-row" style="margin-bottom: 0;">
+                  <div class="form-group" style="margin-bottom: 0;">
+                    <label style="font-size: 0.76rem; color: var(--text-muted);">Upload Image File (PNG, JPG, WebP, SVG)</label>
+                    <input type="file" class="form-input" name="questionImage" accept="image/*" onchange="previewImageFile(this, 'flatImagePreview', 'flatPreviewImg')">
+                  </div>
+                  <div class="form-group" style="margin-bottom: 0;">
+                    <label style="font-size: 0.76rem; color: var(--text-muted);">OR Image URL</label>
+                    <input type="url" class="form-input" name="imageUrl" id="flatImageUrl" placeholder="https://example.com/question.png" oninput="previewImageUrl(this.value, 'flatImagePreview', 'flatPreviewImg')">
+                  </div>
+                </div>
+                <div id="flatImagePreview" style="display: none; margin-top: 12px; text-align: center; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 6px;">
+                  <div style="font-size: 0.74rem; color: var(--text-muted); margin-bottom: 6px;">Selected Image Preview:</div>
+                  <img id="flatPreviewImg" src="" alt="Preview" style="max-height: 180px; max-width: 100%; object-fit: contain; border-radius: 4px;">
+                </div>
+              </div>
+
+              <!-- Coding Notice -->
+              <div id="flatCodingNotice" style="display: none; background: rgba(56, 189, 248, 0.08); border: 1px dashed rgba(56, 189, 248, 0.35); border-radius: 8px; padding: 14px 18px; margin-bottom: 18px;">
+                <div style="display: flex; align-items: flex-start; gap: 10px;">
+                  <span style="font-size: 1.25rem;">💻</span>
+                  <div>
+                    <strong style="color: #38bdf8; font-size: 0.9rem;">Coding Question Mode Enabled</strong>
+                    <p style="margin: 4px 0 0; color: var(--text-muted); font-size: 0.8rem; line-height: 1.5;">
+                      During the exam, students will see a dedicated code editor/textarea with syntax space to write and submit their code solution.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- MCQ Options -->
+              <div id="flatMcqSection">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">Option A *</label>
+                    <input type="text" class="form-input" name="optionA" id="flatOptA" placeholder="Option A" required>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Option B *</label>
+                    <input type="text" class="form-input" name="optionB" id="flatOptB" placeholder="Option B" required>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">Option C *</label>
+                    <input type="text" class="form-input" name="optionC" id="flatOptC" placeholder="Option C" required>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Option D *</label>
+                    <input type="text" class="form-input" name="optionD" id="flatOptD" placeholder="Option D" required>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">Correct Option *</label>
+                    <select class="form-select" name="correctOption" id="flatCorrect" required>
+                      <option value="">Select correct answer</option>
+                      <option value="A">A</option>
+                      <option value="B">B</option>
+                      <option value="C">C</option>
+                      <option value="D">D</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-primary btn-lg" style="margin-top: 6px;">➕ Add Question</button>
             </form>
           </div>
         </div>
@@ -327,28 +457,56 @@
                   <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:12px;">
                     <div>
                       <span class="question-number"><%= index + 1 %></span>
-                      <span class="question-text"><%= q.questionText %></span>
+                      <span class="question-text"><%= q.questionText || 'Image Question' %></span>
+                      <span class="badge <%= (q.type === 'coding' || q.type === 'code') ? 'badge-warning' : 'badge-primary' %>" style="font-size:0.72rem; margin-left:8px;">
+                        <%= (q.type === 'coding' || q.type === 'code') ? '💻 Coding' : '📋 MCQ' %>
+                      </span>
                     </div>
                     <span class="badge badge-primary" style="white-space:nowrap; margin-left:12px;">
                       <%= q.marks || 1 %> mark<%= (q.marks || 1) > 1 ? 's' : '' %>
                     </span>
                   </div>
-                  <div class="options-grid">
-                    <div class="option-item <%= q.correctOption === 'A' ? 'correct' : '' %>">
-                      <span class="option-label">A</span><span><%= q.optionA %></span>
+
+                  <!-- Image Preview if present -->
+                  <% if (q.imageUrl) { %>
+                    <div style="margin: 10px 0 16px 0; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 8px; padding: 12px; text-align: center;">
+                      <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.74rem; color: var(--text-muted); margin-bottom: 6px;">
+                        <span>🖼️ Attached Question Image</span>
+                        <a href="<%= q.imageUrl %>" target="_blank" style="color: var(--green); text-decoration: none;">Open Full ↗</a>
+                      </div>
+                      <a href="<%= q.imageUrl %>" target="_blank">
+                        <img src="<%= q.imageUrl %>" alt="Question Image" style="max-height: 220px; max-width: 100%; object-fit: contain; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">
+                      </a>
                     </div>
-                    <div class="option-item <%= q.correctOption === 'B' ? 'correct' : '' %>">
-                      <span class="option-label">B</span><span><%= q.optionB %></span>
+                  <% } %>
+
+                  <% if (q.type === 'coding' || q.type === 'code') { %>
+                    <div style="background: rgba(56, 189, 248, 0.08); border: 1px dashed rgba(56, 189, 248, 0.3); border-radius: 8px; padding: 12px; margin-bottom: 12px; color: #38bdf8; font-size: 0.85rem; display: flex; align-items: center; gap: 8px;">
+                      <span>💻</span> <span>Coding Question: Candidate writes code solution in textarea during exam.</span>
                     </div>
-                    <div class="option-item <%= q.correctOption === 'C' ? 'correct' : '' %>">
-                      <span class="option-label">C</span><span><%= q.optionC %></span>
+                  <% } else { %>
+                    <div class="options-grid">
+                      <div class="option-item <%= q.correctOption === 'A' ? 'correct' : '' %>">
+                        <span class="option-label">A</span><span><%= q.optionA %></span>
+                      </div>
+                      <div class="option-item <%= q.correctOption === 'B' ? 'correct' : '' %>">
+                        <span class="option-label">B</span><span><%= q.optionB %></span>
+                      </div>
+                      <div class="option-item <%= q.correctOption === 'C' ? 'correct' : '' %>">
+                        <span class="option-label">C</span><span><%= q.optionC %></span>
+                      </div>
+                      <div class="option-item <%= q.correctOption === 'D' ? 'correct' : '' %>">
+                        <span class="option-label">D</span><span><%= q.optionD %></span>
+                      </div>
                     </div>
-                    <div class="option-item <%= q.correctOption === 'D' ? 'correct' : '' %>">
-                      <span class="option-label">D</span><span><%= q.optionD %></span>
-                    </div>
-                  </div>
+                  <% } %>
+
                   <div class="question-footer">
-                    <span style="font-size:0.82rem; color:var(--success);">✅ Correct: Option <%= q.correctOption %></span>
+                    <% if (q.type === 'coding' || q.type === 'code') { %>
+                      <span style="font-size:0.82rem; color:#38bdf8;">💻 Manual Grading Required</span>
+                    <% } else { %>
+                      <span style="font-size:0.82rem; color:var(--success);">✅ Correct: Option <%= q.correctOption %></span>
+                    <% } %>
                     <div style="display:flex; gap:8px;">
                       <a href="/admin/tests/<%= test._id %>/questions/<%= q._id %>/edit" class="btn btn-sm btn-outline">✏️ Edit</a>
                       <form action="/admin/tests/<%= test._id %>/questions/<%= q._id %>/delete" method="POST"
@@ -392,9 +550,7 @@
       const body = header.parentElement.querySelector('.subtest-col-body');
       if (!body) return;
       const currentlyHidden = body.classList.contains('hidden');
-      // close all bodies first
       document.querySelectorAll('.subtest-col-body').forEach(b => b.classList.add('hidden'));
-      // open the clicked one if it was hidden
       if (currentlyHidden) body.classList.remove('hidden');
     });
   });
@@ -404,6 +560,75 @@
     const f = document.getElementById('quickPricingForm');
     if (f) {
       f.style.display = (f.style.display === 'none' || f.style.display === '') ? 'block' : 'none';
+    }
+  }
+
+  // ── Toggle Flat Question Type ──
+  function toggleFlatType(type) {
+    const isCoding = (type === 'coding' || type === 'code');
+    const mcqSec = document.getElementById('flatMcqSection');
+    const codingNotice = document.getElementById('flatCodingNotice');
+    const optA = document.getElementById('flatOptA');
+    const optB = document.getElementById('flatOptB');
+    const optC = document.getElementById('flatOptC');
+    const optD = document.getElementById('flatOptD');
+    const correct = document.getElementById('flatCorrect');
+
+    if (isCoding) {
+      mcqSec.style.display = 'none';
+      codingNotice.style.display = 'block';
+      if (optA) optA.required = false;
+      if (optB) optB.required = false;
+      if (optC) optC.required = false;
+      if (optD) optD.required = false;
+      if (correct) correct.required = false;
+    } else {
+      mcqSec.style.display = 'block';
+      codingNotice.style.display = 'none';
+      if (optA) optA.required = true;
+      if (optB) optB.required = true;
+      if (optC) optC.required = true;
+      if (optD) optD.required = true;
+      if (correct) correct.required = true;
+    }
+  }
+
+  // ── Subtest inline form helpers ──
+  function toggleSubtestForm(idx) {
+    const f = document.getElementById('subtestForm-' + idx);
+    if (f) {
+      f.style.display = (f.style.display === 'none' || f.style.display === '') ? 'block' : 'none';
+    }
+  }
+
+  function toggleStType(idx, type) {
+    const isCoding = (type === 'coding' || type === 'code');
+    const mcq = document.getElementById('stMcq-' + idx);
+    if (mcq) mcq.style.display = isCoding ? 'none' : 'block';
+  }
+
+  // ── Image preview helpers ──
+  function previewImageFile(input, boxId, imgId) {
+    const box = document.getElementById(boxId);
+    const img = document.getElementById(imgId);
+    if (input.files && input.files[0]) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        img.src = e.target.result;
+        box.style.display = 'block';
+      };
+      reader.readAsDataURL(input.files[0]);
+    }
+  }
+
+  function previewImageUrl(url, boxId, imgId) {
+    const box = document.getElementById(boxId);
+    const img = document.getElementById(imgId);
+    if (url && url.trim().length > 5) {
+      img.src = url.trim();
+      box.style.display = 'block';
+    } else {
+      box.style.display = 'none';
     }
   }
 </script>
