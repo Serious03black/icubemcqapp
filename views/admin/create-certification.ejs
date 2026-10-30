@@ -1,0 +1,66 @@
+<%- include('../partials/header') %>
+
+<div class="dashboard-layout">
+  <%- include('../partials/admin-sidebar', { active: 'tests' }) %>
+
+  <div class="main-content">
+    <div class="page-header">
+      <div class="page-header-actions">
+        <div>
+          <h1>📜 <%= title %></h1>
+          <p>Create a standardized certification assessment</p>
+        </div>
+        <a href="/admin/tests" class="btn btn-outline">← Back to Tests</a>
+      </div>
+    </div>
+
+    <div class="page-body">
+      <%- include('../partials/alerts') %>
+
+      <div class="card" style="max-width: 720px;">
+        <div class="card-body">
+          <form action="/admin/certification/create" method="POST">
+            <div class="form-group">
+              <label class="form-label" for="title">Certification Title *</label>
+              <input type="text" class="form-input" id="title" name="title" value="<%= typeof default !== 'undefined' ? default.title : 'JavaScript Fundamentals Certification' %>" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="description">Description</label>
+              <textarea class="form-input" id="description" name="description" rows="3"><%= typeof default !== 'undefined' ? default.description : '' %></textarea>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="course">Track / Course *</label>
+              <input type="text" class="form-input" id="course" name="course" value="<%= typeof default !== 'undefined' ? default.course : 'JavaScript' %>" required>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="duration">Duration (minutes) *</label>
+                <input type="number" class="form-input" id="duration" name="duration" value="<%= typeof default !== 'undefined' ? default.duration : 45 %>" min="5" max="180" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="passingPercentage">Passing Percentage (%) *</label>
+                <input type="number" class="form-input" id="passingPercentage" name="passingPercentage" value="<%= typeof default !== 'undefined' ? default.passingPercentage : 80 %>" min="1" max="100" required>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="questionCount">Expected Question Count</label>
+              <input type="number" class="form-input" id="questionCount" name="questionCount" value="<%= typeof default !== 'undefined' ? default.questionCount : 30 %>" min="1">
+            </div>
+
+            <div style="margin-top: 24px; display: flex; gap: 12px;">
+              <button type="submit" class="btn btn-primary">Create Certification Test</button>
+              <a href="/admin/tests" class="btn btn-outline">Cancel</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>
+

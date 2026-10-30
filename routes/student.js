@@ -12,7 +12,6 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET || 'pPcdEDdMnukUnZlaa8AtI5hT'
 });
 
-
 // Apply student middleware
 router.use(isStudent);
 
@@ -115,19 +114,20 @@ router.get('/test/:id', async (req, res) => {
     const testIdStr = test._id.toString();
     const existingAttempt = req.session.activeAttempts[testIdStr];
 
+    const testDuration = parseInt(test.duration) || 30;
     let sections = [];
     let allQuestionIds = [];
     let initialElapsedSeconds = 0;
-    let initialRemainingSeconds = test.duration * 60;
+    let initialRemainingSeconds = testDuration * 60;
     let isResumed = false;
 
-    if (existingAttempt && existingAttempt.startedAt && existingAttempt.sections) {
+    if (existingAttempt && existingAttempt.startedAt && Array.isArray(existingAttempt.sections) && existingAttempt.sections.length > 0) {
       // Resume existing ongoing exam attempt
       isResumed = true;
       sections = existingAttempt.sections;
-      allQuestionIds = existingAttempt.questionIds;
+      allQuestionIds = existingAttempt.questionIds || [];
       initialElapsedSeconds = Math.max(0, Math.floor((Date.now() - existingAttempt.startedAt) / 1000));
-      initialRemainingSeconds = Math.max(0, (test.duration * 60) - initialElapsedSeconds);
+      initialRemainingSeconds = Math.max(0, (testDuration * 60) - initialElapsedSeconds);
     } else {
       // First-time exam creation
       if (test.subTests && test.subTests.length > 0) {
@@ -137,7 +137,9 @@ router.get('/test/:id', async (req, res) => {
             ? st.questionCount : pool.length;
           const selected = shuffle(pool).slice(0, count);
 
-          selected.forEach(q => allQuestionIds.push(q._id.toString()));
+          selected.forEach(q => {
+            if (q && q._id) allQuestionIds.push(q._id.toString());
+          });
 
           return {
             _id: st._id,
@@ -149,12 +151,14 @@ router.get('/test/:id', async (req, res) => {
         });
       } else {
         // Deliver all questions added to the test by default (no 30 question artificial cap)
-        const pool = [...test.questions];
+        const pool = [...(test.questions || [])];
         const requestedCount = parseInt(req.query.count) || (test.questionCount && test.questionCount > 0 ? test.questionCount : null);
         const count = (requestedCount && requestedCount > 0 && requestedCount < pool.length) ? requestedCount : pool.length;
         const selected = shuffle(pool).slice(0, count);
 
-        selected.forEach(q => allQuestionIds.push(q._id.toString()));
+        selected.forEach(q => {
+          if (q && q._id) allQuestionIds.push(q._id.toString());
+        });
 
         sections = [{
           _id: 'flat',
@@ -180,9 +184,9 @@ router.get('/test/:id', async (req, res) => {
     };
 
     // Count total questions across sections
-    const totalQuestions = sections.reduce((sum, s) => sum + s.questions.length, 0);
+    const totalQuestions = sections.reduce((sum, s) => sum + ((s.questions && s.questions.length) || 0), 0);
     const totalMarks = sections.reduce((sum, s) =>
-      sum + s.questions.reduce((qs, q) => qs + (q.marks || 1), 0), 0);
+      sum + ((s.questions && s.questions.reduce((qs, q) => qs + (q.marks || 1), 0)) || 0), 0);
 
     res.render('student/take-test', {
       title: `${test.title} - Exam Pro Assessment`,
@@ -195,7 +199,7 @@ router.get('/test/:id', async (req, res) => {
       initialElapsedSeconds
     });
   } catch (err) {
-    console.error(err);
+    console.error('Take Test Error:', err);
     req.flash('error', 'Failed to load test');
     res.redirect('/student/dashboard');
   }
@@ -232,13 +236,13 @@ router.post('/test/:id/submit', async (req, res) => {
     let totalMarks = 0;
 
     // Collect all questions from both flat and sub-test pools
-    const selectedIds = req.session.currentTest.questionIds;
+    const selectedIds = req.session.currentTest.questionIds || [];
 
     // Build a map of question ID → { question, sectionType }
     const questionMap = new Map();
 
     // Flat questions (legacy)
-    for (const q of test.questions) {
+    for (const q of (test.questions || [])) {
       if (selectedIds.includes(q._id.toString())) {
         questionMap.set(q._id.toString(), { question: q, sectionType: 'mcq' });
       }
@@ -314,7 +318,7 @@ router.post('/test/:id/submit', async (req, res) => {
     req.flash('success', 'Test submitted successfully!');
     res.redirect('/student/dashboard');
   } catch (err) {
-    console.error(err);
+    console.error('Submit Test Error:', err);
     if (err.code === 11000) {
       req.flash('error', 'You have already submitted this test');
     } else {
@@ -340,7 +344,7 @@ router.get('/pay/:id', async (req, res) => {
     const razorpayKey = process.env.RAZORPAY_KEY_ID || '';
     res.render('student/payment', { title: 'Exam Pro Assessment Fee - ' + test.title, test, razorpayKey });
   } catch (err) {
-    console.error(err);
+    console.error('Payment Page Error:', err);
     req.flash('error', 'Unable to load payment page');
     res.redirect('/student/dashboard');
   }
@@ -431,11 +435,30 @@ router.get('/history', async (req, res) => {
       .populate('test', 'title course');
     res.render('student/history', { title: 'My Exam History - Exam Pro', results });
   } catch (err) {
-    console.error(err);
+    console.error('History Error:', err);
     req.flash('error', 'Failed to load exam history');
     res.redirect('/student/dashboard');
   }
 });
 
-module.exports = router;
+// ==================== CANDIDATE PROFILE ====================
+router.get('/profile', async (req, res) => {
+  try {
+    const student = await User.findById(req.session.user.id);
+    if (!student) {
+      req.flash('error', 'Candidate profile not found');
+      return res.redirect('/login');
+    }
+    res.render('student/profile', {
+      title: 'Candidate Profile - ICUBE Info Solution',
+      student,
+      currentUser: req.session.user
+    });
+  } catch (err) {
+    console.error('Profile Error:', err);
+    req.flash('error', 'Failed to load profile');
+    res.redirect('/student/dashboard');
+  }
+});
 
+module.exports = router;
