@@ -8,7 +8,7 @@ async function seed() {
     console.log('Connected to MongoDB');
 
     // Check if admin exists
-    const existingAdmin = await User.findOne({ email: 'admin@techminds.in' });
+    const existingAdmin = await User.findOne({ email: 'office@icubeworld.in' });
     if (existingAdmin) {
       console.log('Admin already exists. Skipping seed.');
       process.exit(0);
@@ -17,7 +17,7 @@ async function seed() {
     // Create default admin
     const admin = new User({
       name: 'Admin',
-      email: 'admin@techminds.in',
+      email: 'office@icubeworld.in',
       password: 'Admin@123',
       role: 'admin',
       course: 'Administration',
@@ -26,15 +26,15 @@ async function seed() {
 
     await admin.save();
     console.log('✅ Default Admin Created:');
-    console.log('   Email: admin@techminds.in');
+    console.log('   Email: office@icubeworld.in');
     console.log('   Password: Admin@123');
     console.log('');
 
     // Create sample students
     const students = [
-      { name: 'Rahul Sharma', email: 'rahul@techminds.in', password: 'Student@123', course: 'MERN Stack', phone: '9876543210' },
-      { name: 'Priya Patel', email: 'priya@techminds.in', password: 'Student@123', course: 'Data Science', phone: '9876543211' },
-      { name: 'Amit Kumar', email: 'amit@techminds.in', password: 'Student@123', course: 'MERN Stack', phone: '9876543212' }
+      { name: 'Rahul Sharma', email: 'rahul@ I cube world.in', password: 'Student@123', course: 'MERN Stack', phone: '9876543210' },
+      { name: 'Priya Patel', email: 'priya@ I cube world.in', password: 'Student@123', course: 'Data Science', phone: '9876543211' },
+      { name: 'Amit Kumar', email: 'amit@ I cube world.in', password: 'Student@123', course: 'MERN Stack', phone: '9876543212' }
     ];
 
     for (const s of students) {

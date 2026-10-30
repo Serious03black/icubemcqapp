@@ -1,6 +1,6 @@
-// TechMinds MCQ App - Main JavaScript
+//  I cube world MCQ App - Main JavaScript
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
 
   // ── Auto-dismiss alerts after 5 seconds ──
   const alerts = document.querySelectorAll('.alert');
@@ -13,9 +13,9 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   // ── Close sidebar on mobile when clicking outside ──
-  document.addEventListener('click', function(e) {
+  document.addEventListener('click', function (e) {
     const sidebar = document.getElementById('sidebar');
-    const toggle  = document.querySelector('.sidebar-toggle');
+    const toggle = document.querySelector('.sidebar-toggle');
     if (sidebar && toggle && window.innerWidth <= 1024) {
       if (!sidebar.contains(e.target) && !toggle.contains(e.target)) {
         sidebar.classList.remove('open');
@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // which needs the file to actually finish uploading
     if (form.method && form.method.toUpperCase() === 'GET') return;
 
-    form.addEventListener('submit', function(e) {
+    form.addEventListener('submit', function (e) {
       // If already submitting, block the second submission entirely
       if (form.dataset.submitting === 'true') {
         e.preventDefault();

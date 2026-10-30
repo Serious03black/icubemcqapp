@@ -143,7 +143,7 @@ router.get('/dashboard', async (req, res) => {
       .populate('test', 'title');
 
     res.render('admin/dashboard', {
-      title: 'Admin Dashboard - TechMinds',
+      title: 'Admin Dashboard -  I cube world',
       totalStudents,
       totalTests,
       totalResults,
@@ -169,7 +169,7 @@ router.get('/students', async (req, res) => {
       .sort({ createdAt: -1 })
       .populate('assignedTests', 'title course');
     res.render('admin/students', {
-      title: 'Manage Students - TechMinds',
+      title: 'Manage Students -  I cube world',
       students
     });
   } catch (err) {
@@ -181,7 +181,7 @@ router.get('/students', async (req, res) => {
 
 router.get('/students/create', (req, res) => {
   res.render('admin/create-student', {
-    title: 'Create Student - TechMinds'
+    title: 'Create Student -  I cube world'
   });
 });
 
@@ -230,7 +230,7 @@ router.get('/students/:id/edit', async (req, res) => {
       return res.redirect('/admin/students');
     }
     res.render('admin/edit-student', {
-      title: 'Edit Student - TechMinds',
+      title: 'Edit Student -  I cube world',
       student
     });
   } catch (err) {
@@ -283,7 +283,7 @@ router.get('/tests', async (req, res) => {
       .populate('createdBy', 'name')
       .populate('assignedTo', 'name email');
     res.render('admin/tests', {
-      title: 'Manage Tests - TechMinds',
+      title: 'Manage Tests -  I cube world',
       tests
     });
   } catch (err) {
@@ -295,7 +295,7 @@ router.get('/tests', async (req, res) => {
 
 router.get('/tests/create', (req, res) => {
   res.render('admin/create-test', {
-    title: 'Create Test - TechMinds'
+    title: 'Create Test -  I cube world'
   });
 });
 
@@ -365,7 +365,7 @@ router.get('/tests/:id/edit', async (req, res) => {
       return res.redirect('/admin/tests');
     }
     res.render('admin/edit-test', {
-      title: 'Edit Test - TechMinds',
+      title: 'Edit Test -  I cube world',
       test
     });
   } catch (err) {
@@ -386,14 +386,14 @@ router.post('/tests/:id/edit', async (req, res) => {
     }
 
     // Update basic fields
-    test.title        = title;
-    test.description  = description;
-    test.course       = course;
-    test.duration     = parseInt(duration) || 30;
+    test.title = title;
+    test.description = description;
+    test.course = course;
+    test.duration = parseInt(duration) || 30;
     test.passingMarks = parseInt(passingMarks) || 0;
     test.originalPrice = parseFloat(originalPrice) || 0;
-    test.price         = parseFloat(price) || 0;
-    test.isActive      = isActive === 'on';
+    test.price = parseFloat(price) || 0;
+    test.isActive = isActive === 'on';
 
     // Merge sub-tests: keep existing questions for sub-tests with matching _id
     if (rawSubTests && typeof rawSubTests === 'object') {
@@ -407,10 +407,10 @@ router.post('/tests/:id/edit', async (req, res) => {
           const existing = test.subTests.id(st._id);
           if (existing) {
             // Update metadata, keep questions intact
-            existing.name          = st.name;
-            existing.description   = st.description || '';
+            existing.name = st.name;
+            existing.description = st.description || '';
             existing.questionCount = parseInt(st.questionCount) || undefined;
-            existing.type          = st.type || 'mcq';
+            existing.type = st.type || 'mcq';
             return existing.toObject();
           }
         }
@@ -566,7 +566,7 @@ router.get('/tests/:testId/questions/:qId/edit', async (req, res) => {
       return res.redirect(`/admin/tests/${req.params.testId}/questions`);
     }
     res.render('admin/edit-question', {
-      title: 'Edit Question - TechMinds',
+      title: 'Edit Question -  I cube world',
       test,
       subTest: null,
       question
@@ -713,7 +713,7 @@ router.post('/tests/:id/questions/upload', upload.single('excelFile'), async (re
 
     // Clean up uploaded file
     const fs = require('fs');
-    fs.unlink(req.file.path, () => {});
+    fs.unlink(req.file.path, () => { });
 
     let message = `${addedCount} questions uploaded successfully!`;
     if (errorCount > 0) {
@@ -787,7 +787,7 @@ router.post('/tests/:id/subtests/:stId/upload', upload.single('excelFile'), asyn
         const optD = row['Option D'] || row['optionD'] || row['OptionD'] || row['D'];
         const correct = (row['Correct Option'] || row['correctOption'] || row['CorrectOption'] || row['Answer'] || row['answer'] || '').toString().toUpperCase().trim();
 
-        if ((question || img) && optA && optB && optC && optD && ['A','B','C','D'].includes(correct)) {
+        if ((question || img) && optA && optB && optC && optD && ['A', 'B', 'C', 'D'].includes(correct)) {
           subTest.questions.push({
             type: 'mcq',
             questionText: question ? question.toString().trim() : '',
@@ -809,7 +809,7 @@ router.post('/tests/:id/subtests/:stId/upload', upload.single('excelFile'), asyn
     await test.save();
 
     const fs = require('fs');
-    fs.unlink(req.file.path, () => {});
+    fs.unlink(req.file.path, () => { });
 
     let message = `${addedCount} questions added to "${subTest.name}"!`;
     if (errorCount > 0) message += ` ${errorCount} rows skipped.`;
@@ -892,7 +892,7 @@ router.get('/tests/:testId/subtests/:stId/questions/:qId/edit', async (req, res)
     }
 
     res.render('admin/edit-question', {
-      title: 'Edit Question - TechMinds',
+      title: 'Edit Question -  I cube world',
       test,
       subTest,
       question
@@ -1042,7 +1042,7 @@ router.get('/results', async (req, res) => {
       .populate('test', 'title course totalMarks passingMarks');
 
     res.render('admin/results', {
-      title: 'Test Results - TechMinds',
+      title: 'Test Results -  I cube world',
       results
     });
   } catch (err) {
@@ -1064,7 +1064,7 @@ router.get('/results/:id', async (req, res) => {
     }
 
     res.render('admin/result-detail', {
-      title: 'Result Details - TechMinds',
+      title: 'Result Details -  I cube world',
       result
     });
   } catch (err) {

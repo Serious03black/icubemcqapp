@@ -555,37 +555,82 @@
 
     /* ── Proctoring Alert Modals ── */
     .proctor-alert-overlay {
-      position: fixed; inset: 0; z-index: 100000;
+      position: fixed;
+      inset: 0;
+      z-index: 100000;
       background: rgba(3, 7, 12, 0.94);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
-      display: flex; align-items: center; justify-content: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       padding: 20px;
       animation: fadeInRules 0.2s ease;
     }
+
     .proctor-alert-card {
       background: #0f131a;
       border-radius: 16px;
-      width: 100%; max-width: 560px;
+      width: 100%;
+      max-width: 560px;
       padding: 30px 26px;
       text-align: center;
-      box-shadow: 0 25px 60px rgba(0,0,0,0.95);
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.95);
     }
+
     .proctor-alert-card.danger-card {
       border: 2px solid #ef4444;
       box-shadow: 0 0 50px rgba(239, 68, 68, 0.4);
     }
+
     .proctor-alert-card.warning-card {
       border: 2px solid #f59e0b;
       box-shadow: 0 0 50px rgba(245, 158, 11, 0.4);
     }
-    .proctor-icon { font-size: 3rem; margin-bottom: 12px; }
-    .proctor-alert-card h3 { font-size: 1.3rem; font-weight: 900; margin-bottom: 10px; }
-    .danger-card h3 { color: #f87171; }
-    .warning-card h3 { color: #fbbf24; }
-    .alert-count-pill { font-size: 0.92rem; font-weight: 800; color: #fff; background: rgba(255,255,255,0.08); display: inline-block; padding: 4px 16px; border-radius: 99px; margin-bottom: 12px; }
-    .alert-desc { font-size: 0.9rem; color: #cbd5e1; line-height: 1.6; margin-bottom: 14px; }
-    .alert-sub { font-size: 0.8rem; color: #94a3b8; margin-bottom: 20px; line-height: 1.45; }
+
+    .proctor-icon {
+      font-size: 3rem;
+      margin-bottom: 12px;
+    }
+
+    .proctor-alert-card h3 {
+      font-size: 1.3rem;
+      font-weight: 900;
+      margin-bottom: 10px;
+    }
+
+    .danger-card h3 {
+      color: #f87171;
+    }
+
+    .warning-card h3 {
+      color: #fbbf24;
+    }
+
+    .alert-count-pill {
+      font-size: 0.92rem;
+      font-weight: 800;
+      color: #fff;
+      background: rgba(255, 255, 255, 0.08);
+      display: inline-block;
+      padding: 4px 16px;
+      border-radius: 99px;
+      margin-bottom: 12px;
+    }
+
+    .alert-desc {
+      font-size: 0.9rem;
+      color: #cbd5e1;
+      line-height: 1.6;
+      margin-bottom: 14px;
+    }
+
+    .alert-sub {
+      font-size: 0.8rem;
+      color: #94a3b8;
+      margin-bottom: 20px;
+      line-height: 1.45;
+    }
   </style>
 
   <!-- ═══════ Pre-Exam Rules & Disclaimer Modal (Mandatory Gate) ═══════ -->
@@ -594,17 +639,27 @@
       <div class="rules-modal-header">
         <div class="rules-badge">⚠️ MANDATORY EXAMINATION INSTRUCTIONS &bull; CONDUCTED BY EXAM PRO</div>
         <h1>TECHNICAL EXAMINATION RULES &amp; REGULATIONS</h1>
-        <div class="rules-company">Conducted by Exam Pro &bull; Techminds Software India Pvt. Ltd.</div>
+        <div class="rules-company">Conducted by Exam Pro &bull; I cube world Software India Pvt. Ltd.</div>
         <p class="rules-intro">
-          This examination is conducted and proctored by <strong>Exam Pro</strong> on behalf of <strong>Techminds Software India Pvt. Ltd.</strong> All candidates must carefully read and agree to the following rules before starting the online technical examination.
+          This examination is conducted and proctored by <strong>Exam Pro</strong> on behalf of <strong> I cube world
+            Software India Pvt. Ltd.</strong> All candidates must carefully read and agree to the following rules before
+          starting the online technical examination.
         </p>
 
         <div class="rules-test-pills">
           <span>🏢 <strong>Exam Pro</strong> Assessment</span>
-          <span>⏱️ <strong><%= test.duration %> Mins</strong> Time Limit</span>
-          <span>❓ <strong><%= totalQuestions %></strong> Questions</span>
-          <span>🏆 <strong><%= totalMarks %></strong> Total Marks</span>
-          <span>📚 <strong><%= test.course %></strong></span>
+          <span>⏱️ <strong>
+              <%= test.duration %> Mins
+            </strong> Time Limit</span>
+          <span>❓ <strong>
+              <%= totalQuestions %>
+            </strong> Questions</span>
+          <span>🏆 <strong>
+              <%= totalMarks %>
+            </strong> Total Marks</span>
+          <span>📚 <strong>
+              <%= test.course %>
+            </strong></span>
         </div>
       </div>
 
@@ -613,9 +668,11 @@
         <div class="rule-block">
           <h4><span class="r-num">1</span> Examination Fee &amp; Refund Policy</h4>
           <ul>
-            <li>The examination fee is <strong>strictly non-refundable</strong>, regardless of whether the candidate passes or fails the examination.</li>
-            <li>No refund will be provided if a candidate abandons, cancels, interrupts, or forcefully closes the examination after starting it.</li>
-            <li>If a candidate needs to retake the examination following a forceful closure or an invalid attempt, a new examination fee must be paid.</li>
+            <li>The examination fee is <strong> refundable</strong> whether the candidate passes the examination.</li>
+            <li>No refund will be provided if a candidate abandons, cancels, interrupts, or forcefully closes the
+              examination after starting it.</li>
+            <li>If a candidate needs to retake the examination following a forceful closure or an invalid attempt, a new
+              examination fee must be paid.</li>
           </ul>
         </div>
 
@@ -623,10 +680,14 @@
         <div class="rule-block">
           <h4><span class="r-num">2</span> Tab Switching, Fullscreen &amp; System Lock</h4>
           <ul>
-            <li><strong>Single Active Tab Only:</strong> No extra browser tabs, secondary windows, or external applications may be running. Only this examination tab must remain open.</li>
-            <li><strong>Compulsory Fullscreen:</strong> The examination must be taken in fullscreen mode throughout the duration. Minimizing the browser or exiting fullscreen is strictly recorded.</li>
-            <li><strong>Real-Time Proctoring Audit:</strong> Every tab switch, window minimization, and fullscreen exit is recorded with exact timestamps and reported directly to the administrator.</li>
-            <li>Refreshing the page will not reset your examination timer; your elapsed time continues uninterrupted.</li>
+            <li><strong>Single Active Tab Only:</strong> No extra browser tabs, secondary windows, or external
+              applications may be running. Only this examination tab must remain open.</li>
+            <li><strong>Compulsory Fullscreen:</strong> The examination must be taken in fullscreen mode throughout the
+              duration. Minimizing the browser or exiting fullscreen is strictly recorded.</li>
+            <li><strong>Real-Time Proctoring Audit:</strong> Every tab switch, window minimization, and fullscreen exit
+              is recorded with exact timestamps and reported directly to the administrator.</li>
+            <li>Refreshing the page will not reset your examination timer; your elapsed time continues uninterrupted.
+            </li>
           </ul>
         </div>
 
@@ -720,7 +781,8 @@
         <!-- 10. Final Acknowledgment -->
         <div class="rule-block" style="border-bottom: none; margin-bottom: 0;">
           <h4><span class="r-num">10</span> Final Acknowledgment</h4>
-          <p>By starting the examination, the candidate confirms that they have read, understood, and agreed to these examination instructions, proctoring rules, and evaluation criteria.</p>
+          <p>By starting the examination, the candidate confirms that they have read, understood, and agreed to these
+            examination instructions, proctoring rules, and evaluation criteria.</p>
           <div
             style="margin-top: 10px; font-size: 0.82rem; color: #94a3b8; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
             <div>
@@ -728,7 +790,7 @@
               <em>Online Examination &amp; Assessment Authority</em>
             </div>
             <div style="text-align: right;">
-              <strong>Techminds Software India Pvt. Ltd.</strong><br>
+              <strong>I cube info solution(i cube world)</strong><br>
               <em>Recruitment &amp; Technical Assessment Division</em>
             </div>
           </div>
@@ -748,7 +810,9 @@
         <label class="agreement-label" for="agreeRulesCheckbox">
           <input type="checkbox" id="agreeRulesCheckbox" onchange="handleAgreeCheckbox(this)">
           <span class="checkbox-text">
-            I confirm that I have read, understood, and agree to the <strong>Technical Examination Rules &amp; Regulations</strong> and <strong>Exam Pro Terms &amp; Conditions</strong>. I confirm I will take this examination independently in fullscreen mode without unauthorized aids or tab switching.
+            I confirm that I have read, understood, and agree to the <strong>Technical Examination Rules &amp;
+              Regulations</strong> and <strong>Exam Pro Terms &amp; Conditions</strong>. I confirm I will take this
+            examination independently in fullscreen mode without unauthorized aids or tab switching.
           </span>
         </label>
 
@@ -956,10 +1020,12 @@
       <h3>WARNING: TAB SWITCH DETECTED!</h3>
       <div class="alert-count-pill">Recorded Incident #<span id="tabSwitchCountDisplay">1</span></div>
       <p class="alert-desc">
-        Switching browser tabs, opening another application, minimizing the window, or navigating away is <strong>strictly prohibited</strong> during this examination.
+        Switching browser tabs, opening another application, minimizing the window, or navigating away is
+        <strong>strictly prohibited</strong> during this examination.
       </p>
       <p class="alert-sub">
-        ⚠️ This incident has been logged with an exact timestamp and will be reported to the recruitment assessment administrator. Continued violations will lead to disqualification.
+        ⚠️ This incident has been logged with an exact timestamp and will be reported to the recruitment assessment
+        administrator. Continued violations will lead to disqualification.
       </p>
       <button type="button" class="btn btn-primary btn-lg" onclick="dismissTabWarning()">
         ⚠️ I Understand &amp; Return to Fullscreen Exam
@@ -974,10 +1040,12 @@
       <h3>COMPULSORY FULLSCREEN MODE</h3>
       <div class="alert-count-pill">Fullscreen Exited: <span id="fullscreenExitCountDisplay">1</span> time(s)</div>
       <p class="alert-desc">
-        This examination must be conducted in <strong>strict fullscreen mode</strong>. You cannot interact with or view examination questions outside of fullscreen.
+        This examination must be conducted in <strong>strict fullscreen mode</strong>. You cannot interact with or view
+        examination questions outside of fullscreen.
       </p>
       <p class="alert-sub">
-        🔒 Only the ICUBE examination tab is permitted to be open. Re-enter fullscreen immediately to continue your assessment.
+        🔒 Only the ICUBE examination tab is permitted to be open. Re-enter fullscreen immediately to continue your
+        assessment.
       </p>
       <button type="button" class="btn btn-primary btn-lg" onclick="reenterFullscreen()">
         🔲 Re-enter Fullscreen Mode to Continue
@@ -1010,7 +1078,7 @@
       if (cached.fullscreenExitsCount) fullscreenExitsCount = cached.fullscreenExitsCount;
       if (cached.copyPasteAttempts) copyPasteAttempts = cached.copyPasteAttempts;
       if (Array.isArray(cached.logs)) proctorLogs = cached.logs;
-    } catch (e) {}
+    } catch (e) { }
 
     // Initialize hidden fields
     document.getElementById('tabSwitchesCount').value = tabSwitchesCount;
@@ -1037,14 +1105,14 @@
           copyPasteAttempts,
           logs: proctorLogs
         }));
-      } catch (e) {}
+      } catch (e) { }
     }
 
     // ── Fullscreen Helpers ──
     function requestExamFullscreen() {
       const elem = document.documentElement;
       if (elem.requestFullscreen) {
-        elem.requestFullscreen().catch(() => {});
+        elem.requestFullscreen().catch(() => { });
       } else if (elem.webkitRequestFullscreen) {
         elem.webkitRequestFullscreen();
       } else if (elem.msRequestFullscreen) {
@@ -1188,7 +1256,7 @@
       });
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-      } catch (e) {}
+      } catch (e) { }
     }
 
     function restoreAnswersFromLocalStorage() {
@@ -1205,7 +1273,7 @@
           if (ta) ta.value = val;
         });
         updateProgress();
-      } catch (e) {}
+      } catch (e) { }
     }
 
     document.addEventListener('change', e => {
@@ -1358,7 +1426,7 @@
         localStorage.removeItem(STORAGE_KEY);
         sessionStorage.removeItem(AGREED_KEY);
         sessionStorage.removeItem(PROCTOR_KEY);
-      } catch (e) {}
+      } catch (e) { }
     });
   </script>
 
