@@ -67,9 +67,6 @@ const sessionStore = MongoStore.create({
   mongoUrl: process.env.MONGODB_URI,
   touchAfter: 24 * 3600, // Update session once in 24 hours unless data changes (prevents MongoDB write overload on refresh)
   ttl: 24 * 60 * 60,     // 24 hours
-  crypto: {
-    secret: process.env.SESSION_SECRET || 'techminds_mcq_secret_key_2026'
-  },
   mongoOptions: {
     serverSelectionTimeoutMS: 10000,
     socketTimeoutMS: 45000

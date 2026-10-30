@@ -16,13 +16,15 @@ router.get('/admin/login', isGuest, (req, res) => {
 // POST Login (handles both student and admin via hidden flag)
 router.post('/login', async (req, res) => {
   const fromExam = req.headers.referer && req.headers.referer.includes('/exam');
+  // Pull loginAs outside try so it's available in the catch block
+  const loginAs = req.body.loginAs;
   const getLoginRedirect = (isAdminFlag) => {
     if (isAdminFlag) return '/admin/login';
     return fromExam ? '/exam#auth' : '/login';
   };
 
   try {
-    const { email, password, loginAs } = req.body;
+    const { email, password } = req.body;
 
     if (!email || !password) {
       req.flash('error', 'Please provide email and password');
