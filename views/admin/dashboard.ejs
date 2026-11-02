@@ -22,26 +22,26 @@
 
       <!-- Stats Grid -->
       <div class="stats-grid">
-        <div class="stat-card">
+        <a href="/admin/students" class="stat-card" style="text-decoration: none; color: inherit;">
           <div class="stat-icon green">👥</div>
           <div class="stat-value"><%= totalStudents %></div>
           <div class="stat-label">Total Candidates</div>
-        </div>
-        <div class="stat-card">
+        </a>
+        <a href="/admin/tests" class="stat-card" style="text-decoration: none; color: inherit;">
           <div class="stat-icon green">📋</div>
           <div class="stat-value"><%= totalTests %></div>
           <div class="stat-label">Total Assessments</div>
-        </div>
-        <div class="stat-card">
+        </a>
+        <a href="/admin/tests" class="stat-card" style="text-decoration: none; color: inherit;">
           <div class="stat-icon blue">✅</div>
           <div class="stat-value"><%= activeTests %></div>
           <div class="stat-label">Active Tests</div>
-        </div>
-        <div class="stat-card">
+        </a>
+        <a href="/admin/results" class="stat-card" style="text-decoration: none; color: inherit;">
           <div class="stat-icon orange">📈</div>
           <div class="stat-value"><%= totalResults %></div>
-          <div class="stat-label">Submissions</div>
-        </div>
+          <div class="stat-label">All Submissions</div>
+        </a>
       </div>
 
       <!-- Recent Data -->
@@ -124,39 +124,62 @@
         </div>
       </div>
 
-      <!-- Recent Results -->
+      <!-- Candidate Submissions -->
       <div style="margin-top: 24px;">
         <div class="card">
-          <div class="card-header">
-            <h3>📈 Recent Candidate Submissions</h3>
-            <a href="/admin/results" class="btn btn-sm btn-outline">View All</a>
+          <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <div>
+              <h3>📈 All Candidate Submissions (<%= recentResults.length %>)</h3>
+              <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 2px;">All candidates who have submitted their test assessments</p>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <input type="text" id="dashSubmissionSearch" placeholder="🔍 Search submissions..." 
+                     style="padding: 6px 12px; background: rgba(255,255,255,0.06); border: 1px solid var(--border); border-radius: 6px; color: #fff; font-size: 0.85rem; outline: none; min-width: 200px;"
+                     onkeyup="filterDashSubmissions()">
+              <a href="/admin/results" class="btn btn-sm btn-outline">Full Results Page →</a>
+            </div>
           </div>
           <div class="table-responsive">
-            <table class="data-table">
+            <table class="data-table" id="dashSubmissionsTable">
               <thead>
                 <tr>
                   <th>Candidate</th>
                   <th>Assessment</th>
+                  <th>Track / Course</th>
                   <th>Score</th>
-                  <th>Review Status</th>
+                  <th>Percentage</th>
+                  <th>Result Status</th>
                   <th>Submitted At</th>
+                  <th>Action</th>
                 </tr>
               </thead>
               <tbody>
                 <% if (recentResults.length === 0) { %>
-                  <tr><td colspan="5" style="text-align:center; padding:24px; color:var(--text-muted);">No submissions yet</td></tr>
+                  <tr><td colspan="8" style="text-align:center; padding:24px; color:var(--text-muted);">No submissions yet</td></tr>
                 <% } else { %>
                   <% recentResults.forEach(result => { %>
                     <tr>
-                      <td><strong style="color: #fff"><%= result.student ? result.student.name : 'Unknown' %></strong></td>
+                      <td>
+                        <strong style="color: #fff"><%= result.student ? result.student.name : 'Unknown' %></strong>
+                        <br><small style="color: var(--text-muted)"><%= result.student ? result.student.email : '' %></small>
+                      </td>
                       <td><%= result.test ? result.test.title : 'Deleted Assessment' %></td>
-                      <td><%= result.obtainedMarks %> / <%= result.totalMarks %> (<%= result.percentage %>%)</td>
+                      <td><span class="badge badge-info"><%= result.test ? result.test.course : (result.student && result.student.course ? result.student.course : 'General') %></span></td>
+                      <td><strong><%= result.obtainedMarks %> / <%= result.totalMarks %></strong></td>
+                      <td>
+                        <span style="color: <%= result.percentage >= 70 ? 'var(--success)' : result.percentage >= 40 ? 'var(--warning)' : 'var(--danger)' %>; font-weight: 700;">
+                          <%= result.percentage %>%
+                        </span>
+                      </td>
                       <td>
                         <span class="badge <%= result.isPassed ? 'badge-success' : 'badge-danger' %>">
-                          <%= result.isPassed ? 'Passed' : 'Needs Review' %>
+                          <%= result.isPassed ? '✅ Passed' : '❌ Needs Review' %>
                         </span>
                       </td>
                       <td><%= new Date(result.submittedAt).toLocaleDateString('en-IN') %></td>
+                      <td>
+                        <a href="/admin/results/<%= result._id %>" class="btn btn-sm btn-outline">👁️ View</a>
+                      </td>
                     </tr>
                   <% }) %>
                 <% } %>
@@ -165,6 +188,17 @@
           </div>
         </div>
       </div>
+
+      <script>
+        function filterDashSubmissions() {
+          const query = document.getElementById('dashSubmissionSearch').value.toLowerCase();
+          const rows = document.querySelectorAll('#dashSubmissionsTable tbody tr');
+          rows.forEach(row => {
+            const text = row.innerText.toLowerCase();
+            row.style.display = text.includes(query) ? '' : 'none';
+          });
+        }
+      </script>
 
     </div>
   </div>

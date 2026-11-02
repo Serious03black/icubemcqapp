@@ -5,8 +5,20 @@
 
   <div class="main-content">
     <div class="page-header">
-      <h1>📈 Test Results</h1>
-      <p>View all student test submissions</p>
+      <div class="page-header-actions" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+        <div>
+          <h1>📈 All Candidate Submissions</h1>
+          <p>Complete record of all candidates who have completed and submitted their tests</p>
+        </div>
+        <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+          <input type="text" id="resultSearchInput" placeholder="🔍 Search candidate, email, test..." 
+                 style="padding: 8px 14px; background: rgba(255,255,255,0.06); border: 1px solid var(--border); border-radius: 8px; color: #fff; font-size: 0.9rem; min-width: 260px; outline: none;"
+                 onkeyup="filterResults()">
+          <span class="badge badge-success" style="font-size: 0.95rem; padding: 8px 16px;">
+            <%= results.length %> Total Submissions
+          </span>
+        </div>
+      </div>
     </div>
 
     <div class="page-body">
@@ -88,5 +100,17 @@
     </div>
   </div>
 </div>
+
+<script>
+  function filterResults() {
+    const query = document.getElementById('resultSearchInput').value.toLowerCase();
+    const rows = document.querySelectorAll('.data-table tbody tr');
+    rows.forEach(row => {
+      if (row.querySelector('.empty-state')) return;
+      const text = row.innerText.toLowerCase();
+      row.style.display = text.includes(query) ? '' : 'none';
+    });
+  }
+</script>
 
 <%- include('../partials/footer') %>

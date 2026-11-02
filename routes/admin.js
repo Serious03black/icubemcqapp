@@ -132,9 +132,8 @@ router.get('/dashboard', async (req, res) => {
 
     const recentResults = await Result.find()
       .sort({ submittedAt: -1 })
-      .limit(5)
-      .populate('student', 'name email')
-      .populate('test', 'title');
+      .populate('student', 'name email course')
+      .populate('test', 'title course totalMarks passingMarks');
 
     const recentPayments = await Payment.find()
       .sort({ createdAt: -1 })
