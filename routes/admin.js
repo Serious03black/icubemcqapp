@@ -994,26 +994,31 @@ router.get('/tests/:id/assign', async (req, res) => {
 
 router.post('/tests/:id/assign', async (req, res) => {
   try {
-    let { studentIds } = req.body;
+    let { studentIds, resetPreviousAttempts } = req.body;
 
     if (!studentIds) {
       req.flash('error', 'Please select at least one student');
       return res.redirect(`/admin/tests/${req.params.id}/assign`);
     }
 
-    // Ensure it's an array
     if (!Array.isArray(studentIds)) {
       studentIds = [studentIds];
     }
 
     const test = await Test.findById(req.params.id);
+    if (!test) {
+      req.flash('error', 'Test not found');
+      return res.redirect('/admin/tests');
+    }
+
     test.assignedTo = studentIds;
+    test.updatedAt = new Date();
     await test.save();
 
     // Update each student's assignedTests
-    // First remove this test from all students
+    // First remove this test from students not selected
     await User.updateMany(
-      { role: 'student' },
+      { role: 'student', _id: { $nin: studentIds } },
       { $pull: { assignedTests: test._id } }
     );
 
@@ -1023,7 +1028,37 @@ router.post('/tests/:id/assign', async (req, res) => {
       { $addToSet: { assignedTests: test._id } }
     );
 
-    req.flash('success', `Test assigned to ${studentIds.length} student(s) successfully!`);
+    // If resetPreviousAttempts is requested, wipe previous submissions for these candidates on this test
+    if (resetPreviousAttempts) {
+      await Result.deleteMany({
+        student: { $in: studentIds },
+        test: test._id
+      });
+    }
+
+    // Ensure payment records exist for all assigned students so paid checks never block them
+    if (test.price && test.price > 0) {
+      const existingPayments = await Payment.find({
+        test: test._id,
+        student: { $in: studentIds }
+      });
+      const alreadyPaidStudentIds = new Set(existingPayments.map(p => p.student.toString()));
+      const freePaymentsToCreate = studentIds
+        .filter(sid => !alreadyPaidStudentIds.has(sid.toString()))
+        .map(sid => ({
+          student: sid,
+          test: test._id,
+          amount: 0,
+          paymentId: 'ADMIN_FREE_ACCESS_' + Date.now(),
+          orderId: 'ORDER_ADMIN_FREE'
+        }));
+
+      if (freePaymentsToCreate.length > 0) {
+        await Payment.insertMany(freePaymentsToCreate);
+      }
+    }
+
+    req.flash('success', `🎉 Test assigned with 100% FREE access to ${studentIds.length} candidate(s) successfully!`);
     res.redirect('/admin/tests');
   } catch (err) {
     console.error(err);
@@ -1032,21 +1067,134 @@ router.post('/tests/:id/assign', async (req, res) => {
   }
 });
 
+// Grant individual student free access & reset any abandoned attempt
+router.post('/tests/:testId/reset-attempt/:studentId', async (req, res) => {
+  try {
+    const { testId, studentId } = req.params;
+    const test = await Test.findById(testId);
+    const student = await User.findById(studentId);
+
+    if (!test || !student) {
+      req.flash('error', 'Test or Student not found');
+      return res.redirect('back');
+    }
+
+    // Delete any previous result so candidate gets a fresh start
+    await Result.deleteMany({ student: studentId, test: testId });
+
+    // Mark student as assigned and refresh test timestamp
+    await Test.findByIdAndUpdate(testId, {
+      $addToSet: { assignedTo: studentId },
+      $set: { updatedAt: new Date() }
+    });
+    await User.findByIdAndUpdate(studentId, {
+      $addToSet: { assignedTests: testId }
+    });
+
+    // Ensure a free payment record exists
+    const existingPayment = await Payment.findOne({ student: studentId, test: testId });
+    if (!existingPayment) {
+      await Payment.create({
+        student: studentId,
+        test: testId,
+        amount: 0,
+        paymentId: 'ADMIN_FREE_ACCESS_' + Date.now(),
+        orderId: 'ORDER_ADMIN_FREE'
+      });
+    }
+
+    req.flash('success', `✅ Fresh free attempt granted for ${student.name} on "${test.title}". Student can now start the test with a clean timer.`);
+    res.redirect('back');
+  } catch (err) {
+    console.error('Reset attempt error:', err);
+    req.flash('error', 'Failed to grant fresh attempt');
+    res.redirect('back');
+  }
+});
+
 // ==================== RESULTS ====================
 router.get('/results', async (req, res) => {
   try {
     const results = await Result.find()
       .sort({ submittedAt: -1 })
-      .populate('student', 'name email course')
-      .populate('test', 'title course totalMarks passingMarks');
+      .populate('student', 'name email course phone')
+      .populate('test', 'title course totalMarks passingMarks price');
+
+    // Also get all payments to check candidates who paid but haven't submitted yet
+    const payments = await Payment.find()
+      .sort({ createdAt: -1 })
+      .populate('student', 'name email course phone')
+      .populate('test', 'title course totalMarks passingMarks price');
+
+    // Map existing result keys: studentId + '_' + testId
+    const submittedKeys = new Set(results.map(r =>
+      (r.student?._id?.toString() || '') + '_' + (r.test?._id?.toString() || '')
+    ));
+
+    // Identify candidates who paid but haven't submitted yet
+    const pendingPaidCandidates = [];
+    payments.forEach(p => {
+      const key = (p.student?._id?.toString() || '') + '_' + (p.test?._id?.toString() || '');
+      if (!submittedKeys.has(key)) {
+        pendingPaidCandidates.push(p);
+      }
+    });
 
     res.render('admin/results', {
-      title: 'Test Results -  I cube world',
-      results
+      title: 'Candidate Submissions & Results - ICUBE Info Solution',
+      results,
+      payments,
+      pendingPaidCandidates
     });
   } catch (err) {
     console.error(err);
     req.flash('error', 'Failed to load results');
+    res.redirect('/admin/dashboard');
+  }
+});
+
+// ==================== ALL PAYMENTS & ORDERS ====================
+router.get('/payments', async (req, res) => {
+  try {
+    const payments = await Payment.find()
+      .sort({ createdAt: -1 })
+      .populate('student', 'name email course phone')
+      .populate('test', 'title course price duration');
+
+    const results = await Result.find()
+      .select('student test obtainedMarks totalMarks percentage isPassed submittedAt');
+
+    // Build a map of submitted results by studentId_testId
+    const resultMap = new Map();
+    results.forEach(r => {
+      const key = (r.student?.toString() || '') + '_' + (r.test?.toString() || '');
+      resultMap.set(key, r);
+    });
+
+    // Attach submission status to each payment
+    const paymentList = payments.map(p => {
+      const key = (p.student?._id?.toString() || '') + '_' + (p.test?._id?.toString() || '');
+      const submission = resultMap.get(key) || null;
+      return {
+        ...p.toObject(),
+        submission
+      };
+    });
+
+    const totalCollected = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
+    const submittedCount = paymentList.filter(p => p.submission).length;
+    const pendingCount = paymentList.length - submittedCount;
+
+    res.render('admin/payments', {
+      title: 'Payments & Candidate Access - ICUBE Info Solution',
+      payments: paymentList,
+      totalCollected,
+      submittedCount,
+      pendingCount
+    });
+  } catch (err) {
+    console.error('Admin Payments Error:', err);
+    req.flash('error', 'Failed to load payments');
     res.redirect('/admin/dashboard');
   }
 });
@@ -1087,11 +1235,34 @@ router.post('/results/:id/reassign', async (req, res) => {
 
     const studentName = result.student ? result.student.name : 'Unknown';
     const testTitle = result.test ? result.test.title : 'Unknown';
+    const studentId = result.student ? result.student._id : null;
+    const testId = result.test ? result.test._id : null;
 
     // Delete the result so the student can retake the test
     await Result.findByIdAndDelete(req.params.id);
 
-    req.flash('success', `✅ Result deleted! "${studentName}" can now retake "${testTitle}".`);
+    // Ensure student is assigned and granted free access if test is paid
+    if (studentId && testId) {
+      await Test.findByIdAndUpdate(testId, {
+        $addToSet: { assignedTo: studentId },
+        $set: { updatedAt: new Date() }
+      });
+      await User.findByIdAndUpdate(studentId, {
+        $addToSet: { assignedTests: testId }
+      });
+      const existingPay = await Payment.findOne({ student: studentId, test: testId });
+      if (!existingPay) {
+        await Payment.create({
+          student: studentId,
+          test: testId,
+          amount: 0,
+          paymentId: 'ADMIN_FREE_ACCESS_' + Date.now(),
+          orderId: 'ORDER_ADMIN_FREE'
+        });
+      }
+    }
+
+    req.flash('success', `✅ Result deleted! "${studentName}" has been granted a fresh free attempt for "${testTitle}".`);
     res.redirect('/admin/results');
   } catch (err) {
     console.error(err);

@@ -47,12 +47,17 @@
           <% tests.forEach(test => {
             const isDone = completedTestIds.includes(test._id.toString());
             const isFree = !test.price || test.price <= 0;
+            const isPaid = (typeof paidTestIds !== 'undefined' && paidTestIds.includes(test._id.toString())) || isFree;
+            const totalQuestions = (test.questions ? test.questions.length : 0) + 
+              ((test.subTests || []).reduce((sum, st) => sum + ((st.questions && st.questions.length) || 0), 0));
           %>
             <div class="test-card scale-in" style="<%= isDone ? 'opacity: 0.72;' : '' %>">
               <div class="test-card-header">
                 <div class="test-card-title"><%= test.title %></div>
                 <% if (isDone) { %>
                   <span class="badge badge-info">✅ Submitted</span>
+                <% } else if (isPaid && !isFree) { %>
+                  <span class="badge badge-success">Fee Paid &bull; Ready</span>
                 <% } else { %>
                   <span class="badge badge-success">Active</span>
                 <% } %>
@@ -73,7 +78,7 @@
                   <% } %>
                   <strong style="color: var(--green);"><%= isFree ? 'Free' : '&#8377;' + test.price %></strong>
                 </span>
-                <span>❓ <%= test.questions ? test.questions.length : 0 %> Questions</span>
+                <span>❓ <%= totalQuestions %> Questions</span>
                 <span>⏱️ <%= test.duration %> mins</span>
                 <span>🏆 <%= test.totalMarks %> marks</span>
               </div>
@@ -83,13 +88,17 @@
                   <button class="btn btn-sm btn-outline btn-full" disabled style="cursor: not-allowed; opacity: 0.6;">
                     ✅ Already Submitted
                   </button>
+                <% } else if (isPaid && !isFree) { %>
+                  <a href="/student/test/<%= test._id %>" class="btn btn-primary btn-full" style="background: var(--green); color: #000; font-weight: 800;">
+                    ▶️ Start Assessment (Fee Paid ✅)
+                  </a>
+                <% } else if (!isFree) { %>
+                  <a href="/student/test/<%= test._id %>" class="btn btn-primary btn-full">
+                    💳 Pay &amp; Start &mdash; &#8377;<%= test.price %>
+                  </a>
                 <% } else { %>
                   <a href="/student/test/<%= test._id %>" class="btn btn-primary btn-full">
-                    <% if (!isFree) { %>
-                      💳 Pay &amp; Start &mdash; &#8377;<%= test.price %>
-                    <% } else { %>
-                      ▶️ Start Assessment
-                    <% } %>
+                    ▶️ Start Assessment
                   </a>
                 <% } %>
               </div>

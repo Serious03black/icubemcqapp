@@ -29,7 +29,10 @@
         </div>
       <% } else { %>
         <div class="test-grid">
-          <% tests.forEach(test => { %>
+          <% tests.forEach(test => { 
+            const totalQuestions = (test.questions ? test.questions.length : 0) + 
+              ((test.subTests || []).reduce((sum, st) => sum + ((st.questions && st.questions.length) || 0), 0));
+          %>
             <div class="test-card scale-in">
               <div class="test-card-header">
                 <div>
@@ -52,13 +55,16 @@
                   <% } %>
                   <strong style="color: var(--green);"><%= (test.price && test.price > 0) ? '₹' + test.price : 'Free' %></strong>
                 </span>
-                <span>❓ <%= test.questions ? test.questions.length : 0 %> Questions</span>
+                <span>❓ <%= totalQuestions %> Questions</span>
                 <span>⏱️ <%= test.duration %> mins</span>
                 <span>🏆 <%= test.totalMarks %> marks</span>
               </div>
 
               <div class="test-card-actions">
                 <a href="/admin/tests/<%= test._id %>/questions" class="btn btn-sm btn-primary">📝 Questions</a>
+                <a href="/admin/tests/<%= test._id %>/assign" class="btn btn-sm btn-outline" style="border-color: var(--green); color: var(--green); font-weight: 600;" title="Assign to students for free">
+                  👥 Assign / Free Access
+                </a>
                 <a href="/admin/tests/<%= test._id %>/edit" class="btn btn-sm btn-outline">✏️ Edit</a>
                 <form action="/admin/tests/<%= test._id %>/toggle" method="POST" style="display:inline;">
                   <button type="submit" class="btn btn-sm btn-warning">

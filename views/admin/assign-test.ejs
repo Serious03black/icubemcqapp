@@ -17,9 +17,22 @@
     <div class="page-body">
       <%- include('../partials/alerts') %>
 
+      <!-- Info Banner -->
+      <div style="background: rgba(34,197,94,0.1); border: 1.5px solid rgba(34,197,94,0.35); border-radius: 12px; padding: 16px 20px; margin-bottom: 22px; max-width: 700px;">
+        <div style="display: flex; align-items: center; gap: 8px; font-weight: 800; color: #fff; font-size: 0.98rem; margin-bottom: 6px;">
+          <span>🎁</span> 100% Free Assessment Access Assignment
+        </div>
+        <p style="color: #e2e8f0; font-size: 0.86rem; line-height: 1.55; margin: 0 0 8px;">
+          Assigning "<strong style="color: #fff;"><%= test.title %></strong>" (<%= (test.price && test.price > 0) ? 'Standard Price: ₹' + test.price : 'Free Test' %>) to students below grants them <strong>immediate free access</strong>.
+        </p>
+        <p style="color: var(--text-muted); font-size: 0.8rem; margin: 0;">
+          ⚡ Even if this test has a fee, assigned students will <strong>never be asked to pay</strong>. They can start the assessment directly from their candidate portal.
+        </p>
+      </div>
+
       <div class="card" style="max-width: 700px;">
-        <div class="card-header">
-          <h3>Select Students</h3>
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+          <h3>Select Students for Free Access</h3>
           <span class="badge badge-info"><%= test.course %></span>
         </div>
         <div class="card-body">
@@ -33,13 +46,13 @@
             </div>
           <% } else { %>
             <form action="/admin/tests/<%= test._id %>/assign" method="POST">
-              <div style="margin-bottom: 16px; display: flex; gap: 12px;">
-                <button type="button" class="btn btn-sm btn-outline" onclick="selectAll()">Select All</button>
+              <div style="margin-bottom: 16px; display: flex; gap: 10px; flex-wrap: wrap;">
+                <button type="button" class="btn btn-sm btn-outline" onclick="selectAll()">Select All (<%= students.length %>)</button>
                 <button type="button" class="btn btn-sm btn-outline" onclick="deselectAll()">Deselect All</button>
                 <button type="button" class="btn btn-sm btn-outline" onclick="selectByCourse('<%= test.course %>')">Select <%= test.course %> Students</button>
               </div>
 
-              <div class="student-list">
+              <div class="student-list" style="max-height: 380px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; padding: 8px;">
                 <% students.forEach(student => { %>
                   <label class="student-list-item" data-course="<%= student.course %>">
                     <input type="checkbox" name="studentIds" value="<%= student._id %>"
@@ -48,14 +61,24 @@
                     <div class="student-info">
                       <div class="student-name"><%= student.name %></div>
                       <div class="student-email"><%= student.email %></div>
-                      <div class="student-course"><%= student.course || 'No course' %></div>
+                      <div class="student-course"><%= student.course || 'General' %></div>
                     </div>
                   </label>
                 <% }) %>
               </div>
 
-              <div style="margin-top: 20px; display: flex; gap: 12px;">
-                <button type="submit" class="btn btn-primary btn-lg">💾 Save Assignment</button>
+              <!-- Option to reset previous or glitched attempts -->
+              <div style="margin-top: 18px; padding: 12px 14px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 8px;">
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; color: #e2e8f0; font-size: 0.88rem; font-weight: 500;">
+                  <input type="checkbox" name="resetPreviousAttempts" value="1" checked style="width: 18px; height: 18px; accent-color: var(--green);">
+                  <span>
+                    🔄 <strong>Reset previous / glitched / abandoned attempts</strong> for selected students so they can start fresh with full time
+                  </span>
+                </label>
+              </div>
+
+              <div style="margin-top: 22px; display: flex; gap: 12px;">
+                <button type="submit" class="btn btn-primary btn-lg">💾 Save &amp; Grant Free Access</button>
                 <a href="/admin/tests" class="btn btn-outline btn-lg">Cancel</a>
               </div>
             </form>

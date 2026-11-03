@@ -58,4 +58,14 @@ testSchema.pre('save', function(next) {
   next();
 });
 
+// Virtual property for combined total questions across flat and sub-tests
+testSchema.virtual('totalQuestions').get(function() {
+  const topQ = (this.questions && this.questions.length) || 0;
+  const subQ = (this.subTests || []).reduce((sum, st) => sum + ((st.questions && st.questions.length) || 0), 0);
+  return topQ + subQ;
+});
+
+testSchema.set('toObject', { virtuals: true });
+testSchema.set('toJSON', { virtuals: true });
+
 module.exports = mongoose.model('Test', testSchema);

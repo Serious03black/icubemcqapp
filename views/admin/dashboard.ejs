@@ -32,15 +32,15 @@
           <div class="stat-value"><%= totalTests %></div>
           <div class="stat-label">Total Assessments</div>
         </a>
-        <a href="/admin/tests" class="stat-card" style="text-decoration: none; color: inherit;">
-          <div class="stat-icon blue">✅</div>
-          <div class="stat-value"><%= activeTests %></div>
-          <div class="stat-label">Active Tests</div>
-        </a>
         <a href="/admin/results" class="stat-card" style="text-decoration: none; color: inherit;">
           <div class="stat-icon orange">📈</div>
           <div class="stat-value"><%= totalResults %></div>
-          <div class="stat-label">All Submissions</div>
+          <div class="stat-label">Test Submissions</div>
+        </a>
+        <a href="/admin/payments" class="stat-card" style="text-decoration: none; color: inherit;">
+          <div class="stat-icon green">💳</div>
+          <div class="stat-value"><%= totalPayments %> <small style="font-size: 0.85rem; font-weight: 600; opacity: 0.85;">(₹<%= totalCollected %>)</small></div>
+          <div class="stat-label">Paid Candidates</div>
         </a>
       </div>
 
@@ -70,7 +70,7 @@
                     <tr>
                       <td><strong style="color: #fff"><%= test.title %></strong></td>
                       <td><span class="badge badge-primary"><%= test.course %></span></td>
-                      <td><%= test.questions ? test.questions.length : 0 %> Qs</td>
+                      <% const qCount = (test.questions ? test.questions.length : 0) + ((test.subTests || []).reduce((sum, st) => sum + ((st.questions && st.questions.length) || 0), 0)); %><td><%= qCount %> Qs</td>
                       <td>
                         <span class="badge <%= test.isActive ? 'badge-success' : 'badge-danger' %>">
                           <%= test.isActive ? 'Active' : 'Inactive' %>

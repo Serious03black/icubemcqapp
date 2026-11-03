@@ -1,0 +1,220 @@
+<%- include('../partials/header') %>
+
+<div class="dashboard-layout">
+  <%- include('../partials/admin-sidebar', { active: 'payments' }) %>
+
+  <div class="main-content">
+    <div class="page-header">
+      <div class="page-header-actions" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+        <div>
+          <h1>💳 Candidate Payments &amp; Test Access</h1>
+          <p>Verified Razorpay transactions and assessment access tracking</p>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+          <span class="badge badge-success" style="font-size: 0.95rem; padding: 8px 14px;">
+            💰 ₹<%= totalCollected %> Collected
+          </span>
+          <span class="badge badge-info" style="font-size: 0.95rem; padding: 8px 14px;">
+            👥 <%= payments.length %> Total Paid Candidates
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="page-body">
+      <%- include('../partials/alerts') %>
+
+      <!-- Metric Highlights -->
+      <div class="stats-grid" style="margin-bottom: 24px;">
+        <div class="stat-card">
+          <div class="stat-icon green">💰</div>
+          <div class="stat-value">₹<%= totalCollected %></div>
+          <div class="stat-label">Total Revenue Collected</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon blue">💳</div>
+          <div class="stat-value"><%= payments.length %></div>
+          <div class="stat-label">Total Payments Received</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green">✅</div>
+          <div class="stat-value"><%= submittedCount %></div>
+          <div class="stat-label">Completed &amp; Submitted Tests</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon orange">⏳</div>
+          <div class="stat-value"><%= pendingCount %></div>
+          <div class="stat-label">Paid &bull; Not Submitted Yet</div>
+        </div>
+      </div>
+
+      <!-- Main Card -->
+      <div class="card">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+          <!-- Filter Tabs -->
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button type="button" class="btn btn-sm btn-primary filter-tab" onclick="setFilter('all', this)">
+              All Payments (<%= payments.length %>)
+            </button>
+            <button type="button" class="btn btn-sm btn-outline filter-tab" onclick="setFilter('submitted', this)">
+              ✅ Submitted (<%= submittedCount %>)
+            </button>
+            <button type="button" class="btn btn-sm btn-outline filter-tab" onclick="setFilter('pending', this)">
+              ⏳ Not Submitted Yet (<%= pendingCount %>)
+            </button>
+          </div>
+
+          <!-- Search Input -->
+          <div>
+            <input type="text" id="paymentSearchInput" placeholder="🔍 Search candidate, email, payment ID, test..." 
+                   style="padding: 8px 14px; background: rgba(255,255,255,0.06); border: 1px solid var(--border); border-radius: 8px; color: #fff; font-size: 0.9rem; min-width: 280px; outline: none;"
+                   onkeyup="filterPayments()">
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="data-table" id="paymentsTable">
+            <thead>
+              <tr>
+                <th>Candidate Details</th>
+                <th>Assessment</th>
+                <th>Amount</th>
+                <th>Razorpay Details</th>
+                <th>Payment Date</th>
+                <th>Test Submission Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (payments.length === 0) { %>
+                <tr>
+                  <td colspan="7">
+                    <div class="empty-state">
+                      <span class="empty-icon">💳</span>
+                      <h3>No payments received yet</h3>
+                      <p>When candidates pay the assessment access fee, their transactions will appear here.</p>
+                    </div>
+                  </td>
+                </tr>
+              <% } else { %>
+                <% payments.forEach(p => { 
+                  const hasSubmitted = !!p.submission;
+                %>
+                  <tr data-status="<%= hasSubmitted ? 'submitted' : 'pending' %>">
+                    <td>
+                      <strong style="color: #fff; font-size: 0.95rem;">
+                        <%= p.student ? p.student.name : 'Unknown Candidate' %>
+                      </strong>
+                      <br>
+                      <small style="color: var(--text-muted);"><%= p.student ? p.student.email : 'No email' %></small>
+                      <% if (p.student && p.student.phone) { %>
+                        <br><small style="color: var(--green);">📞 <%= p.student.phone %></small>
+                      <% } %>
+                    </td>
+                    <td>
+                      <strong style="color: #fff;"><%= p.test ? p.test.title : 'Deleted Assessment' %></strong>
+                      <br>
+                      <span class="badge badge-info" style="font-size: 0.72rem; margin-top: 4px;">
+                        <%= p.test ? p.test.course : 'General' %>
+                      </span>
+                    </td>
+                    <td>
+                      <strong style="color: var(--green); font-size: 1.05rem;">₹<%= p.amount %></strong>
+                    </td>
+                    <td>
+                      <% if (p.paymentId) { %>
+                        <code style="background: rgba(255,255,255,0.06); padding: 3px 6px; border-radius: 4px; font-size: 0.8rem; color: #38bdf8;">
+                          <%= p.paymentId %>
+                        </code>
+                      <% } else { %>
+                        <span style="color: var(--text-muted); font-size: 0.82rem;">Direct / Offline</span>
+                      <% } %>
+                      <% if (p.orderId) { %>
+                        <br><small style="color: var(--text-muted); font-size: 0.72rem;">Order: <%= p.orderId %></small>
+                      <% } %>
+                    </td>
+                    <td>
+                      <%= new Date(p.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) %>
+                      <br><small style="color: var(--text-muted);"><%= new Date(p.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) %></small>
+                    </td>
+                    <td>
+                      <% if (hasSubmitted) { %>
+                        <span class="badge badge-success" style="font-weight: 700; padding: 6px 10px; font-size: 0.82rem;">
+                          ✅ Submitted &bull; <%= p.submission.obtainedMarks %>/<%= p.submission.totalMarks %> (<%= p.submission.percentage %>%)
+                        </span>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">
+                          <%= p.submission.isPassed ? '🏆 Passed' : '⚠️ Needs Review' %> &bull; <%= new Date(p.submission.submittedAt).toLocaleDateString('en-IN') %>
+                        </div>
+                      <% } else { %>
+                        <span class="badge badge-warning" style="font-weight: 700; padding: 6px 10px; font-size: 0.82rem;">
+                          ⏳ Test Not Submitted Yet
+                        </span>
+                        <div style="font-size: 0.74rem; color: var(--text-muted); margin-top: 4px;">
+                          <%= (p.amount === 0) ? '🎁 Admin Free Access' : '💳 Fee Paid &bull; Access Active' %>
+                        </div>
+                      <% } %>
+                    </td>
+                    <td>
+                      <% if (hasSubmitted) { %>
+                        <a href="/admin/results/<%= p.submission._id %>" class="btn btn-sm btn-outline" title="View Evaluation Details">
+                          👁️ View Result
+                        </a>
+                      <% } else { %>
+                        <form action="/admin/tests/<%= p.test ? p.test._id : '' %>/reset-attempt/<%= p.student ? p.student._id : '' %>" method="POST" style="margin: 0; display: inline;" onsubmit="return confirm('Grant fresh free attempt for <%= p.student ? p.student.name : 'this candidate' %>? This clears any abandoned/glitched attempts and ensures 100% free access.');">
+                          <button type="submit" class="btn btn-sm btn-primary" style="white-space: nowrap; font-size: 0.78rem;" title="Reset attempt & allow candidate to take test fresh">
+                            🔄 Allow Fresh Attempt
+                          </button>
+                        </form>
+                      <% } %>
+                    </td>
+                  </tr>
+                <% }) %>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let currentFilter = 'all';
+
+  function setFilter(filter, btn) {
+    currentFilter = filter;
+    document.querySelectorAll('.filter-tab').forEach(b => {
+      b.classList.remove('btn-primary');
+      b.classList.add('btn-outline');
+    });
+    btn.classList.remove('btn-outline');
+    btn.classList.add('btn-primary');
+    applyFilters();
+  }
+
+  function filterPayments() {
+    applyFilters();
+  }
+
+  function applyFilters() {
+    const query = document.getElementById('paymentSearchInput').value.toLowerCase();
+    const rows = document.querySelectorAll('#paymentsTable tbody tr');
+
+    rows.forEach(row => {
+      if (row.querySelector('.empty-state')) return;
+      const status = row.getAttribute('data-status');
+      const matchesFilter = (currentFilter === 'all') || (status === currentFilter);
+      const text = row.innerText.toLowerCase();
+      const matchesSearch = text.includes(query);
+
+      if (matchesFilter && matchesSearch) {
+        row.style.display = '';
+      } else {
+        row.style.display = 'none';
+      }
+    });
+  }
+</script>
+
+<%- include('../partials/footer') %>
+

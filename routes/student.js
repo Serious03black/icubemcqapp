@@ -30,6 +30,20 @@ router.get('/dashboard', async (req, res) => {
       .map(r => r.test?._id?.toString())
       .filter(Boolean);
 
+    // Check all tests candidate has paid for
+    const userPayments = await Payment.find({ student: req.session.user.id }).select('test');
+    const paidTestIds = userPayments.map(p => p.test?.toString()).filter(Boolean);
+
+    // Also include tests assigned free by admin so student never pays
+    allTests.forEach(t => {
+      const isAssigned = t.assignedTo && t.assignedTo.some(id => 
+        (id._id ? id._id.toString() : id.toString()) === req.session.user.id.toString()
+      );
+      if (isAssigned && !paidTestIds.includes(t._id.toString())) {
+        paidTestIds.push(t._id.toString());
+      }
+    });
+
     // Available assessments not yet completed by this candidate
     const pendingTests = allTests.filter(t => !completedTestIds.includes(t._id.toString()));
 
@@ -38,6 +52,7 @@ router.get('/dashboard', async (req, res) => {
       student,
       pendingTests,
       completedResults,
+      paidTestIds,
       totalAssigned: allTests.length,
       totalCompleted: completedResults.length,
       totalPending: pendingTests.length
@@ -57,10 +72,25 @@ router.get('/tests', async (req, res) => {
       .select('test');
     const completedTestIds = completedResults.map(r => r.test?.toString()).filter(Boolean);
 
+    // Check all tests candidate has paid for
+    const userPayments = await Payment.find({ student: req.session.user.id }).select('test');
+    const paidTestIds = userPayments.map(p => p.test?.toString()).filter(Boolean);
+
+    // Also include tests assigned free by admin so student never pays
+    allTests.forEach(t => {
+      const isAssigned = t.assignedTo && t.assignedTo.some(id => 
+        (id._id ? id._id.toString() : id.toString()) === req.session.user.id.toString()
+      );
+      if (isAssigned && !paidTestIds.includes(t._id.toString())) {
+        paidTestIds.push(t._id.toString());
+      }
+    });
+
     res.render('student/tests', {
       title: 'Browse Assessments - ICUBE Info Solution',
       tests: allTests,
-      completedTestIds
+      completedTestIds,
+      paidTestIds
     });
   } catch (err) {
     console.error('Browse Tests Error:', err);
@@ -79,11 +109,30 @@ router.get('/test/:id', async (req, res) => {
       return res.redirect('/student/dashboard');
     }
 
-    // Ensure payment has been made before allowing test access if price > 0
-    if (test.price && test.price > 0) {
+    // Check if test was explicitly assigned to this candidate by admin (grants 100% free access)
+    const isAssignedByAdmin = test.assignedTo && test.assignedTo.some(id => 
+      (id._id ? id._id.toString() : id.toString()) === req.session.user.id.toString()
+    );
+
+    // Ensure payment has been made before allowing test access if price > 0 and not assigned free
+    if (test.price && test.price > 0 && !isAssignedByAdmin) {
+      // 1. Check permanent database payment record first
+      const paidInDb = await Payment.findOne({
+        student: req.session.user.id,
+        test: test._id
+      });
+
       const paidTests = req.session.paidTests || [];
-      if (!paidTests.includes(test._id.toString())) {
+      const paidInSession = paidTests.includes(test._id.toString());
+
+      if (!paidInDb && !paidInSession) {
         return res.redirect(`/student/pay/${test._id}`);
+      }
+
+      // Sync session if paid in DB
+      if (paidInDb && !paidInSession) {
+        paidTests.push(test._id.toString());
+        req.session.paidTests = paidTests;
       }
     }
 
@@ -112,9 +161,20 @@ router.get('/test/:id', async (req, res) => {
     // Check if student already has an active ongoing attempt for this test (resuming after refresh)
     req.session.activeAttempts = req.session.activeAttempts || {};
     const testIdStr = test._id.toString();
-    const existingAttempt = req.session.activeAttempts[testIdStr];
+    let existingAttempt = req.session.activeAttempts[testIdStr];
 
     const testDuration = parseInt(test.duration) || 30;
+
+    // Check if ongoing attempt has expired while away (abandoned/glitch) OR test was reset by admin
+    if (existingAttempt && existingAttempt.startedAt) {
+      const elapsed = Math.max(0, Math.floor((Date.now() - existingAttempt.startedAt) / 1000));
+      const remaining = (testDuration * 60) - elapsed;
+      const testReset = test.updatedAt && new Date(test.updatedAt).getTime() > existingAttempt.startedAt;
+      if (remaining <= 0 || testReset) {
+        delete req.session.activeAttempts[testIdStr];
+        existingAttempt = null;
+      }
+    }
     let sections = [];
     let allQuestionIds = [];
     let initialElapsedSeconds = 0;
@@ -337,8 +397,30 @@ router.get('/pay/:id', async (req, res) => {
       req.flash('error', 'Test not found');
       return res.redirect('/student/dashboard');
     }
-    if (!test.price || test.price <= 0) {
-      // Free test — no payment needed
+    const isAssignedByAdmin = test.assignedTo && test.assignedTo.some(id => 
+      (id._id ? id._id.toString() : id.toString()) === req.session.user.id.toString()
+    );
+
+    if (!test.price || test.price <= 0 || isAssignedByAdmin) {
+      // Free test or assigned free by admin — no payment needed
+      if (isAssignedByAdmin) {
+        req.flash('info', 'Admin has granted you 100% free access to this assessment.');
+      }
+      return res.redirect(`/student/test/${test._id}`);
+    }
+
+    // Check if candidate has already paid for this test
+    const existingPayment = await Payment.findOne({
+      student: req.session.user.id,
+      test: test._id
+    });
+    if (existingPayment) {
+      const paidTests = req.session.paidTests || [];
+      if (!paidTests.includes(test._id.toString())) {
+        paidTests.push(test._id.toString());
+        req.session.paidTests = paidTests;
+      }
+      req.flash('info', 'Your payment is verified! Starting your assessment.');
       return res.redirect(`/student/test/${test._id}`);
     }
     const razorpayKey = process.env.RAZORPAY_KEY_ID || '';

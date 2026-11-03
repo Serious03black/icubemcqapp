@@ -24,6 +24,26 @@
     <div class="page-body">
       <%- include('../partials/alerts') %>
 
+      <!-- Payment & Submission Status Banner -->
+      <div style="background: rgba(34, 197, 94, 0.08); border: 1.5px solid rgba(34, 197, 94, 0.3); border-radius: 12px; padding: 18px 22px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+        <div>
+          <div style="font-weight: 800; color: #fff; font-size: 1.05rem; margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">
+            <span>💳</span> Candidate Payment &amp; Submission Tracking
+          </div>
+          <div style="color: var(--text-muted); font-size: 0.88rem; line-height: 1.5;">
+            <strong style="color: var(--green);"><%= results.length %> candidates</strong> have completed and submitted their tests.
+            <% if (typeof pendingPaidCandidates !== 'undefined' && pendingPaidCandidates.length > 0) { %>
+              &bull; <strong style="color: #fbbf24;"><%= pendingPaidCandidates.length %> candidates</strong> have paid assessment fees but have not submitted their test yet.
+            <% } %>
+          </div>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <a href="/admin/payments" class="btn btn-sm btn-primary">
+            💳 View All Paid Candidates (<%= (typeof payments !== 'undefined' ? payments.length : results.length) %>) →
+          </a>
+        </div>
+      </div>
+
       <div class="card">
         <div class="table-responsive">
           <table class="data-table">
@@ -97,6 +117,76 @@
           </table>
         </div>
       </div>
+
+      <% if (typeof pendingPaidCandidates !== 'undefined' && pendingPaidCandidates.length > 0) { %>
+        <!-- Candidates Who Paid But Have Not Submitted -->
+        <div class="card" style="margin-top: 28px; border: 1.5px solid rgba(245, 158, 11, 0.35);">
+          <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <div>
+              <h3 style="color: #fbbf24; display: flex; align-items: center; gap: 8px;">
+                <span>⏳</span> Paid Candidates &bull; Test Not Submitted Yet (<%= pendingPaidCandidates.length %>)
+              </h3>
+              <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 2px;">
+                These candidates have paid their fee via Razorpay but have not completed/submitted their assessment yet
+              </p>
+            </div>
+            <a href="/admin/payments" class="btn btn-sm btn-outline">Full Payments Tracking →</a>
+          </div>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Candidate</th>
+                  <th>Assessment</th>
+                  <th>Amount Paid</th>
+                  <th>Razorpay ID</th>
+                  <th>Payment Date</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% pendingPaidCandidates.forEach(p => { %>
+                  <tr>
+                    <td>
+                      <strong style="color: #fff;"><%= p.student ? p.student.name : 'Unknown Candidate' %></strong>
+                      <br><small style="color: var(--text-muted);"><%= p.student ? p.student.email : 'No email' %></small>
+                      <% if (p.student && p.student.phone) { %>
+                        <br><small style="color: var(--green);">📞 <%= p.student.phone %></small>
+                      <% } %>
+                    </td>
+                    <td>
+                      <strong style="color: #fff;"><%= p.test ? p.test.title : 'Deleted Assessment' %></strong>
+                      <br><span class="badge badge-info" style="font-size: 0.72rem;"><%= p.test ? p.test.course : 'General' %></span>
+                    </td>
+                    <td><strong style="color: var(--green);">₹<%= p.amount %></strong></td>
+                    <td>
+                      <% if (p.paymentId) { %>
+                        <code style="background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; color: #38bdf8;"><%= p.paymentId %></code>
+                      <% } else { %>
+                        <span style="color: var(--text-muted); font-size: 0.82rem;">Direct / Free</span>
+                      <% } %>
+                    </td>
+                    <td><%= new Date(p.createdAt).toLocaleDateString('en-IN') %></td>
+                    <td>
+                      <span class="badge badge-warning" style="font-weight: 700;">
+                        ⏳ Awaiting Submission
+                      </span>
+                    </td>
+                    <td>
+                      <form action="/admin/tests/<%= p.test ? p.test._id : '' %>/reset-attempt/<%= p.student ? p.student._id : '' %>" method="POST" style="margin: 0;" onsubmit="return confirm('Allow fresh free attempt for <%= p.student ? p.student.name : 'this candidate' %>? This clears any abandoned or glitched attempt.');">
+                        <button type="submit" class="btn btn-sm btn-primary" style="white-space: nowrap; font-size: 0.78rem;" title="Reset attempt & allow candidate to take test fresh">
+                          🔄 Allow Fresh Attempt
+                        </button>
+                      </form>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      <% } %>
     </div>
   </div>
 </div>
