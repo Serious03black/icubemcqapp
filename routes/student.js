@@ -249,7 +249,7 @@ router.get('/test/:id', async (req, res) => {
       sum + ((s.questions && s.questions.reduce((qs, q) => qs + (q.marks || 1), 0)) || 0), 0);
 
     res.render('student/take-test', {
-      title: `${test.title} - Exam Pro Assessment`,
+      title: `${test.title} - ICUBE World Assessment`,
       test: test.toObject(),
       sections,
       totalQuestions,
@@ -424,7 +424,7 @@ router.get('/pay/:id', async (req, res) => {
       return res.redirect(`/student/test/${test._id}`);
     }
     const razorpayKey = process.env.RAZORPAY_KEY_ID || '';
-    res.render('student/payment', { title: 'Exam Pro Assessment Fee - ' + test.title, test, razorpayKey });
+    res.render('student/payment', { title: 'Assessment Access Fee - ' + test.title, test, razorpayKey });
   } catch (err) {
     console.error('Payment Page Error:', err);
     req.flash('error', 'Unable to load payment page');
@@ -515,7 +515,7 @@ router.get('/history', async (req, res) => {
     const results = await Result.find({ student: req.session.user.id })
       .sort({ submittedAt: -1 })
       .populate('test', 'title course');
-    res.render('student/history', { title: 'My Exam History - Exam Pro', results });
+    res.render('student/history', { title: 'My Exam History - ICUBE World', results });
   } catch (err) {
     console.error('History Error:', err);
     req.flash('error', 'Failed to load exam history');

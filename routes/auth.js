@@ -122,10 +122,18 @@ router.get('/logout', (req, res) => {
   });
 });
 
+// GET About Us Page
+router.get(['/about', '/about-us'], (req, res) => {
+  res.render('about', {
+    title: 'About Us - ICUBE World (ICUBE Info Solution)',
+    currentUser: req.session.user || null
+  });
+});
+
 // GET Terms & Conditions Page
 router.get(['/terms', '/terms-and-conditions'], (req, res) => {
   res.render('terms', {
-    title: 'Terms & Conditions - Exam Pro',
+    title: 'Terms & Conditions - ICUBE World',
     currentUser: req.session.user || null
   });
 });

@@ -1,340 +1,355 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Candidate Assessment &bull; Conducted for Bitzbolt</title>
-  <meta name="description" content="Online Technical Examination Portal conducted for Bitzbolt (bitzbolt.online)." />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Candidate Examination Portal &bull; ICUBE World</title>
+  <meta name="description" content="Official candidate examination and technical assessment portal by ICUBE World (ICUBE Info Solution), conducted for Bitzbolt (bitzbolt.online).">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📝</text></svg>">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --green: #22c55e;
-      --green-glow: rgba(34, 197, 94, 0.35);
-      --green-dim: rgba(34, 197, 94, 0.12);
-      --bg: #090a0f;
-      --bg-card: #12141a;
-      --border: rgba(255, 255, 255, 0.08);
-      --text: #f1f5f9;
-      --muted: #94a3b8;
+      --bg: #0d1117;
+      --card-bg: #161b22;
+      --border: #30363d;
+      --border-muted: #21262d;
+      --text: #e6edf3;
+      --text-muted: #8b949e;
+      --green: #238636;
+      --green-hover: #2ea043;
+      --accent: #58a6ff;
     }
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      padding: 24px 16px;
-      position: relative;
-      overflow-x: hidden;
-    }
-    .bg-radial {
-      position: fixed;
-      top: -200px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 700px;
-      height: 550px;
-      background: radial-gradient(circle, rgba(34, 197, 94, 0.15) 0%, transparent 65%);
-      pointer-events: none;
-      z-index: 0;
-    }
-    .exam-wrapper {
-      position: relative;
-      z-index: 1;
-      width: 100%;
-      max-width: 460px;
-      margin: 0 auto;
     }
 
-    /* HEADER */
-    .brand-header {
-      text-align: center;
-      margin-bottom: 22px;
+    /* TOP NAVBAR */
+    .top-nav {
+      border-bottom: 1px solid var(--border);
+      background: #0d1117;
+      padding: 14px 24px;
+    }
+    .top-nav-inner {
+      max-width: 1020px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: #fff;
     }
     .brand-title {
-      font-size: 1.45rem;
-      font-weight: 800;
-      color: #fff;
-      display: inline-flex;
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+    .brand-sub {
+      font-size: 0.76rem;
+      background: var(--border-muted);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-weight: 500;
+    }
+    .nav-links {
+      display: flex;
       align-items: center;
-      gap: 9px;
-      letter-spacing: -0.02em;
+      gap: 16px;
+      font-size: 0.88rem;
     }
-    .brand-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: var(--green);
-      box-shadow: 0 0 14px var(--green);
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.15s;
     }
-    .conducted-sub {
-      margin-top: 8px;
-      font-size: 0.86rem;
-      color: var(--muted);
-      font-weight: 400;
-      line-height: 1.5;
+    .nav-links a:hover {
+      color: #fff;
     }
-    .conducted-sub a {
-      color: var(--green);
+    .nav-links .highlight-link {
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    /* MAIN CONTAINER */
+    .main-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 36px 16px;
+      max-width: 480px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* CONDUCTED BANNER */
+    .partner-tag {
+      background: #161b22;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 14px;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+      text-align: center;
+      width: 100%;
+      line-height: 1.45;
+    }
+    .partner-tag strong {
+      color: #fff;
+    }
+    .partner-tag a {
+      color: var(--accent);
       text-decoration: underline;
-      text-underline-offset: 3px;
       font-weight: 600;
-      transition: opacity 0.2s;
-    }
-    .conducted-sub a:hover {
-      opacity: 0.85;
     }
 
     /* CARD */
-    .exam-card {
-      background: var(--bg-card);
+    .auth-card {
+      background: var(--card-bg);
       border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 32px 28px;
-      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.55), 0 0 35px rgba(34, 197, 94, 0.06);
-      position: relative;
-      overflow: hidden;
-      backdrop-filter: blur(14px);
+      border-radius: 8px;
+      padding: 28px 24px;
+      width: 100%;
     }
-    .exam-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 2px;
-      background: linear-gradient(90deg, transparent, var(--green), transparent);
+    .card-header {
+      margin-bottom: 20px;
+    }
+    .card-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+    .card-desc {
+      font-size: 0.84rem;
+      color: var(--text-muted);
     }
 
     /* TABS */
     .auth-tabs {
-      display: flex;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 4px;
-      margin-bottom: 24px;
-      gap: 4px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 22px;
     }
     .auth-tab {
-      flex: 1;
-      text-align: center;
-      padding: 10px 14px;
-      border-radius: 8px;
-      font-size: 0.88rem;
-      font-weight: 600;
-      cursor: pointer;
-      color: var(--muted);
       background: transparent;
       border: none;
-      transition: all 0.2s ease;
-      outline: none;
+      border-bottom: 2px solid transparent;
+      color: var(--text-muted);
+      padding: 10px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      transition: color 0.15s, border-color 0.15s;
       font-family: inherit;
     }
+    .auth-tab:hover {
+      color: var(--text);
+    }
     .auth-tab.active {
-      background: var(--green);
-      color: #000;
-      box-shadow: 0 2px 10px var(--green-glow);
+      color: #fff;
+      border-bottom-color: var(--green);
     }
 
-    /* FORMS */
+    /* FORM */
     .auth-form {
       display: none;
     }
     .auth-form.active {
       display: block;
-      animation: fadeIn 0.25s ease-out;
     }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(6px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
     .form-group {
       margin-bottom: 16px;
     }
     .form-label {
       display: block;
-      font-size: 0.76rem;
-      font-weight: 700;
-      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text);
       margin-bottom: 6px;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
     }
     .form-input {
       width: 100%;
-      padding: 12px 14px;
-      background: rgba(255, 255, 255, 0.04);
+      padding: 10px 12px;
+      background: #0d1117;
       border: 1px solid var(--border);
-      border-radius: 8px;
+      border-radius: 6px;
       color: #fff;
       font-size: 0.92rem;
       font-family: inherit;
       outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
+      transition: border-color 0.15s, box-shadow 0.15s;
     }
     .form-input:focus {
-      border-color: var(--green);
-      box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15);
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.15);
     }
     .form-input::placeholder {
-      color: rgba(148, 163, 184, 0.4);
+      color: #6e7681;
     }
     .form-select {
       width: 100%;
-      padding: 12px 14px;
-      background: rgba(255, 255, 255, 0.04);
+      padding: 10px 12px;
+      background: #0d1117;
       border: 1px solid var(--border);
-      border-radius: 8px;
+      border-radius: 6px;
       color: #fff;
       font-size: 0.92rem;
       font-family: inherit;
       outline: none;
       cursor: pointer;
-      transition: border-color 0.2s, box-shadow 0.2s;
+      transition: border-color 0.15s;
     }
     .form-select:focus {
-      border-color: var(--green);
-      box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15);
+      border-color: var(--accent);
     }
     .form-select option {
-      background: #141720;
+      background: #161b22;
       color: #fff;
     }
 
     .btn-submit {
       width: 100%;
-      padding: 13px;
+      padding: 11px;
       background: var(--green);
-      color: #000;
-      font-weight: 800;
-      font-size: 0.95rem;
-      border: none;
-      border-radius: 8px;
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.94rem;
       cursor: pointer;
-      margin-top: 10px;
-      transition: all 0.2s ease;
-      box-shadow: 0 4px 18px rgba(34, 197, 94, 0.25);
+      margin-top: 8px;
+      transition: background 0.15s;
       font-family: inherit;
     }
     .btn-submit:hover {
-      background: #16a34a;
-      transform: translateY(-1px);
-      box-shadow: 0 6px 24px rgba(34, 197, 94, 0.4);
+      background: var(--green-hover);
     }
 
     .switch-auth {
+      margin-top: 16px;
       text-align: center;
-      margin-top: 18px;
-      font-size: 0.83rem;
-      color: var(--muted);
+      font-size: 0.82rem;
+      color: var(--text-muted);
     }
     .switch-link {
-      color: var(--green);
-      text-decoration: none;
-      font-weight: 600;
-      cursor: pointer;
       background: none;
       border: none;
+      color: var(--accent);
+      text-decoration: underline;
+      cursor: pointer;
       font-size: inherit;
       font-family: inherit;
-    }
-    .switch-link:hover {
-      text-decoration: underline;
+      padding: 0;
     }
 
     /* ALERTS */
     .alert-box {
-      padding: 11px 14px;
-      border-radius: 8px;
+      padding: 10px 14px;
+      border-radius: 6px;
       font-size: 0.84rem;
-      margin-bottom: 18px;
+      margin-bottom: 16px;
       line-height: 1.45;
     }
     .alert-error {
-      background: rgba(239, 68, 68, 0.12);
-      border: 1px solid rgba(239, 68, 68, 0.3);
-      color: #fca5a5;
+      background: rgba(248, 81, 73, 0.1);
+      border: 1px solid rgba(248, 81, 73, 0.4);
+      color: #ff7b72;
     }
     .alert-success {
-      background: rgba(34, 197, 94, 0.12);
-      border: 1px solid rgba(34, 197, 94, 0.3);
-      color: #4ade80;
+      background: rgba(46, 160, 67, 0.1);
+      border: 1px solid rgba(46, 160, 67, 0.4);
+      color: #3fb950;
     }
 
     /* FOOTER */
-    .footer-note {
-      margin-top: 22px;
+    .site-footer {
+      border-top: 1px solid var(--border);
+      background: #0d1117;
+      padding: 20px 16px;
       text-align: center;
-      font-size: 0.78rem;
-      color: var(--muted);
-      opacity: 0.8;
-      line-height: 1.6;
+      font-size: 0.8rem;
+      color: var(--text-muted);
     }
-    .footer-note a {
-      color: var(--green);
+    .footer-links {
+      margin-top: 6px;
+    }
+    .footer-links a {
+      color: var(--text-muted);
       text-decoration: underline;
+      margin: 0 8px;
     }
-
-    .admin-link {
-      display: block;
-      text-align: center;
-      margin-top: 14px;
-      font-size: 0.76rem;
-      color: rgba(148, 163, 184, 0.6);
-      text-decoration: none;
-      transition: color 0.2s;
-    }
-    .admin-link:hover {
-      color: var(--green);
-      text-decoration: underline;
-    }
-
-    @media (max-width: 480px) {
-      .exam-card { padding: 24px 18px; }
-      body { padding: 18px 12px; }
+    .footer-links a:hover {
+      color: #fff;
     }
   </style>
 </head>
 <body>
-  <div class="bg-radial"></div>
 
-  <main class="exam-wrapper" id="auth">
-    <!-- Header -->
-    <header class="brand-header">
-      <div class="brand-title">
-        <span class="brand-dot"></span>
-        <span>Online Examination</span>
+  <!-- Top Navbar -->
+  <header class="top-nav">
+    <div class="top-nav-inner">
+      <a href="/" class="brand-group">
+        <span class="brand-title">ICUBE World</span>
+        <span class="brand-sub">ICUBE Info Solution</span>
+      </a>
+      <nav class="nav-links">
+        <a href="/about" class="highlight-link">About Us</a>
+        <a href="/terms">Rules &amp; Terms</a>
+        <a href="https://bitzbolt.online" target="_blank" rel="noopener noreferrer">bitzbolt.online ↗</a>
+        <a href="/admin/login">Admin</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Body -->
+  <main class="main-wrapper" id="auth">
+    <!-- Conducted for Bitzbolt Tag -->
+    <div class="partner-tag">
+      Conducted for <a href="https://bitzbolt.online" target="_blank" rel="noopener noreferrer">Bitzbolt (bitzbolt.online)</a> &bull; Examination Authority: <strong>ICUBE World</strong>
+    </div>
+
+    <!-- Auth Card -->
+    <div class="auth-card">
+      <div class="card-header">
+        <h1 class="card-title">Candidate Assessment Portal</h1>
+        <p class="card-desc">Sign in or register to take your technical assessment.</p>
       </div>
-      <p class="conducted-sub">
-        Conducted for <a href="https://bitzbolt.online" target="_blank" rel="noopener noreferrer">Bitzbolt (bitzbolt.online)</a>
-      </p>
-    </header>
 
-    <!-- Card -->
-    <div class="exam-card">
-      <!-- Flash Messages -->
+      <!-- Flash Alerts -->
       <% if (typeof messages !== 'undefined' && messages.error && messages.error.length) { %>
-        <div class="alert-box alert-error">⚠️ <%= messages.error[0] %></div>
+        <div class="alert-box alert-error"><%= messages.error[0] %></div>
       <% } %>
       <% if (typeof error_msg !== 'undefined' && error_msg && error_msg.length) { %>
-        <div class="alert-box alert-error">⚠️ <%= error_msg[0] %></div>
+        <div class="alert-box alert-error"><%= error_msg[0] %></div>
       <% } %>
       <% if (typeof success_msg !== 'undefined' && success_msg && success_msg.length) { %>
-        <div class="alert-box alert-success">✅ <%= success_msg[0] %></div>
+        <div class="alert-box alert-success"><%= success_msg[0] %></div>
       <% } %>
 
-      <!-- Auth Switcher Tabs -->
-      <nav class="auth-tabs" aria-label="Sign in or Sign up">
+      <!-- Tabs -->
+      <div class="auth-tabs">
         <button type="button" class="auth-tab active" id="tab-login" onclick="switchTab('login')">Sign In</button>
-        <button type="button" class="auth-tab" id="tab-signup" onclick="switchTab('signup')">Sign Up</button>
-      </nav>
+        <button type="button" class="auth-tab" id="tab-signup" onclick="switchTab('signup')">Create Account</button>
+      </div>
 
       <!-- 1. SIGN IN FORM -->
       <section class="auth-form active" id="form-login">
@@ -342,8 +357,8 @@
           <input type="hidden" name="loginAs" value="student" />
 
           <div class="form-group">
-            <label class="form-label" for="login-email">Candidate Email Address</label>
-            <input type="email" class="form-input" id="login-email" name="email" placeholder="candidate@example.com" required autocomplete="email" />
+            <label class="form-label" for="login-email">Email Address</label>
+            <input type="email" class="form-input" id="login-email" name="email" placeholder="name@example.com" required autocomplete="email" />
           </div>
 
           <div class="form-group">
@@ -351,27 +366,25 @@
             <input type="password" class="form-input" id="login-password" name="password" placeholder="••••••••" required autocomplete="current-password" />
           </div>
 
-          <button type="submit" class="btn-submit">Sign In &bull; Start Exam →</button>
+          <button type="submit" class="btn-submit">Sign In to Examination →</button>
         </form>
 
         <div class="switch-auth">
           New candidate? <button type="button" class="switch-link" onclick="switchTab('signup')">Create candidate account</button>
         </div>
-
-        <a href="/admin/login" class="admin-link">🔒 Administrator Login →</a>
       </section>
 
-      <!-- 2. SIGN UP FORM -->
+      <!-- 2. CREATE ACCOUNT FORM -->
       <section class="auth-form" id="form-signup">
         <form action="/signup" method="POST">
           <div class="form-group">
             <label class="form-label" for="signup-name">Full Name</label>
-            <input type="text" class="form-input" id="signup-name" name="name" placeholder="e.g. John Doe" required />
+            <input type="text" class="form-input" id="signup-name" name="name" placeholder="Candidate Name" required />
           </div>
 
           <div class="form-group">
             <label class="form-label" for="signup-email">Email Address</label>
-            <input type="email" class="form-input" id="signup-email" name="email" placeholder="candidate@example.com" required autocomplete="email" />
+            <input type="email" class="form-input" id="signup-email" name="email" placeholder="name@example.com" required autocomplete="email" />
           </div>
 
           <div class="form-group">
@@ -382,7 +395,7 @@
           <div class="form-group">
             <label class="form-label" for="signup-course">Examination Track / Domain</label>
             <select class="form-select" id="signup-course" name="course">
-              <option value="">Select your track / domain</option>
+              <option value="">Select your track</option>
               <option value="MERN Stack">MERN Stack</option>
               <option value="Python Full Stack">Python Full Stack</option>
               <option value="Java Full Stack">Java Full Stack</option>
@@ -404,13 +417,20 @@
         </div>
       </section>
     </div>
-
-    <!-- Footer Note -->
-    <footer class="footer-note">
-      🔒 Secure Assessment Platform &bull; Conducted for <a href="https://bitzbolt.online" target="_blank" rel="noopener noreferrer">Bitzbolt (bitzbolt.online)</a><br/>
-      <a href="/terms" target="_blank">Examination Rules &amp; Terms</a>
-    </footer>
   </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div>
+      <strong>ICUBE World</strong> (ICUBE Info Solution) &bull; Technical Examination Conducting Authority
+    </div>
+    <div class="footer-links">
+      Assessments conducted for <a href="https://bitzbolt.online" target="_blank" rel="noopener noreferrer">Bitzbolt (bitzbolt.online)</a> |
+      <a href="/about">About Us</a> |
+      <a href="/terms">Examination Rules</a> |
+      <a href="/admin/login">Admin Portal</a>
+    </div>
+  </footer>
 
   <script>
     function switchTab(tab) {
@@ -422,7 +442,6 @@
       });
     }
 
-    // Check query params or hash for signup tab
     var params = new URLSearchParams(window.location.search);
     if (params.get('signup') === '1' || window.location.hash === '#signup') {
       switchTab('signup');

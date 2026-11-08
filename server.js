@@ -127,7 +127,7 @@ app.get(['/', '/exam'], (req, res) => {
 });
 
 // Legacy routes redirect to exam portal
-app.get(['/about', '/services', '/contact'], (req, res) => {
+app.get(['/services', '/contact'], (req, res) => {
   res.redirect('/');
 });
 

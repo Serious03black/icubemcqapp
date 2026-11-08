@@ -637,17 +637,16 @@
   <div id="rulesDisclaimerModal" class="rules-modal-overlay">
     <div class="rules-modal-card">
       <div class="rules-modal-header">
-        <div class="rules-badge">⚠️ MANDATORY EXAMINATION INSTRUCTIONS &bull; CONDUCTED BY EXAM PRO</div>
+        <div class="rules-badge">⚠️ MANDATORY EXAMINATION INSTRUCTIONS &bull; CONDUCTED BY ICUBE WORLD</div>
         <h1>TECHNICAL EXAMINATION RULES &amp; REGULATIONS</h1>
-        <div class="rules-company">Conducted by Exam Pro &bull; I cube world Software India Pvt. Ltd.</div>
+        <div class="rules-company">Conducted by ICUBE World (ICUBE Info Solution)</div>
         <p class="rules-intro">
-          This examination is conducted and proctored by <strong>Exam Pro</strong> on behalf of <strong> I cube world
-            Software India Pvt. Ltd.</strong> All candidates must carefully read and agree to the following rules before
+          This examination is conducted and proctored by <strong>ICUBE World (ICUBE Info Solution)</strong> on behalf of <strong>Bitzbolt</strong>. All candidates must carefully read and agree to the following rules before
           starting the online technical examination.
         </p>
 
         <div class="rules-test-pills">
-          <span>🏢 <strong>Exam Pro</strong> Assessment</span>
+          <span>🏢 <strong>ICUBE World</strong> Assessment</span>
           <span>⏱️ <strong>
               <%= test.duration %> Mins
             </strong> Time Limit</span>
@@ -786,7 +785,7 @@
           <div
             style="margin-top: 10px; font-size: 0.82rem; color: #94a3b8; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
             <div>
-              <strong>Conducted by: Exam Pro</strong><br>
+              <strong>Conducted by: ICUBE World (ICUBE Info Solution)</strong><br>
               <em>Online Examination &amp; Assessment Authority</em>
             </div>
             <div style="text-align: right;">
@@ -800,7 +799,7 @@
         <div class="terms-link-box">
           <span>📄 Complete Legal Terms &amp; Policies:</span>
           <a href="/terms" target="_blank" rel="noopener noreferrer">
-            Read Exam Pro Terms &amp; Conditions ↗
+            Read Examination Terms &amp; Conditions ↗
           </a>
         </div>
       </div>
@@ -811,7 +810,7 @@
           <input type="checkbox" id="agreeRulesCheckbox" onchange="handleAgreeCheckbox(this)">
           <span class="checkbox-text">
             I confirm that I have read, understood, and agree to the <strong>Technical Examination Rules &amp;
-              Regulations</strong> and <strong>Exam Pro Terms &amp; Conditions</strong>. I confirm I will take this
+              Regulations</strong> and <strong>Examination Terms &amp; Conditions</strong>. I confirm I will take this
             examination independently in fullscreen mode without unauthorized aids or tab switching.
           </span>
         </label>
@@ -823,7 +822,7 @@
           </a>
           <button type="button" class="btn btn-primary btn-lg" id="startExamConfirmedBtn" disabled
             onclick="beginExamSession()">
-            🚀 I Agree &amp; Start Exam Pro Assessment (<%= test.duration %> Mins)
+            🚀 I Agree &amp; Start Assessment (<%= test.duration %> Mins)
           </button>
         </div>
       </div>
@@ -839,13 +838,13 @@
       <div class="test-info">
         <div class="brand" style="font-size: 1.05rem;">
           <div class="brand-dot"></div>
-          Exam Pro <span>Assessment</span>
+          ICUBE World <span>Assessment</span>
         </div>
         <div style="border-left: 1px solid var(--border); padding-left: 14px;">
           <h2>
             <%= test.title %>
           </h2>
-          <p>Conducted by Exam Pro &bull; <%= test.course %> &bull; <%= totalQuestions %> Questions &bull; <%=
+          <p>Conducted by ICUBE World &bull; <%= test.course %> &bull; <%= totalQuestions %> Questions &bull; <%=
                   totalMarks %> Marks</p>
         </div>
       </div>
@@ -1371,9 +1370,9 @@
       const unanswered = totalQuestions - answered;
 
       if (unanswered > 0) {
-        return confirm(`You have ${unanswered} unanswered question(s). Are you sure you want to submit your Exam Pro assessment for recruiter review?`);
+        return confirm(`You have ${unanswered} unanswered question(s). Are you sure you want to submit your assessment for recruiter review?`);
       }
-      return confirm('Are you sure you want to submit your Exam Pro assessment?');
+      return confirm('Are you sure you want to submit your assessment?');
     }
 
     // ── Code textarea Tab indentation support ──
