@@ -19,11 +19,6 @@ process.on('unhandledRejection', (reason, promise) => {
 
 const app = express();
 
-// Path to compiled React website
-const localDistPath = path.join(__dirname, 'client-dist');
-const monorepoDistPath = path.join(__dirname, '..', 'icube-solutions-website-main', 'icube-solutions-website-main', 'dist');
-const websiteDistPath = fs.existsSync(localDistPath) ? localDistPath : monorepoDistPath;
-
 // Database Connection with resilient timeouts and auto-reconnect
 if (process.env.MONGODB_URI) {
   mongoose.connect(process.env.MONGODB_URI, {
@@ -55,8 +50,9 @@ if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
 app.use('/uploads', express.static(uploadsDir));
-if (fs.existsSync(websiteDistPath)) {
-  app.use(express.static(websiteDistPath));
+const zohoVerifyDir = path.join(__dirname, 'zohoverify');
+if (fs.existsSync(zohoVerifyDir)) {
+  app.use('/zohoverify', express.static(zohoVerifyDir));
 }
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -115,60 +111,28 @@ app.use('/', authRoutes);
 app.use('/admin', adminRoutes);
 app.use('/student', studentRoutes);
 
-// Test App Assessment Route (/exam)
-app.get('/exam', (req, res) => {
+// Candidate Exam Portal Route (both / and /exam)
+app.get(['/', '/exam'], (req, res) => {
   if (req.session && req.session.user) {
     if (req.session.user.role === 'admin') {
       return res.redirect('/admin/dashboard');
     }
     return res.redirect('/student/dashboard');
   }
-  // Render test app landing page for unauthenticated visitors
-  res.render('landing', { title: 'Candidate Skill Assessment - ICUBE Info Solution', landingData: {} });
+  // Render clean exam page with Sign In & Sign Up
+  res.render('landing', {
+    title: 'Candidate Assessment · Conducted for Bitzbolt',
+    landingData: {}
+  });
 });
 
-// React Landing Website handler
-const serveReactWebsite = (req, res) => {
-  const indexPath = path.join(websiteDistPath, 'index.html');
-  if (fs.existsSync(indexPath)) {
-    return res.sendFile(indexPath, (err) => {
-      if (err && !res.headersSent) {
-        if (err.code !== 'ECONNABORTED' && err.syscall !== 'write') {
-          console.error('Error sending React website:', err.message);
-        }
-      }
-    });
-  }
-  // Fallback if website is not built yet
-  if (req.session && req.session.user) {
-    if (req.session.user.role === 'admin') return res.redirect('/admin/dashboard');
-    return res.redirect('/student/dashboard');
-  }
-  res.render('landing', { title: 'Welcome - ICUBE Info Solution', landingData: {} });
-};
-
-// React website routes
-app.get(['/', '/about', '/services', '/contact'], serveReactWebsite);
+// Legacy routes redirect to exam portal
+app.get(['/about', '/services', '/contact'], (req, res) => {
+  res.redirect('/');
+});
 
 // 404 handler
 app.use((req, res) => {
-  // If exam or backend route, render 404 EJS page
-  if (req.path.startsWith('/admin') || req.path.startsWith('/student') || req.path === '/exam' || req.path === '/login' || req.path === '/signup' || req.path === '/terms' || req.path === '/terms-and-conditions') {
-    return res.status(404).render('404', { title: '404 - Page Not Found' });
-  }
-
-  // If GET request for any other path, fallback to React app
-  const indexPath = path.join(websiteDistPath, 'index.html');
-  if (req.method === 'GET' && fs.existsSync(indexPath)) {
-    return res.sendFile(indexPath, (err) => {
-      if (err && !res.headersSent) {
-        if (err.code !== 'ECONNABORTED' && err.syscall !== 'write') {
-          console.error('Error serving index.html on fallback:', err.message);
-        }
-      }
-    });
-  }
-
   res.status(404).render('404', { title: '404 - Page Not Found' });
 });
 

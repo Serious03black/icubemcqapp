@@ -15,12 +15,13 @@ router.get('/admin/login', isGuest, (req, res) => {
 
 // POST Login (handles both student and admin via hidden flag)
 router.post('/login', async (req, res) => {
-  const fromExam = req.headers.referer && req.headers.referer.includes('/exam');
+  const referer = req.headers.referer || '';
+  const fromExam = referer.includes('/exam') || referer.endsWith('/') || referer.includes('/?');
   // Pull loginAs outside try so it's available in the catch block
   const loginAs = req.body.loginAs;
   const getLoginRedirect = (isAdminFlag) => {
     if (isAdminFlag) return '/admin/login';
-    return fromExam ? '/exam#auth' : '/login';
+    return fromExam ? '/#auth' : '/login';
   };
 
   try {
@@ -86,9 +87,10 @@ router.get('/signup', isGuest, (req, res) => {
 
 // POST Signup (create new student account)
 router.post('/signup', async (req, res) => {
-  const fromExam = req.headers.referer && req.headers.referer.includes('/exam');
-  const failureRedirect = fromExam ? '/exam?signup=1#auth' : '/signup';
-  const successRedirect = fromExam ? '/exam#auth' : '/login';
+  const referer = req.headers.referer || '';
+  const fromExam = referer.includes('/exam') || referer.endsWith('/') || referer.includes('/?');
+  const failureRedirect = fromExam ? '/?signup=1#auth' : '/signup';
+  const successRedirect = fromExam ? '/#auth' : '/login';
 
   try {
     const { name, email, password, course } = req.body;
@@ -116,7 +118,7 @@ router.post('/signup', async (req, res) => {
 router.get('/logout', (req, res) => {
   req.session.destroy((err) => {
     if (err) console.error('Logout Error:', err);
-    res.redirect('/exam');
+    res.redirect('/');
   });
 });
 
