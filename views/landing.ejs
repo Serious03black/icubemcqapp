@@ -1,14 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Candidate Examination Portal &bull; ICUBE World</title>
-  <meta name="description" content="Official candidate examination and technical assessment portal by ICUBE World (ICUBE Info Solution) for Bitzbolt (bitzbolt.online).">
+  <meta name="description"
+    content="Official candidate examination and technical assessment portal by ICUBE World (ICUBE Info Solution) for Bitzbolt (bitzbolt.online).">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📝</text></svg>">
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📝</text></svg>">
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     :root {
       --bg: #0d1117;
       --card-bg: #161b22;
@@ -20,6 +30,7 @@
       --green-hover: #2ea043;
       --accent: #58a6ff;
     }
+
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background: var(--bg);
@@ -35,6 +46,7 @@
       background: #0d1117;
       padding: 14px 24px;
     }
+
     .top-nav-inner {
       max-width: 1020px;
       margin: 0 auto;
@@ -44,6 +56,7 @@
       gap: 16px;
       flex-wrap: wrap;
     }
+
     .brand-group {
       display: flex;
       align-items: center;
@@ -51,11 +64,13 @@
       text-decoration: none;
       color: #fff;
     }
+
     .brand-title {
       font-size: 1.15rem;
       font-weight: 700;
       letter-spacing: -0.01em;
     }
+
     .brand-sub {
       font-size: 0.76rem;
       background: var(--border-muted);
@@ -65,20 +80,24 @@
       border-radius: 4px;
       font-weight: 500;
     }
+
     .nav-links {
       display: flex;
       align-items: center;
       gap: 16px;
       font-size: 0.88rem;
     }
+
     .nav-links a {
       color: var(--text-muted);
       text-decoration: none;
       transition: color 0.15s;
     }
+
     .nav-links a:hover {
       color: #fff;
     }
+
     .nav-links .highlight-link {
       color: var(--accent);
       font-weight: 500;
@@ -110,9 +129,11 @@
       width: 100%;
       line-height: 1.45;
     }
+
     .partner-tag strong {
       color: #fff;
     }
+
     .partner-tag a {
       color: var(--accent);
       text-decoration: underline;
@@ -127,15 +148,18 @@
       padding: 28px 24px;
       width: 100%;
     }
+
     .card-header {
       margin-bottom: 20px;
     }
+
     .card-title {
       font-size: 1.25rem;
       font-weight: 700;
       color: #fff;
       margin-bottom: 4px;
     }
+
     .card-desc {
       font-size: 0.84rem;
       color: var(--text-muted);
@@ -148,6 +172,7 @@
       border-bottom: 1px solid var(--border);
       margin-bottom: 22px;
     }
+
     .auth-tab {
       background: transparent;
       border: none;
@@ -161,9 +186,11 @@
       transition: color 0.15s, border-color 0.15s;
       font-family: inherit;
     }
+
     .auth-tab:hover {
       color: var(--text);
     }
+
     .auth-tab.active {
       color: #fff;
       border-bottom-color: var(--green);
@@ -173,12 +200,15 @@
     .auth-form {
       display: none;
     }
+
     .auth-form.active {
       display: block;
     }
+
     .form-group {
       margin-bottom: 16px;
     }
+
     .form-label {
       display: block;
       font-size: 0.82rem;
@@ -186,6 +216,7 @@
       color: var(--text);
       margin-bottom: 6px;
     }
+
     .form-input {
       width: 100%;
       padding: 10px 12px;
@@ -198,13 +229,16 @@
       outline: none;
       transition: border-color 0.15s, box-shadow 0.15s;
     }
+
     .form-input:focus {
       border-color: var(--accent);
       box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.15);
     }
+
     .form-input::placeholder {
       color: #6e7681;
     }
+
     .form-select {
       width: 100%;
       padding: 10px 12px;
@@ -218,9 +252,11 @@
       cursor: pointer;
       transition: border-color 0.15s;
     }
+
     .form-select:focus {
       border-color: var(--accent);
     }
+
     .form-select option {
       background: #161b22;
       color: #fff;
@@ -240,6 +276,7 @@
       transition: background 0.15s;
       font-family: inherit;
     }
+
     .btn-submit:hover {
       background: var(--green-hover);
     }
@@ -250,6 +287,7 @@
       font-size: 0.82rem;
       color: var(--text-muted);
     }
+
     .switch-link {
       background: none;
       border: none;
@@ -269,11 +307,13 @@
       margin-bottom: 16px;
       line-height: 1.45;
     }
+
     .alert-error {
       background: rgba(248, 81, 73, 0.1);
       border: 1px solid rgba(248, 81, 73, 0.4);
       color: #ff7b72;
     }
+
     .alert-success {
       background: rgba(46, 160, 67, 0.1);
       border: 1px solid rgba(46, 160, 67, 0.4);
@@ -289,19 +329,23 @@
       font-size: 0.8rem;
       color: var(--text-muted);
     }
+
     .footer-links {
       margin-top: 6px;
     }
+
     .footer-links a {
       color: var(--text-muted);
       text-decoration: underline;
       margin: 0 8px;
     }
+
     .footer-links a:hover {
       color: #fff;
     }
   </style>
 </head>
+
 <body>
 
   <!-- Top Navbar -->
@@ -324,7 +368,8 @@
   <main class="main-wrapper" id="auth">
     <!-- Partner Tag -->
     <div class="partner-tag">
-      Assessment Partner: <a href="https://bitzbolt.online" target="_blank" rel="noopener noreferrer">Bitzbolt (bitzbolt.online)</a> &bull; Examination Authority: <strong>ICUBE World</strong>
+      Assessment Partner: <a href="https://bitzbolt.online" target="_blank" rel="noopener noreferrer">Bitzbolt
+        (bitzbolt.online)</a> &bull; Examination Authority: <strong>ICUBE World</strong>
     </div>
 
     <!-- Auth Card -->
@@ -335,101 +380,123 @@
       </div>
 
       <!-- Flash Alerts -->
-      <% if (typeof messages !== 'undefined' && messages.error && messages.error.length) { %>
-        <div class="alert-box alert-error"><%= messages.error[0] %></div>
-      <% } %>
-      <% if (typeof error_msg !== 'undefined' && error_msg && error_msg.length) { %>
-        <div class="alert-box alert-error"><%= error_msg[0] %></div>
-      <% } %>
-      <% if (typeof success_msg !== 'undefined' && success_msg && success_msg.length) { %>
-        <div class="alert-box alert-success"><%= success_msg[0] %></div>
-      <% } %>
-
-      <!-- Tabs -->
-      <div class="auth-tabs">
-        <button type="button" class="auth-tab active" id="tab-login" onclick="switchTab('login')">Sign In</button>
-        <button type="button" class="auth-tab" id="tab-signup" onclick="switchTab('signup')">Create Account</button>
-      </div>
-
-      <!-- 1. SIGN IN FORM -->
-      <section class="auth-form active" id="form-login">
-        <form action="/login" method="POST">
-          <input type="hidden" name="loginAs" value="student" />
-
-          <div class="form-group">
-            <label class="form-label" for="login-email">Email Address</label>
-            <input type="email" class="form-input" id="login-email" name="email" placeholder="name@example.com" required autocomplete="email" />
-          </div>
-
-          <div class="form-group">
-            <label class="form-label" for="login-password">Password</label>
-            <input type="password" class="form-input" id="login-password" name="password" placeholder="••••••••" required autocomplete="current-password" />
-          </div>
-
-          <button type="submit" class="btn-submit">Sign In to Examination →</button>
-        </form>
-
-        <div class="switch-auth">
-          New candidate? <button type="button" class="switch-link" onclick="switchTab('signup')">Create candidate account</button>
+      <% if (typeof messages !=='undefined' && messages.error && messages.error.length) { %>
+        <div class="alert-box alert-error">
+          <%= messages.error[0] %>
         </div>
-      </section>
-
-      <!-- 2. CREATE ACCOUNT FORM -->
-      <section class="auth-form" id="form-signup">
-        <form action="/signup" method="POST">
-          <div class="form-group">
-            <label class="form-label" for="signup-name">Full Name</label>
-            <input type="text" class="form-input" id="signup-name" name="name" placeholder="Candidate Name" required />
-          </div>
-
-          <div class="form-group">
-            <label class="form-label" for="signup-email">Email Address</label>
-            <input type="email" class="form-input" id="signup-email" name="email" placeholder="name@example.com" required autocomplete="email" />
-          </div>
-
-          <div class="form-group">
-            <label class="form-label" for="signup-password">Password</label>
-            <input type="password" class="form-input" id="signup-password" name="password" placeholder="Min. 8 characters" required autocomplete="new-password" />
-          </div>
-
-          <!-- Reference ID & Autofilled Company Name -->
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
-            <div>
-              <label class="form-label" for="signup-refid">Company Reference ID</label>
-              <input type="text" class="form-input" id="signup-refid" name="refId" placeholder="e.g. Bit250903XR3" autocomplete="off" />
-              <small style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-top: 4px;">Enter company ref code</small>
+        <% } %>
+          <% if (typeof error_msg !=='undefined' && error_msg && error_msg.length) { %>
+            <div class="alert-box alert-error">
+              <%= error_msg[0] %>
             </div>
-            <div>
-              <label class="form-label" for="signup-company">Company Name</label>
-              <input type="text" class="form-input" id="signup-company" name="company" placeholder="Autofills with ref ID" readonly style="background: rgba(255,255,255,0.02); cursor: not-allowed; color: #58a6ff; font-weight: 600;" />
-              <small id="company-status-badge" style="font-size: 0.72rem; color: #3fb950; display: none; margin-top: 4px;">✓ Verified Partner</small>
-            </div>
-          </div>
+            <% } %>
+              <% if (typeof success_msg !=='undefined' && success_msg && success_msg.length) { %>
+                <div class="alert-box alert-success">
+                  <%= success_msg[0] %>
+                </div>
+                <% } %>
 
-          <div class="form-group">
-            <label class="form-label" for="signup-course">Examination Track / Domain</label>
-            <select class="form-select" id="signup-course" name="course">
-              <option value="">Select your track</option>
-              <option value="MERN Stack">MERN Stack</option>
-              <option value="Python Full Stack">Python Full Stack</option>
-              <option value="Java Full Stack">Java Full Stack</option>
-              <option value="Data Science">Data Science</option>
-              <option value="Artificial Intelligence">Artificial Intelligence</option>
-              <option value="Cloud Computing">Cloud Computing</option>
-              <option value="DevOps">DevOps</option>
-              <option value="UI/UX Design">UI / UX Design</option>
-              <option value="Cybersecurity">Cybersecurity</option>
-              <option value="General Technical">General Technical</option>
-            </select>
-          </div>
+                  <!-- Tabs -->
+                  <div class="auth-tabs">
+                    <button type="button" class="auth-tab active" id="tab-login" onclick="switchTab('login')">Sign
+                      In</button>
+                    <button type="button" class="auth-tab" id="tab-signup" onclick="switchTab('signup')">Create
+                      Account</button>
+                  </div>
 
-          <button type="submit" class="btn-submit">Create Account &bull; Start Exam →</button>
-        </form>
+                  <!-- 1. SIGN IN FORM -->
+                  <section class="auth-form active" id="form-login">
+                    <form action="/login" method="POST">
+                      <input type="hidden" name="loginAs" value="student" />
 
-        <div class="switch-auth">
-          Already registered? <button type="button" class="switch-link" onclick="switchTab('login')">Sign in here</button>
-        </div>
-      </section>
+                      <div class="form-group">
+                        <label class="form-label" for="login-email">Email Address</label>
+                        <input type="email" class="form-input" id="login-email" name="email"
+                          placeholder="name@example.com" required autocomplete="email" />
+                      </div>
+
+                      <div class="form-group">
+                        <label class="form-label" for="login-password">Password</label>
+                        <input type="password" class="form-input" id="login-password" name="password"
+                          placeholder="••••••••" required autocomplete="current-password" />
+                      </div>
+
+                      <button type="submit" class="btn-submit">Sign In to Examination →</button>
+                    </form>
+
+                    <div class="switch-auth">
+                      New candidate? <button type="button" class="switch-link" onclick="switchTab('signup')">Create
+                        candidate account</button>
+                    </div>
+                  </section>
+
+                  <!-- 2. CREATE ACCOUNT FORM -->
+                  <section class="auth-form" id="form-signup">
+                    <form action="/signup" method="POST">
+                      <div class="form-group">
+                        <label class="form-label" for="signup-name">Full Name</label>
+                        <input type="text" class="form-input" id="signup-name" name="name" placeholder="Candidate Name"
+                          required />
+                      </div>
+
+                      <div class="form-group">
+                        <label class="form-label" for="signup-email">Email Address</label>
+                        <input type="email" class="form-input" id="signup-email" name="email"
+                          placeholder="name@example.com" required autocomplete="email" />
+                      </div>
+
+                      <div class="form-group">
+                        <label class="form-label" for="signup-password">Password</label>
+                        <input type="password" class="form-input" id="signup-password" name="password"
+                          placeholder="Min. 8 characters" required autocomplete="new-password" />
+                      </div>
+
+                      <!-- Reference ID & Autofilled Company Name -->
+                      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+                        <div>
+                          <label class="form-label" for="signup-refid">Company Reference ID</label>
+                          <input type="text" class="form-input" id="signup-refid" name="refId" placeholder="e.g.  "
+                            autocomplete="off" />
+                          <small
+                            style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-top: 4px;">Enter
+                            company ref code</small>
+                        </div>
+                        <div>
+                          <label class="form-label" for="signup-company">Company Name</label>
+                          <input type="text" class="form-input" id="signup-company" name="company"
+                            placeholder="Autofills with ref ID" readonly
+                            style="background: rgba(255,255,255,0.02); cursor: not-allowed; color: #58a6ff; font-weight: 600;" />
+                          <small id="company-status-badge"
+                            style="font-size: 0.72rem; color: #3fb950; display: none; margin-top: 4px;">✓ Verified
+                            Partner</small>
+                        </div>
+                      </div>
+
+                      <div class="form-group">
+                        <label class="form-label" for="signup-course">Examination Track / Domain</label>
+                        <select class="form-select" id="signup-course" name="course">
+                          <option value="">Select your track</option>
+                          <option value="MERN Stack">MERN Stack</option>
+                          <option value="Python Full Stack">Python Full Stack</option>
+                          <option value="Java Full Stack">Java Full Stack</option>
+                          <option value="Data Science">Data Science</option>
+                          <option value="Artificial Intelligence">Artificial Intelligence</option>
+                          <option value="Cloud Computing">Cloud Computing</option>
+                          <option value="DevOps">DevOps</option>
+                          <option value="UI/UX Design">UI / UX Design</option>
+                          <option value="Cybersecurity">Cybersecurity</option>
+                          <option value="General Technical">General Technical</option>
+                        </select>
+                      </div>
+
+                      <button type="submit" class="btn-submit">Create Account &bull; Start Exam →</button>
+                    </form>
+
+                    <div class="switch-auth">
+                      Already registered? <button type="button" class="switch-link" onclick="switchTab('login')">Sign in
+                        here</button>
+                    </div>
+                  </section>
     </div>
   </main>
 
@@ -439,7 +506,8 @@
       <strong>ICUBE World</strong> (ICUBE Info Solution) &bull; Technical Examination Authority
     </div>
     <div class="footer-links">
-      Assessments for <a href="https://bitzbolt.online" target="_blank" rel="noopener noreferrer">Bitzbolt (bitzbolt.online)</a> |
+      Assessments for <a href="https://bitzbolt.online" target="_blank" rel="noopener noreferrer">Bitzbolt
+        (bitzbolt.online)</a> |
       <a href="/about">About Us</a> |
       <a href="/terms">Examination Rules</a> |
       <a href="/admin/login">Admin Portal</a>
@@ -448,7 +516,7 @@
 
   <script>
     function switchTab(tab) {
-      ['login', 'signup'].forEach(function(t) {
+      ['login', 'signup'].forEach(function (t) {
         var form = document.getElementById('form-' + t);
         var btn = document.getElementById('tab-' + t);
         if (form) form.classList.toggle('active', t === tab);
@@ -470,7 +538,7 @@
       if (!refIdInput || !companyInput) return;
       var val = refIdInput.value.trim();
       var upper = val.toUpperCase();
-      if (upper === 'BIT250903XR3' || upper.indexOf('BIT') === 0) {
+      if (upper === ' ' || upper.indexOf('BIT') === 0) {
         companyInput.value = 'Bitzbolt';
         if (statusBadge) statusBadge.style.display = 'block';
       } else if (val.length === 0) {
@@ -485,9 +553,10 @@
     if (refIdInput) {
       refIdInput.addEventListener('input', checkRefId);
       refIdInput.addEventListener('change', checkRefId);
-      refIdInput.addEventListener('paste', function() { setTimeout(checkRefId, 40); });
+      refIdInput.addEventListener('paste', function () { setTimeout(checkRefId, 40); });
       checkRefId();
     }
   </script>
 </body>
+
 </html>
