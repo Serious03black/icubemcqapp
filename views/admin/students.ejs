@@ -49,6 +49,9 @@
                     <td>
                       <strong style="color: var(--text-primary)"><%= student.name %></strong>
                       <br><small style="color: var(--text-muted)"><%= student.email %></small>
+                      <% if (student.refId || student.company) { %>
+                        <br><small style="color: #38bdf8; font-weight: 600;">🏢 <%= student.company || 'Bitzbolt' %> <% if (student.refId) { %>(Ref: <%= student.refId %>)<% } %></small>
+                      <% } %>
                     </td>
                     <td><span class="badge badge-info"><%= student.course || 'N/A' %></span></td>
                     <td><%= student.phone || 'N/A' %></td>

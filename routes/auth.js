@@ -93,7 +93,7 @@ router.post('/signup', async (req, res) => {
   const successRedirect = fromExam ? '/#auth' : '/login';
 
   try {
-    const { name, email, password, course } = req.body;
+    const { name, email, password, course, refId, company } = req.body;
     if (!name || !email || !password) {
       req.flash('error', 'All fields are required');
       return res.redirect(failureRedirect);
@@ -103,7 +103,21 @@ router.post('/signup', async (req, res) => {
       req.flash('error', 'Email already registered');
       return res.redirect(failureRedirect);
     }
-    const user = new User({ name, email, password, role: 'student', course });
+
+    let assignedCompany = (company && company.trim()) ? company.trim() : '';
+    if (!assignedCompany && refId && /^bit/i.test(refId.trim())) {
+      assignedCompany = 'Bitzbolt';
+    }
+
+    const user = new User({
+      name,
+      email,
+      password,
+      role: 'student',
+      course,
+      refId: refId ? refId.trim() : '',
+      company: assignedCompany || 'Bitzbolt'
+    });
     await user.save();
     req.flash('success', 'Account created successfully. Please log in.');
     res.redirect(successRedirect);

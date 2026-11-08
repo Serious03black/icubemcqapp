@@ -13,7 +13,7 @@
           ICUBE Info Solution &bull; Candidate Registration
         </div>
         <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 8px;">
-          Conducted for <a href="https://bitzbolt.online" target="_blank" rel="noopener noreferrer" style="color: var(--green); text-decoration: underline;">Bitzbolt (bitzbolt.online)</a>
+          Assessment Partner: <a href="https://bitzbolt.online" target="_blank" rel="noopener noreferrer" style="color: var(--green); text-decoration: underline;">Bitzbolt (bitzbolt.online)</a>
         </p>
         <h1>Create Candidate Account</h1>
         <p style="color: var(--text-muted); font-size: 0.86rem; margin-top: 4px;">
@@ -45,6 +45,20 @@
           <div class="input-group">
             <span class="input-icon">🔒</span>
             <input type="password" class="form-input" id="password" name="password" placeholder="Min. 8 characters" required autocomplete="new-password">
+          </div>
+        </div>
+
+        <!-- Reference ID & Company Name -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="refId">Company Reference ID</label>
+            <input type="text" class="form-input" id="refId" name="refId" placeholder="e.g. Bit250903XR3" autocomplete="off">
+            <small style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-top: 4px;">Company ref code</small>
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="company">Company Name</label>
+            <input type="text" class="form-input" id="company" name="company" placeholder="Autofills with ref ID" readonly style="background: rgba(255,255,255,0.02); cursor: not-allowed; color: #58a6ff; font-weight: 600;">
+            <small id="signup-status-badge" style="font-size: 0.72rem; color: #3fb950; display: none; margin-top: 4px;">✓ Verified Partner</small>
           </div>
         </div>
 
@@ -83,5 +97,34 @@
     </div>
   </div>
 </div>
+
+<script>
+  var refIdInput = document.getElementById('refId');
+  var companyInput = document.getElementById('company');
+  var statusBadge = document.getElementById('signup-status-badge');
+
+  function checkRefId() {
+    if (!refIdInput || !companyInput) return;
+    var val = refIdInput.value.trim();
+    var upper = val.toUpperCase();
+    if (upper === 'BIT250903XR3' || upper.indexOf('BIT') === 0) {
+      companyInput.value = 'Bitzbolt';
+      if (statusBadge) statusBadge.style.display = 'block';
+    } else if (val.length === 0) {
+      companyInput.value = '';
+      if (statusBadge) statusBadge.style.display = 'none';
+    } else {
+      companyInput.value = val;
+      if (statusBadge) statusBadge.style.display = 'none';
+    }
+  }
+
+  if (refIdInput) {
+    refIdInput.addEventListener('input', checkRefId);
+    refIdInput.addEventListener('change', checkRefId);
+    refIdInput.addEventListener('paste', function() { setTimeout(checkRefId, 40); });
+    checkRefId();
+  }
+</script>
 
 <%- include('partials/footer') %>

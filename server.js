@@ -121,7 +121,7 @@ app.get(['/', '/exam'], (req, res) => {
   }
   // Render clean exam page with Sign In & Sign Up
   res.render('landing', {
-    title: 'Candidate Assessment · Conducted for Bitzbolt',
+    title: 'Candidate Assessment · Bitzbolt',
     landingData: {}
   });
 });
