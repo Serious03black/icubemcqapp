@@ -2,15 +2,18 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
 const Test = require('../models/Test');
-const Razorpay = require('razorpay');
 const Result = require('../models/Result');
 const Payment = require('../models/Payment');
 const { isStudent } = require('../middleware/auth');
 
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID || 'rzp_live_TqZBXaoUiElbST',
-  key_secret: process.env.RAZORPAY_KEY_SECRET || 'pPcdEDdMnukUnZlaa8AtI5hT'
-});
+// Cashfree Configuration
+const CASHFREE_APP_ID = process.env.CASHFREE_APP_ID || '1480186f08f28fafb5daae45cb46810841';
+const CASHFREE_SECRET_KEY = process.env.CASHFREE_SECRET_KEY || 'cfsk_ma_prod_58bfc2c44b66b8c722d21af1397bd683_01a8e06c';
+const CASHFREE_ENV = process.env.CASHFREE_ENV || 'production';
+const CASHFREE_API_VERSION = process.env.CASHFREE_API_VERSION || '2023-08-01';
+const CASHFREE_BASE_URL = CASHFREE_ENV === 'production'
+  ? 'https://api.cashfree.com/pg'
+  : 'https://sandbox.cashfree.com/pg';
 
 // Apply student middleware
 router.use(isStudent);
@@ -423,8 +426,11 @@ router.get('/pay/:id', async (req, res) => {
       req.flash('info', 'Your payment is verified! Starting your assessment.');
       return res.redirect(`/student/test/${test._id}`);
     }
-    const razorpayKey = process.env.RAZORPAY_KEY_ID || '';
-    res.render('student/payment', { title: 'Assessment Access Fee - ' + test.title, test, razorpayKey });
+    res.render('student/payment', {
+      title: 'Assessment Access Fee - ' + test.title,
+      test,
+      cashfreeMode: CASHFREE_ENV
+    });
   } catch (err) {
     console.error('Payment Page Error:', err);
     req.flash('error', 'Unable to load payment page');
@@ -432,44 +438,125 @@ router.get('/pay/:id', async (req, res) => {
   }
 });
 
-// Step 2: Create Razorpay Order (called via fetch from frontend)
+// Step 2: Create Cashfree Order (called via fetch from frontend)
 router.post('/pay/:id/order', async (req, res) => {
   try {
     const test = await Test.findById(req.params.id);
     if (!test) return res.status(404).json({ error: 'Test not found' });
 
-    const order = await razorpay.orders.create({
-      amount: Math.round(test.price * 100), // paise
-      currency: 'INR',
-      receipt: `receipt_${req.session.user.id}_${test._id}`.substring(0, 40),
-      notes: {
-        testId: test._id.toString(),
-        studentId: req.session.user.id
-      }
+    const student = await User.findById(req.session.user.id);
+    const orderId = `order_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+
+    // Prepare 10-digit customer phone
+    let phone = (student && student.phone ? student.phone.replace(/[^0-9]/g, '') : '');
+    if (phone.length < 10) phone = '9999999999';
+    if (phone.length > 10) phone = phone.slice(-10);
+
+    const host = req.get('host');
+    const protocol = req.protocol === 'https' || req.get('x-forwarded-proto') === 'https' ? 'https' : 'http';
+    const returnUrl = `${protocol}://${host}/student/pay/${test._id}/return?order_id={order_id}`;
+
+    const orderPayload = {
+      order_id: orderId,
+      order_amount: Number(test.price),
+      order_currency: 'INR',
+      customer_details: {
+        customer_id: req.session.user.id.toString(),
+        customer_name: (student && student.name) || req.session.user.name || 'Candidate',
+        customer_email: (student && student.email) || req.session.user.email || 'candidate@example.com',
+        customer_phone: phone
+      },
+      order_meta: {
+        return_url: returnUrl
+      },
+      order_note: `Assessment Fee - ${test.title}`.substring(0, 50)
+    };
+
+    const response = await fetch(`${CASHFREE_BASE_URL}/orders`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-client-id': CASHFREE_APP_ID,
+        'x-client-secret': CASHFREE_SECRET_KEY,
+        'x-api-version': CASHFREE_API_VERSION
+      },
+      body: JSON.stringify(orderPayload)
     });
 
-    res.json({ orderId: order.id, amount: order.amount, currency: order.currency });
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error('Cashfree order creation error:', data);
+      return res.status(response.status).json({
+        error: data.message || 'Failed to create payment order with Cashfree'
+      });
+    }
+
+    res.json({
+      orderId: data.order_id,
+      paymentSessionId: data.payment_session_id,
+      cfOrderId: data.cf_order_id,
+      amount: data.order_amount,
+      currency: data.order_currency
+    });
   } catch (err) {
-    console.error('Razorpay order error:', err);
-    res.status(500).json({ error: err.error?.description || err.message || 'Failed to create order' });
+    console.error('Cashfree order error:', err);
+    res.status(500).json({ error: err.message || 'Failed to create order' });
   }
 });
 
-// Step 3: Verify payment signature & grant access
+// Step 3: Verify Cashfree Payment & grant access
 router.post('/pay/:id/verify', express.json(), async (req, res) => {
   try {
-    const crypto = require('crypto');
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+    const { orderId } = req.body;
+    if (!orderId) {
+      return res.status(400).json({ error: 'Order ID is required' });
+    }
 
-    // Verify HMAC signature
-    const secret = process.env.RAZORPAY_KEY_SECRET || 'pPcdEDdMnukUnZlaa8AtI5hT';
-    const generated = crypto
-      .createHmac('sha256', secret)
-      .update(`${razorpay_order_id}|${razorpay_payment_id}`)
-      .digest('hex');
+    // Query Cashfree for order status
+    const response = await fetch(`${CASHFREE_BASE_URL}/orders/${orderId}`, {
+      method: 'GET',
+      headers: {
+        'x-client-id': CASHFREE_APP_ID,
+        'x-client-secret': CASHFREE_SECRET_KEY,
+        'x-api-version': CASHFREE_API_VERSION
+      }
+    });
 
-    if (generated !== razorpay_signature) {
-      return res.status(400).json({ error: 'Payment verification failed. Signature mismatch.' });
+    const orderData = await response.json();
+    if (!response.ok) {
+      console.error('Cashfree order verify error:', orderData);
+      return res.status(400).json({ error: orderData.message || 'Failed to verify order status' });
+    }
+
+    if (orderData.order_status !== 'PAID') {
+      return res.status(400).json({
+        error: `Payment not completed. Current status: ${orderData.order_status || 'Unpaid'}`
+      });
+    }
+
+    // Fetch payment attempt ID if available
+    let paymentId = orderData.cf_order_id ? String(orderData.cf_order_id) : orderId;
+    try {
+      const payRes = await fetch(`${CASHFREE_BASE_URL}/orders/${orderId}/payments`, {
+        method: 'GET',
+        headers: {
+          'x-client-id': CASHFREE_APP_ID,
+          'x-client-secret': CASHFREE_SECRET_KEY,
+          'x-api-version': CASHFREE_API_VERSION
+        }
+      });
+      if (payRes.ok) {
+        const paymentsList = await payRes.json();
+        if (Array.isArray(paymentsList) && paymentsList.length > 0) {
+          const successful = paymentsList.find(p => p.payment_status === 'SUCCESS') || paymentsList[0];
+          if (successful && successful.cf_payment_id) {
+            paymentId = String(successful.cf_payment_id);
+          }
+        }
+      }
+    } catch (e) {
+      // fallback to cf_order_id
     }
 
     // Mark test as paid in session
@@ -479,22 +566,111 @@ router.post('/pay/:id/verify', express.json(), async (req, res) => {
       req.session.paidTests = paidTests;
     }
 
-    // Record payment in DB
+    // Record payment in DB if not already recorded
     const test = await Test.findById(req.params.id);
-    if (test) {
+    const existingPay = await Payment.findOne({
+      student: req.session.user.id,
+      test: req.params.id
+    });
+
+    if (!existingPay && test) {
       await Payment.create({
         student: req.session.user.id,
         test: test._id,
-        amount: test.price,
-        paymentId: razorpay_payment_id,
-        orderId: razorpay_order_id
+        amount: orderData.order_amount || test.price,
+        paymentId: paymentId,
+        orderId: orderId
       });
     }
 
     res.json({ success: true, redirect: `/student/test/${req.params.id}` });
   } catch (err) {
-    console.error('Payment verify error:', err);
+    console.error('Cashfree payment verify error:', err);
     res.status(500).json({ error: 'Verification failed. Please contact support.' });
+  }
+});
+
+// Step 4: Cashfree Return URL Handler (for redirect-based payment completion)
+router.get('/pay/:id/return', async (req, res) => {
+  try {
+    const { order_id } = req.query;
+    const testId = req.params.id;
+
+    if (!order_id) {
+      req.flash('error', 'Missing order reference');
+      return res.redirect(`/student/pay/${testId}`);
+    }
+
+    // Query Cashfree for order status
+    const response = await fetch(`${CASHFREE_BASE_URL}/orders/${order_id}`, {
+      method: 'GET',
+      headers: {
+        'x-client-id': CASHFREE_APP_ID,
+        'x-client-secret': CASHFREE_SECRET_KEY,
+        'x-api-version': CASHFREE_API_VERSION
+      }
+    });
+
+    const orderData = await response.json();
+
+    if (response.ok && orderData.order_status === 'PAID') {
+      let paymentId = orderData.cf_order_id ? String(orderData.cf_order_id) : order_id;
+      try {
+        const payRes = await fetch(`${CASHFREE_BASE_URL}/orders/${order_id}/payments`, {
+          method: 'GET',
+          headers: {
+            'x-client-id': CASHFREE_APP_ID,
+            'x-client-secret': CASHFREE_SECRET_KEY,
+            'x-api-version': CASHFREE_API_VERSION
+          }
+        });
+        if (payRes.ok) {
+          const paymentsList = await payRes.json();
+          if (Array.isArray(paymentsList) && paymentsList.length > 0) {
+            const successful = paymentsList.find(p => p.payment_status === 'SUCCESS') || paymentsList[0];
+            if (successful && successful.cf_payment_id) {
+              paymentId = String(successful.cf_payment_id);
+            }
+          }
+        }
+      } catch (e) {
+        // fallback
+      }
+
+      // Mark paid in session
+      const paidTests = req.session.paidTests || [];
+      if (!paidTests.includes(testId)) {
+        paidTests.push(testId);
+        req.session.paidTests = paidTests;
+      }
+
+      // Record in DB
+      const test = await Test.findById(testId);
+      const existingPay = await Payment.findOne({
+        student: req.session.user.id,
+        test: testId
+      });
+
+      if (!existingPay && test) {
+        await Payment.create({
+          student: req.session.user.id,
+          test: test._id,
+          amount: orderData.order_amount || test.price,
+          paymentId: paymentId,
+          orderId: order_id
+        });
+      }
+
+      req.flash('success', 'Payment verified successfully! Access unlocked.');
+      return res.redirect(`/student/test/${testId}`);
+    } else {
+      req.flash('error', `Payment was not completed (Status: ${orderData.order_status || 'Failed'}). Please try again.`);
+      return res.redirect(`/student/pay/${testId}`);
+    }
+  } catch (err) {
+    console.error('Cashfree return error:', err);
+    req.flash('error', 'Unable to verify payment. Please contact support.');
+    res.redirect(`/student/pay/${req.params.id}`);
   }
 });
 

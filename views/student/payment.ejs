@@ -49,7 +49,7 @@
 
       <!-- Pay Button -->
       <button type="button" id="pay-button" class="btn btn-primary btn-lg btn-full">
-        💳 Pay ₹<%= test.price %> with Razorpay →
+        💳 Pay ₹<%= test.price %> with Cashfree →
       </button>
 
       <!-- Error display -->
@@ -65,77 +65,79 @@
   </div>
 </div>
 
-<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
 <script>
   const TEST_ID  = '<%= test._id %>';
-  const RZP_KEY  = '<%= razorpayKey %>';
+  const CF_MODE  = '<%= cashfreeMode || "production" %>';
   const AMOUNT   = <%= test.price %>;
+
+  const cashfree = Cashfree({ mode: CF_MODE });
 
   function showError(msg) {
     const el = document.getElementById('pay-error');
     el.textContent = '⚠️ ' + msg;
     el.style.display = 'block';
-    document.getElementById('pay-button').disabled = false;
-    document.getElementById('pay-button').textContent = '💳 Try Again';
+    const btn = document.getElementById('pay-button');
+    btn.disabled = false;
+    btn.textContent = '💳 Try Again';
   }
 
   document.getElementById('pay-button').onclick = async function () {
     this.disabled = true;
-    this.textContent = 'Creating order…';
+    this.textContent = 'Initializing Cashfree payment…';
     document.getElementById('pay-error').style.display = 'none';
 
     try {
-      // Step 1: Create Razorpay order on server
+      // Step 1: Create Cashfree order on server
       const orderRes = await fetch(`/student/pay/${TEST_ID}/order`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       });
       const orderData = await orderRes.json();
-      if (!orderRes.ok) throw new Error(orderData.error || 'Failed to create order');
+      if (!orderRes.ok) throw new Error(orderData.error || 'Failed to initialize payment order');
 
-      // Step 2: Open Razorpay checkout
-      const options = {
-        key: RZP_KEY,
-        amount: orderData.amount,
-        currency: orderData.currency || 'INR',
-        name: 'ICUBE Info Solution',
-        description: 'Assessment Access Fee',
-        order_id: orderData.orderId,
-        prefill: {
-          name:  '<%= currentUser ? currentUser.name : "" %>',
-          email: '<%= currentUser ? currentUser.email : "" %>'
-        },
-        theme: { color: '#22c55e' },
-        handler: async function (response) {
-          document.getElementById('pay-button').textContent = 'Verifying payment…';
+      if (!orderData.paymentSessionId) {
+        throw new Error('Cashfree payment session was not generated.');
+      }
 
-          // Step 3: Verify signature on server
+      this.textContent = 'Opening Cashfree Checkout…';
+
+      // Step 2: Open Cashfree checkout modal
+      const checkoutOptions = {
+        paymentSessionId: orderData.paymentSessionId,
+        redirectTarget: "_modal"
+      };
+
+      cashfree.checkout(checkoutOptions).then(async function (result) {
+        if (result.error) {
+          showError(result.error.message || 'Payment cancelled or failed. Please try again.');
+          return;
+        }
+
+        if (result.redirect) {
+          // Cashfree handles redirection
+          return;
+        }
+
+        // Modal closed or completed -> verify payment status on server
+        document.getElementById('pay-button').textContent = 'Verifying payment…';
+        try {
           const verifyRes = await fetch(`/student/pay/${TEST_ID}/verify`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(response)
+            body: JSON.stringify({ orderId: orderData.orderId })
           });
           const verifyData = await verifyRes.json();
 
           if (verifyRes.ok && verifyData.success) {
             window.location.href = verifyData.redirect;
           } else {
-            showError(verifyData.error || 'Verification failed. Contact support.');
+            showError(verifyData.error || 'Payment verification failed. Please contact support.');
           }
-        },
-        modal: {
-          ondismiss: function () {
-            document.getElementById('pay-button').disabled = false;
-            document.getElementById('pay-button').textContent = '💳 Pay ₹' + AMOUNT + ' with Razorpay →';
-          }
+        } catch (vErr) {
+          showError('Verification error. If money was deducted, contact support with Order ID: ' + orderData.orderId);
         }
-      };
-
-      const rzp = new Razorpay(options);
-      rzp.on('payment.failed', function (resp) {
-        showError(resp.error.description || 'Payment failed. Please try again.');
       });
-      rzp.open();
     } catch (err) {
       showError(err.message || 'Something went wrong. Please refresh and try again.');
     }
