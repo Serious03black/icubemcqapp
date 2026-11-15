@@ -1,66 +1,35 @@
 <%- include('../partials/header') %>
 
 <div class="dashboard-layout">
-  <%- include('../partials/student-sidebar', { active: 'results' }) %>
+  <%- include('../partials/student-sidebar', { active: 'history' }) %>
 
   <div class="main-content">
-    <div class="page-header">
-      <div class="page-header-actions">
+    <!-- Non-printable actions and breadcrumbs -->
+    <div class="page-header no-print">
+      <div class="page-header-actions" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
         <div>
-          <h1>📊 Result Details</h1>
-          <p><%= result.test ? result.test.title : 'Test' %></p>
+          <h1 style="display: flex; align-items: center; gap: 8px; margin: 0;">
+            📊 Assessment Report Card
+          </h1>
+          <p style="margin: 4px 0 0 0; color: var(--text-muted);">
+            <%= result.student ? result.student.name : 'Candidate' %> &bull; <%= result.test ? result.test.title : 'Assessment' %>
+          </p>
         </div>
-        <a href="/student/results" class="btn btn-outline">← Back to Results</a>
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+          <a href="/student/history" class="btn btn-outline" style="font-size: 0.86rem;">← Back to Exam History</a>
+          <button type="button" class="btn btn-outline" onclick="window.print()" style="font-size: 0.86rem; display: inline-flex; align-items: center; gap: 6px;">
+            🖨️ Download / Save PDF
+          </button>
+          <button type="button" class="btn btn-primary" onclick="openSendMailModal()" style="font-size: 0.86rem; display: inline-flex; align-items: center; gap: 6px; background: #2563eb; border-color: #2563eb;">
+            ✉️ Send via Email (BITZBOLT ASSESSMENT)
+          </button>
+        </div>
       </div>
     </div>
 
     <div class="page-body">
       <%- include('../partials/alerts') %>
 
-      <!-- Result Summary -->
-      <div class="card" style="margin-bottom: 24px;">
-        <div class="card-body">
-          <div class="result-summary">
-            <div class="result-circle <%= result.isPassed ? 'passed' : 'failed' %>" style="--percentage: <%= result.percentage %>">
-              <div class="result-percentage"><%= result.percentage %>%</div>
-              <small style="color: var(--text-muted); font-size: 0.8rem;"><%= result.isPassed ? 'PASSED' : 'FAILED' %></small>
-            </div>
-
-            <div class="result-status" style="color: <%= result.isPassed ? 'var(--success)' : 'var(--danger)' %>">
-              <%= result.isPassed ? '🎉 Congratulations! You Passed!' : '❌ Better luck next time!' %>
-            </div>
-
-            <div class="result-stats">
-              <div class="result-stat">
-                <div class="value"><%= result.obtainedMarks %></div>
-                <div class="label">Obtained Marks</div>
-              </div>
-              <div class="result-stat">
-                <div class="value"><%= result.totalMarks %></div>
-                <div class="label">Total Marks</div>
-              </div>
-              <div class="result-stat">
-                <div class="value">
-                  <% if (result.timeTaken) { %>
-                    <%= Math.floor(result.timeTaken / 60) %>m <%= result.timeTaken % 60 %>s
-                  <% } else { %>
-                    N/A
-                  <% } %>
-                </div>
-                <div class="label">Time Taken</div>
-              </div>
-              <div class="result-stat">
-                <div class="value">
-                  <%= result.answers.filter(a => a.isCorrect).length %>/<%= result.answers.length %>
-                </div>
-                <div class="label">Correct Answers</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Answer Review -->
       <%
         let reviewQuestions = [];
         if (result.test) {
@@ -75,77 +44,714 @@
             });
           }
         }
+
+        let correctCount = 0;
+        let wrongCount = 0;
+        let unansweredCount = 0;
+        let codingCount = 0;
+
+        reviewQuestions.forEach(q => {
+          const isCode = (q.type === 'coding' || q.type === 'code');
+          const ans = result.answers ? result.answers.find(a => a.questionId.toString() === q._id.toString()) : null;
+          
+          if (isCode) {
+            codingCount++;
+            const code = ans && (ans.codeAnswer || ans.selectedOption);
+            if (code && code.trim()) {
+              if (ans.isCorrect) correctCount++;
+            } else {
+              unansweredCount++;
+            }
+          } else {
+            if (!ans || !ans.selectedOption || ans.selectedOption.trim() === '') {
+              unansweredCount++;
+            } else if (ans.isCorrect) {
+              correctCount++;
+            } else {
+              wrongCount++;
+            }
+          }
+        });
+
+        if (reviewQuestions.length === 0 && result.answers && result.answers.length > 0) {
+          result.answers.forEach(ans => {
+            if (!ans.selectedOption && !ans.codeAnswer) {
+              unansweredCount++;
+            } else if (ans.isCorrect) {
+              correctCount++;
+            } else {
+              wrongCount++;
+            }
+          });
+        }
+
+        const totalQuestionsCount = reviewQuestions.length || (result.answers ? result.answers.length : 0);
       %>
-      <% if (reviewQuestions.length > 0) { %>
-        <div class="card">
-          <div class="card-header">
-            <h3>📋 Answer Review</h3>
-          </div>
-          <div class="card-body">
-            <% reviewQuestions.forEach((q, index) => { %>
-              <% const answer = result.answers.find(a => a.questionId.toString() === q._id.toString()); %>
-              <div class="question-card">
-                <div style="margin-bottom: 12px; display: flex; align-items: flex-start; justify-content: space-between;">
-                  <div>
-                    <span class="question-number"><%= index + 1 %></span>
-                    <span class="question-text"><%= q.questionText || 'Refer to the question image below:' %></span>
-                    <span class="badge <%= (q.type === 'coding' || q.type === 'code') ? 'badge-warning' : 'badge-primary' %>" style="margin-left: 8px; font-size: 0.72rem;">
-                      <%= (q.type === 'coding' || q.type === 'code') ? '💻 Coding' : '📋 MCQ' %>
-                    </span>
-                  </div>
-                  <% if (answer && (q.type !== 'coding' && q.type !== 'code')) { %>
-                    <span class="badge <%= answer.isCorrect ? 'badge-success' : 'badge-danger' %>">
-                      <%= answer.isCorrect ? '✅ Correct' : '❌ Wrong' %>
-                    </span>
-                  <% } %>
+
+      <!-- Printable Report Container -->
+      <div class="report-card-container" id="reportCardPrintArea">
+
+        <!-- Official Header / Branding Banner -->
+        <div class="card report-official-header" style="margin-bottom: 20px; border-top: 4px solid #2563eb;">
+          <div class="card-body" style="padding: 22px 26px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px; border-bottom: 1px solid var(--border); padding-bottom: 18px; margin-bottom: 18px;">
+              <div>
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+                  <span style="font-size: 1.6rem; font-weight: 800; color: #fff; letter-spacing: -0.5px;">ICUBE WORLD</span>
+                  <span style="background: rgba(37, 99, 235, 0.15); color: #60a5fa; border: 1px solid rgba(37, 99, 235, 0.35); padding: 2px 8px; border-radius: 4px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase;">ICUBE Info Solution</span>
                 </div>
-
-                <% if (q.imageUrl) { %>
-                  <div style="margin: 10px 0 14px 0; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 8px; padding: 10px; text-align: center;">
-                    <a href="<%= q.imageUrl %>" target="_blank" title="Click to view full image">
-                      <img src="<%= q.imageUrl %>" alt="Question Image" style="max-height: 260px; max-width: 100%; object-fit: contain; border-radius: 6px;">
-                    </a>
-                  </div>
-                <% } %>
-
-                <% if (q.type === 'coding' || q.type === 'code') { %>
-                  <div style="margin-top: 10px; background: rgba(0,0,0,0.35); border: 1px solid var(--border); border-radius: 8px; padding: 14px;">
-                    <div style="font-size: 0.78rem; font-weight: 700; color: #38bdf8; text-transform: uppercase; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between;">
-                      <span>💻 Your Submitted Solution:</span>
-                      <span class="badge" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; font-size: 0.72rem;">Code Submission</span>
-                    </div>
-                    <% const codeText = (answer && (answer.codeAnswer || answer.selectedOption)) ? (answer.codeAnswer || answer.selectedOption) : ''; %>
-                    <% if (codeText.trim()) { %>
-                      <pre style="margin: 0; padding: 12px; background: rgba(0,0,0,0.5); border-radius: 6px; color: #e2e8f0; font-family: 'JetBrains Mono', Consolas, monospace; font-size: 0.88rem; overflow-x: auto; white-space: pre-wrap; word-break: break-all;"><code><%= codeText %></code></pre>
-                    <% } else { %>
-                      <p style="color: var(--text-muted); font-style: italic; margin: 0; font-size: 0.85rem;">No code was submitted for this question.</p>
-                    <% } %>
-                  </div>
-                <% } else { %>
-                  <div class="options-grid">
-                    <% ['A', 'B', 'C', 'D'].forEach(opt => { %>
-                      <%
-                        let optClass = '';
-                        if (q.correctOption === opt) optClass = 'correct';
-                        if (answer && answer.selectedOption === opt && !answer.isCorrect) optClass = 'wrong';
-                        if (answer && answer.selectedOption === opt && answer.isCorrect) optClass = 'correct';
-                      %>
-                      <div class="option-item <%= optClass %>">
-                        <span class="option-label"><%= opt %></span>
-                        <span><%= q['option' + opt] %></span>
-                        <% if (q.correctOption === opt) { %><small style="margin-left: auto; opacity: 0.7;">✓ correct</small><% } %>
-                        <% if (answer && answer.selectedOption === opt && answer.selectedOption !== q.correctOption) { %><small style="margin-left: auto; opacity: 0.7;">✗ your answer</small><% } %>
-                      </div>
-                    <% }) %>
-                  </div>
-                <% } %>
+                <div style="color: var(--text-muted); font-size: 0.88rem;">
+                  Official Technical Assessment &amp; Candidate Evaluation Authority
+                </div>
+                <div style="color: #94a3b8; font-size: 0.84rem; margin-top: 4px;">
+                  Evaluation for: <strong style="color: #38bdf8;">Bitzbolt</strong> (<a href="https://bitzbolt.online" target="_blank" style="color: #38bdf8; text-decoration: underline;">bitzbolt.online</a>)
+                </div>
               </div>
-            <% }) %>
+              <div style="text-align: right;">
+                <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px;">Verification Report ID</div>
+                <div style="font-family: monospace; font-size: 0.95rem; font-weight: 700; color: #fff;"><%= result._id %></div>
+                <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 3px;">
+                  Generated: <%= new Date(result.submittedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) %>
+                </div>
+              </div>
+            </div>
+
+            <!-- Candidate Details Grid -->
+            <div class="candidate-meta-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; font-size: 0.86rem;">
+              <div class="meta-item">
+                <span style="color: var(--text-muted); display: block; font-size: 0.76rem; text-transform: uppercase;">Candidate Name</span>
+                <strong style="color: #fff; font-size: 0.96rem;"><%= result.student ? result.student.name : 'N/A' %></strong>
+              </div>
+              <div class="meta-item">
+                <span style="color: var(--text-muted); display: block; font-size: 0.76rem; text-transform: uppercase;">Email Address</span>
+                <span style="color: #e2e8f0;"><%= result.student ? result.student.email : 'N/A' %></span>
+              </div>
+              <div class="meta-item">
+                <span style="color: var(--text-muted); display: block; font-size: 0.76rem; text-transform: uppercase;">Phone Number</span>
+                <span style="color: #e2e8f0;"><%= (result.student && result.student.phone) ? result.student.phone : 'N/A' %></span>
+              </div>
+              <div class="meta-item">
+                <span style="color: var(--text-muted); display: block; font-size: 0.76rem; text-transform: uppercase;">Reference ID / Company</span>
+                <span style="color: #38bdf8; font-weight: 600;">
+                  <%= (result.student && result.student.refId) ? result.student.refId : 'Bit250903XR3' %> (<%= (result.student && result.student.company) ? result.student.company : 'Bitzbolt' %>)
+                </span>
+              </div>
+              <div class="meta-item">
+                <span style="color: var(--text-muted); display: block; font-size: 0.76rem; text-transform: uppercase;">Assessment Title</span>
+                <strong style="color: #fff;"><%= result.test ? result.test.title : 'Assessment' %></strong>
+              </div>
+              <div class="meta-item">
+                <span style="color: var(--text-muted); display: block; font-size: 0.76rem; text-transform: uppercase;">Track / Course</span>
+                <span style="color: #e2e8f0;"><%= result.test ? result.test.course : 'General Evaluation' %></span>
+              </div>
+              <div class="meta-item">
+                <span style="color: var(--text-muted); display: block; font-size: 0.76rem; text-transform: uppercase;">Duration Spent</span>
+                <span style="color: #e2e8f0;">
+                  <% if (result.timeTaken) { %>
+                    <%= Math.floor(result.timeTaken / 60) %> mins <%= result.timeTaken % 60 %> secs
+                  <% } else { %>
+                    N/A
+                  <% } %>
+                </span>
+              </div>
+              <div class="meta-item">
+                <span style="color: var(--text-muted); display: block; font-size: 0.76rem; text-transform: uppercase;">Evaluation Status</span>
+                <span class="badge <%= result.isPassed ? 'badge-success' : 'badge-danger' %>" style="font-size: 0.78rem;">
+                  <%= result.isPassed ? '✅ Passed Requirement' : '❌ Below Passing Mark' %>
+                </span>
+              </div>
+            </div>
           </div>
         </div>
-      <% } %>
+
+        <!-- Score & Question Breakdown Cards -->
+        <div class="card" style="margin-bottom: 20px;">
+          <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="margin: 0;">🎯 Performance &amp; Question Breakdown</h3>
+            <span class="badge <%= result.isPassed ? 'badge-success' : 'badge-danger' %>" style="font-size: 0.85rem; padding: 6px 14px;">
+              <%= result.isPassed ? 'PASSED (' + result.percentage + '%)' : 'NOT PASSED (' + result.percentage + '%)' %>
+            </span>
+          </div>
+          <div class="card-body">
+            <!-- 5 Metric Grid -->
+            <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; margin-bottom: 18px;">
+              <!-- Marks Obtained -->
+              <div class="stat-card" style="background: rgba(255,255,255,0.02); border: 1px solid var(--border); padding: 16px; border-radius: 8px; text-align: center;">
+                <div style="font-size: 1.8rem; font-weight: 800; color: <%= result.isPassed ? '#22c55e' : '#f87171' %>;">
+                  <%= result.obtainedMarks %> <span style="font-size: 1rem; color: var(--text-muted); font-weight: 500;">/ <%= result.totalMarks %></span>
+                </div>
+                <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin-top: 4px;">
+                  Marks Obtained (<%= result.percentage %>%)
+                </div>
+                <div style="font-size: 0.72rem; color: #94a3b8; margin-top: 2px;">
+                  Passing: <%= result.test ? result.test.passingMarks : 'N/A' %> marks
+                </div>
+              </div>
+
+              <!-- Correct Questions -->
+              <div class="stat-card" style="background: rgba(34, 197, 94, 0.05); border: 1px solid rgba(34, 197, 94, 0.25); padding: 16px; border-radius: 8px; text-align: center;">
+                <div style="font-size: 1.8rem; font-weight: 800; color: #22c55e;">
+                  <%= correctCount %>
+                </div>
+                <div style="font-size: 0.8rem; font-weight: 600; color: #22c55e; text-transform: uppercase; margin-top: 4px;">
+                  ✅ Correct Questions
+                </div>
+                <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">
+                  Accuracy: <%= totalQuestionsCount > 0 ? Math.round((correctCount / totalQuestionsCount) * 100) : 0 %>%
+                </div>
+              </div>
+
+              <!-- Wrong Questions -->
+              <div class="stat-card" style="background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.25); padding: 16px; border-radius: 8px; text-align: center;">
+                <div style="font-size: 1.8rem; font-weight: 800; color: #f87171;">
+                  <%= wrongCount %>
+                </div>
+                <div style="font-size: 0.8rem; font-weight: 600; color: #f87171; text-transform: uppercase; margin-top: 4px;">
+                  ❌ Wrong Questions
+                </div>
+                <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">
+                  Incorrect selections
+                </div>
+              </div>
+
+              <!-- Unanswered Questions -->
+              <div class="stat-card" style="background: rgba(245, 158, 11, 0.05); border: 1px solid rgba(245, 158, 11, 0.25); padding: 16px; border-radius: 8px; text-align: center;">
+                <div style="font-size: 1.8rem; font-weight: 800; color: #fbbf24;">
+                  <%= unansweredCount %>
+                </div>
+                <div style="font-size: 0.8rem; font-weight: 600; color: #fbbf24; text-transform: uppercase; margin-top: 4px;">
+                  ⏳ Unanswered / Skipped
+                </div>
+                <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">
+                  No answer submitted
+                </div>
+              </div>
+
+              <!-- Total Questions -->
+              <div class="stat-card" style="background: rgba(255,255,255,0.02); border: 1px solid var(--border); padding: 16px; border-radius: 8px; text-align: center;">
+                <div style="font-size: 1.8rem; font-weight: 800; color: #fff;">
+                  <%= totalQuestionsCount %>
+                </div>
+                <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin-top: 4px;">
+                  📋 Total Questions
+                </div>
+                <div style="font-size: 0.72rem; color: #94a3b8; margin-top: 2px;">
+                  <%= codingCount > 0 ? (codingCount + ' Coding + ' + (totalQuestionsCount - codingCount) + ' MCQ') : 'All Multiple Choice' %>
+                </div>
+              </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div style="background: rgba(255,255,255,0.06); border-radius: 999px; height: 12px; overflow: hidden; display: flex;">
+              <div style="width: <%= totalQuestionsCount > 0 ? (correctCount / totalQuestionsCount) * 100 : 0 %>%; background: #22c55e;" title="Correct (<%= correctCount %>)"></div>
+              <div style="width: <%= totalQuestionsCount > 0 ? (wrongCount / totalQuestionsCount) * 100 : 0 %>%; background: #ef4444;" title="Wrong (<%= wrongCount %>)"></div>
+              <div style="width: <%= totalQuestionsCount > 0 ? (unansweredCount / totalQuestionsCount) * 100 : 0 %>%; background: #f59e0b;" title="Unanswered (<%= unansweredCount %>)"></div>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); margin-top: 6px;">
+              <span style="color: #22c55e;">● Correct: <%= correctCount %></span>
+              <span style="color: #ef4444;">● Wrong: <%= wrongCount %></span>
+              <span style="color: #f59e0b;">● Unanswered: <%= unansweredCount %></span>
+              <span>Total: <%= totalQuestionsCount %> Questions</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Proctoring & Anti-Cheat Audit Report -->
+        <div class="card" style="margin-bottom: 20px; border: 1.5px solid <%= ((result.tabSwitchesCount || 0) > 0 || (result.fullscreenExitsCount || 0) > 0 || (result.copyPasteAttempts || 0) > 0) ? 'rgba(239, 68, 68, 0.45)' : 'rgba(34, 197, 94, 0.4)' %>;">
+          <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <h3 style="display: flex; align-items: center; gap: 8px; margin: 0;">
+              🛡️ Proctoring &amp; Anti-Cheat Audit Log Report
+            </h3>
+            <% if ((result.tabSwitchesCount || 0) === 0 && (result.fullscreenExitsCount || 0) === 0 && (result.copyPasteAttempts || 0) === 0) { %>
+              <span class="badge badge-success" style="font-size: 0.85rem; padding: 6px 12px;">✅ 100% Clean Proctoring Session</span>
+            <% } else { %>
+              <span class="badge badge-danger" style="font-size: 0.85rem; padding: 6px 12px;">🚨 Violations Logged (<%= (result.tabSwitchesCount || 0) + (result.fullscreenExitsCount || 0) + (result.copyPasteAttempts || 0) %> Total Events)</span>
+            <% } %>
+          </div>
+          <div class="card-body">
+            <!-- 3 Main Proctoring Metrics -->
+            <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin-bottom: 18px;">
+              <!-- Window / Tab Switches -->
+              <div class="stat-card" style="background: rgba(255,255,255,0.02); border: 1px solid <%= (result.tabSwitchesCount || 0) > 0 ? 'rgba(239, 68, 68, 0.3)' : 'var(--border)' %>; padding: 14px; border-radius: 8px;">
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                  <span style="font-size: 1.4rem;">📑</span>
+                  <span style="font-size: 1.6rem; font-weight: 800; color: <%= (result.tabSwitchesCount || 0) > 0 ? '#f87171' : '#22c55e' %>;">
+                    <%= result.tabSwitchesCount || 0 %>
+                  </span>
+                </div>
+                <div style="font-size: 0.82rem; font-weight: 700; color: #fff; margin-top: 6px;">
+                  Switching Window / Tab Blur
+                </div>
+                <div style="font-size: 0.74rem; color: var(--text-muted); margin-top: 2px;">
+                  <%= (result.tabSwitchesCount || 0) === 0 ? 'No tab switches detected' : (result.tabSwitchesCount || 0) + ' candidate defocus actions' %>
+                </div>
+              </div>
+
+              <!-- Fullscreen Exits -->
+              <div class="stat-card" style="background: rgba(255,255,255,0.02); border: 1px solid <%= (result.fullscreenExitsCount || 0) > 0 ? 'rgba(245, 158, 11, 0.3)' : 'var(--border)' %>; padding: 14px; border-radius: 8px;">
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                  <span style="font-size: 1.4rem;">🖥️</span>
+                  <span style="font-size: 1.6rem; font-weight: 800; color: <%= (result.fullscreenExitsCount || 0) > 0 ? '#fbbf24' : '#22c55e' %>;">
+                    <%= result.fullscreenExitsCount || 0 %>
+                  </span>
+                </div>
+                <div style="font-size: 0.82rem; font-weight: 700; color: #fff; margin-top: 6px;">
+                  Fullscreen Exits / Minimizes
+                </div>
+                <div style="font-size: 0.74rem; color: var(--text-muted); margin-top: 2px;">
+                  <%= (result.fullscreenExitsCount || 0) === 0 ? 'Remained in secure fullscreen' : (result.fullscreenExitsCount || 0) + ' fullscreen exits recorded' %>
+                </div>
+              </div>
+
+              <!-- Copy Paste Attempts -->
+              <div class="stat-card" style="background: rgba(255,255,255,0.02); border: 1px solid <%= (result.copyPasteAttempts || 0) > 0 ? 'rgba(239, 68, 68, 0.3)' : 'var(--border)' %>; padding: 14px; border-radius: 8px;">
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                  <span style="font-size: 1.4rem;">📋</span>
+                  <span style="font-size: 1.6rem; font-weight: 800; color: <%= (result.copyPasteAttempts || 0) > 0 ? '#f87171' : '#22c55e' %>;">
+                    <%= result.copyPasteAttempts || 0 %>
+                  </span>
+                </div>
+                <div style="font-size: 0.82rem; font-weight: 700; color: #fff; margin-top: 6px;">
+                  Copy / Paste Attempts
+                </div>
+                <div style="font-size: 0.74rem; color: var(--text-muted); margin-top: 2px;">
+                  <%= (result.copyPasteAttempts || 0) === 0 ? 'Clipboard restrictions enforced' : (result.copyPasteAttempts || 0) + ' copy/paste attempts blocked' %>
+                </div>
+              </div>
+            </div>
+
+            <!-- Detailed Event Log Timeline -->
+            <% if (result.proctoringLogs && result.proctoringLogs.length > 0) { %>
+              <div style="margin-top: 14px;">
+                <div style="font-size: 0.86rem; font-weight: 700; color: #fff; margin-bottom: 8px;">
+                  Chronological Anti-Cheat Event Timeline (<%= result.proctoringLogs.length %> Logged Events):
+                </div>
+                <div style="max-height: 250px; overflow-y: auto; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px;">
+                  <table style="width: 100%; font-size: 0.8rem; border-collapse: collapse;">
+                    <thead>
+                      <tr style="border-bottom: 1px solid rgba(255,255,255,0.08); text-align: left; color: var(--text-muted);">
+                        <th style="padding: 6px 8px; width: 130px;">Time</th>
+                        <th style="padding: 6px 8px; width: 170px;">Action / Trigger</th>
+                        <th style="padding: 6px 8px;">Proctoring Description</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <% result.proctoringLogs.forEach(log => { %>
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.04);">
+                          <td style="padding: 6px 8px; color: var(--text-muted); font-family: monospace;">
+                            <%= new Date(log.timestamp).toLocaleTimeString('en-IN') %>
+                          </td>
+                          <td style="padding: 6px 8px;">
+                            <span class="badge <%= log.action === 'tab_switch' ? 'badge-danger' : log.action === 'fullscreen_exit' ? 'badge-warning' : 'badge-info' %>" style="font-size: 0.7rem;">
+                              <%= log.action === 'tab_switch' ? '📑 Window Switch' : log.action === 'fullscreen_exit' ? '🖥️ Fullscreen Exit' : (log.action || 'Violation') %>
+                            </span>
+                          </td>
+                          <td style="padding: 6px 8px; color: #e2e8f0;">
+                            <%= log.message %>
+                          </td>
+                        </tr>
+                      <% }) %>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            <% } else { %>
+              <div style="font-size: 0.84rem; color: #22c55e; padding: 10px; background: rgba(34, 197, 94, 0.08); border-radius: 6px; border: 1px solid rgba(34, 197, 94, 0.2);">
+                ✅ <strong>Zero Violations Recorded:</strong> Candidate completed the entire evaluation session inside the secured exam browser window without switching tabs, minimizing, or attempting unauthorized clipboard actions.
+              </div>
+            <% } %>
+          </div>
+        </div>
+
+        <!-- Question-by-Question Detailed Review -->
+        <% if (reviewQuestions.length > 0) { %>
+          <div class="card" style="margin-bottom: 24px;">
+            <div class="card-header">
+              <h3 style="margin: 0;">📋 Question-by-Question Evaluation Review</h3>
+            </div>
+            <div class="card-body">
+              <% reviewQuestions.forEach((q, index) => { %>
+                <% const answer = result.answers ? result.answers.find(a => a.questionId.toString() === q._id.toString()) : null; %>
+                <% const isCode = (q.type === 'coding' || q.type === 'code'); %>
+                <div class="question-card" style="margin-bottom: 20px; padding: 18px; border: 1px solid var(--border); border-radius: 8px; background: rgba(255,255,255,0.02); page-break-inside: avoid;">
+                  <div style="margin-bottom: 12px; display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                    <div>
+                      <span class="question-number" style="background: #2563eb; color: #fff; padding: 2px 8px; border-radius: 4px; font-weight: 700; margin-right: 6px;">#<%= index + 1 %></span>
+                      <span class="question-text" style="font-weight: 600; color: #fff;"><%= q.questionText || 'Refer to the question image below:' %></span>
+                      <span class="badge <%= isCode ? 'badge-warning' : 'badge-primary' %>" style="margin-left: 8px; font-size: 0.72rem;">
+                        <%= isCode ? '💻 Coding' : '📋 MCQ' %>
+                      </span>
+                    </div>
+                    <% if (isCode) { %>
+                      <span class="badge badge-warning">Needs Manual Review</span>
+                    <% } else if (answer) { %>
+                      <% if (!answer.selectedOption || answer.selectedOption.trim() === '') { %>
+                        <span class="badge badge-warning">⏳ Unanswered</span>
+                      <% } else if (answer.isCorrect) { %>
+                        <span class="badge badge-success">✅ Correct (+<%= answer.marks || q.marks || 1 %>)</span>
+                      <% } else { %>
+                        <span class="badge badge-danger">❌ Wrong (0)</span>
+                      <% } %>
+                    <% } else { %>
+                      <span class="badge badge-warning">⏳ Unanswered</span>
+                    <% } %>
+                  </div>
+
+                  <% if (q.imageUrl) { %>
+                    <div style="margin: 10px 0 14px 0; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 8px; padding: 10px; text-align: center;">
+                      <a href="<%= q.imageUrl %>" target="_blank" title="Click to view full image in a new tab">
+                        <img src="<%= q.imageUrl %>" alt="Question Image" style="max-height: 260px; max-width: 100%; object-fit: contain; border-radius: 6px;">
+                      </a>
+                    </div>
+                  <% } %>
+
+                  <% if (isCode) { %>
+                    <div style="margin-top: 10px; background: rgba(0,0,0,0.35); border: 1px solid var(--border); border-radius: 8px; padding: 14px;">
+                      <div style="font-size: 0.78rem; font-weight: 700; color: #38bdf8; text-transform: uppercase; margin-bottom: 8px;">
+                        Candidate Submitted Code:
+                      </div>
+                      <% const codeText = (answer && (answer.codeAnswer || answer.selectedOption)) ? (answer.codeAnswer || answer.selectedOption) : ''; %>
+                      <% if (codeText.trim()) { %>
+                        <pre style="margin: 0; padding: 12px; background: rgba(0,0,0,0.5); border-radius: 6px; color: #e2e8f0; font-family: 'JetBrains Mono', Consolas, monospace; font-size: 0.88rem; overflow-x: auto; white-space: pre-wrap; word-break: break-all;"><code><%= codeText %></code></pre>
+                      <% } else { %>
+                        <p style="color: var(--text-muted); font-style: italic; margin: 0; font-size: 0.85rem;">No code submitted by candidate.</p>
+                      <% } %>
+                    </div>
+                  <% } else { %>
+                    <div class="options-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; margin-top: 10px;">
+                      <% ['A', 'B', 'C', 'D'].forEach(opt => { %>
+                        <%
+                          let optClass = '';
+                          let isOptCorrect = (q.correctOption === opt);
+                          let isOptSelected = (answer && answer.selectedOption === opt);
+                          if (isOptCorrect) optClass = 'correct';
+                          if (isOptSelected && !answer.isCorrect) optClass = 'wrong';
+                        %>
+                        <div class="option-item <%= optClass %>" style="display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 6px; border: 1px solid <%= isOptCorrect ? 'rgba(34, 197, 94, 0.4)' : isOptSelected ? 'rgba(239, 68, 68, 0.4)' : 'rgba(255,255,255,0.08)' %>; background: <%= isOptCorrect ? 'rgba(34, 197, 94, 0.08)' : isOptSelected ? 'rgba(239, 68, 68, 0.08)' : 'rgba(255,255,255,0.02)' %>;">
+                          <span class="option-label" style="font-weight: 700; padding: 2px 6px; border-radius: 4px; background: rgba(255,255,255,0.08); font-size: 0.8rem;"><%= opt %></span>
+                          <span style="font-size: 0.86rem; color: #fff;"><%= q['option' + opt] %></span>
+                          <% if (isOptCorrect) { %>
+                            <span style="margin-left: auto; color: #22c55e; font-size: 0.78rem; font-weight: 700;">✓ Correct</span>
+                          <% } %>
+                          <% if (isOptSelected && !isOptCorrect) { %>
+                            <span style="margin-left: auto; color: #f87171; font-size: 0.78rem; font-weight: 700;">✗ Selected</span>
+                          <% } %>
+                        </div>
+                      <% }) %>
+                    </div>
+                  <% } %>
+                </div>
+              <% }) %>
+            </div>
+          </div>
+        <% } %>
+
+        <!-- Official Report Card Footer -->
+        <div class="report-official-footer" style="margin-top: 24px; padding: 18px 22px; background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 8px; font-size: 0.8rem; color: var(--text-muted); text-align: center;">
+          <p style="margin: 0 0 4px 0;">
+            This candidate assessment evaluation is certified and recorded by <strong>ICUBE World (ICUBE Info Solution)</strong>.
+          </p>
+          <p style="margin: 0;">
+            Conducted on behalf of <strong>Bitzbolt</strong> &bull; Portal: <a href="https://bitzbolt.online" target="_blank" style="color: #38bdf8;">bitzbolt.online</a> &bull; Verification Token: <%= result._id %>
+          </p>
+        </div>
+
+      </div>
+      <!-- /Printable Container -->
+
     </div>
   </div>
 </div>
+
+<!-- ==================== SEND VIA EMAIL MODAL ==================== -->
+<div id="sendMailModal" class="custom-modal-backdrop no-print" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(4px); z-index: 9999; align-items: center; justify-content: center; padding: 16px;">
+  <div class="custom-modal-content" style="background: #0f172a; border: 1.5px solid #334155; border-radius: 12px; width: 100%; max-width: 620px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); overflow: hidden;">
+    <div style="padding: 18px 24px; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center;">
+      <h3 style="margin: 0; font-size: 1.15rem; color: #fff; display: flex; align-items: center; gap: 8px;">
+        ✉️ Send Assessment Report via Email
+      </h3>
+      <button type="button" onclick="closeSendMailModal()" style="background: none; border: none; color: #94a3b8; font-size: 1.4rem; cursor: pointer; line-height: 1;">&times;</button>
+    </div>
+    <div style="padding: 20px 24px;">
+      <div style="background: rgba(37, 99, 235, 0.1); border: 1px solid rgba(37, 99, 235, 0.3); border-radius: 8px; padding: 12px 14px; margin-bottom: 16px; font-size: 0.84rem; color: #93c5fd;">
+        ℹ️ Clicking an email option opens your mail app with <strong>BITZBOLT ASSESSMENT</strong> pre-filled in the Subject line and the complete score and proctoring log in the body.
+      </div>
+
+      <div style="margin-bottom: 14px;">
+        <label style="display: block; font-size: 0.8rem; font-weight: 600; color: #cbd5e1; margin-bottom: 6px; text-transform: uppercase;">
+          Recipient Email:
+        </label>
+        <input type="email" id="modalRecipientEmail" value="<%= result.student ? result.student.email : '' %>" placeholder="Enter recipient email (e.g. hr@bitzbolt.online)" class="form-control" style="width: 100%; background: #1e293b; border: 1px solid #475569; color: #fff; padding: 10px 12px; border-radius: 6px; font-size: 0.9rem;">
+      </div>
+
+      <div style="margin-bottom: 14px;">
+        <label style="display: block; font-size: 0.8rem; font-weight: 600; color: #cbd5e1; margin-bottom: 6px; text-transform: uppercase;">
+          Subject Line:
+        </label>
+        <input type="text" id="modalEmailSubject" readonly class="form-control" style="width: 100%; background: #1e293b; border: 1px solid #475569; color: #38bdf8; padding: 10px 12px; border-radius: 6px; font-size: 0.9rem; font-weight: 600;">
+      </div>
+
+      <div style="margin-bottom: 18px;">
+        <label style="display: block; font-size: 0.8rem; font-weight: 600; color: #cbd5e1; margin-bottom: 6px; text-transform: uppercase;">
+          Email Body Summary:
+        </label>
+        <textarea id="modalEmailBody" rows="6" readonly style="width: 100%; background: #1e293b; border: 1px solid #475569; color: #e2e8f0; padding: 10px 12px; border-radius: 6px; font-size: 0.82rem; font-family: monospace; resize: vertical;"></textarea>
+      </div>
+
+      <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <button type="button" onclick="launchEmailClient('gmail')" class="btn btn-primary" style="flex: 1; min-width: 160px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: #dc2626; border-color: #dc2626; font-size: 0.88rem; padding: 10px;">
+          <span>🌐</span> Open in Gmail Web
+        </button>
+        <button type="button" onclick="launchEmailClient('mailto')" class="btn btn-primary" style="flex: 1; min-width: 160px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: #2563eb; border-color: #2563eb; font-size: 0.88rem; padding: 10px;">
+          <span>✉️</span> Default Mail Client
+        </button>
+        <button type="button" onclick="copyEmailSummary()" class="btn btn-outline" style="min-width: 120px; font-size: 0.88rem; padding: 10px;">
+          📋 Copy Text
+        </button>
+      </div>
+
+      <div style="margin-top: 14px; text-align: center;">
+        <a href="javascript:void(0)" onclick="triggerPdfAndPrint()" style="color: #38bdf8; font-size: 0.82rem; text-decoration: underline;">
+          🖨️ Click here to download/save PDF now so you can attach it to the email
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== REPORT CARD STYLES & PRINT MEDIA ==================== -->
+<style>
+/* Clean Print Layout for Official PDF Download */
+@media print {
+  /* Hide UI elements that shouldn't appear on paper or saved PDF */
+  .navbar,
+  .sidebar,
+  .main-header,
+  .site-header,
+  .site-footer,
+  .dashboard-sidebar,
+  .page-header,
+  .no-print,
+  .alert,
+  button,
+  .btn,
+  #sendMailModal {
+    display: none !important;
+  }
+
+  body, html {
+    background: #ffffff !important;
+    color: #111827 !important;
+    font-size: 12pt !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .dashboard-layout {
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .main-content {
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  .report-card-container {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .card {
+    background: #ffffff !important;
+    color: #111827 !important;
+    border: 1px solid #e5e7eb !important;
+    box-shadow: none !important;
+    margin-bottom: 16px !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .report-official-header {
+    border-top: 4px solid #1d4ed8 !important;
+  }
+
+  .stat-card {
+    background: #f9fafb !important;
+    border: 1px solid #e5e7eb !important;
+    color: #111827 !important;
+  }
+
+  h1, h2, h3, h4, strong {
+    color: #0f172a !important;
+  }
+
+  span, p, td, th {
+    color: #374151 !important;
+  }
+
+  .badge {
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+    background: #f1f5f9 !important;
+  }
+
+  .badge-success {
+    background: #dcfce7 !important;
+    color: #15803d !important;
+    border-color: #86efac !important;
+  }
+
+  .badge-danger {
+    background: #fee2e2 !important;
+    color: #b91c1c !important;
+    border-color: #fca5a5 !important;
+  }
+
+  .badge-warning {
+    background: #fef3c7 !important;
+    color: #b45309 !important;
+    border-color: #fde68a !important;
+  }
+
+  .option-item.correct {
+    background: #dcfce7 !important;
+    border-color: #86efac !important;
+  }
+
+  .option-item.wrong {
+    background: #fee2e2 !important;
+    border-color: #fca5a5 !important;
+  }
+
+  pre {
+    background: #f8fafc !important;
+    color: #0f172a !important;
+    border: 1px solid #cbd5e1 !important;
+  }
+}
+</style>
+
+<!-- ==================== CLIENT SCRIPTS FOR EMAIL & PDF ==================== -->
+<script>
+  const reportData = {
+    candidateName: "<%= (result.student ? result.student.name : 'Candidate').replace(/"/g, '\"') %>",
+    candidateEmail: "<%= (result.student ? result.student.email : '').replace(/"/g, '\"') %>",
+    candidatePhone: "<%= ((result.student && result.student.phone) ? result.student.phone : 'N/A').replace(/"/g, '\"') %>",
+    refId: "<%= ((result.student && result.student.refId) ? result.student.refId : 'Bit250903XR3').replace(/"/g, '\"') %>",
+    company: "<%= ((result.student && result.student.company) ? result.student.company : 'Bitzbolt').replace(/"/g, '\"') %>",
+    testTitle: "<%= (result.test ? result.test.title : 'Assessment').replace(/"/g, '\"') %>",
+    track: "<%= (result.test ? result.test.course : 'Technical Evaluation').replace(/"/g, '\"') %>",
+    submissionDate: "<%= new Date(result.submittedAt).toLocaleString('en-IN').replace(/"/g, '\"') %>",
+    duration: "<%= Math.floor((result.timeTaken || 0) / 60) %> mins <%= (result.timeTaken || 0) % 60 %> secs",
+    obtainedMarks: <%= result.obtainedMarks %>,
+    totalMarks: <%= result.totalMarks %>,
+    percentage: <%= result.percentage %>,
+    isPassed: <%= result.isPassed %>,
+    correctCount: <%= correctCount %>,
+    wrongCount: <%= wrongCount %>,
+    unansweredCount: <%= unansweredCount %>,
+    totalQuestions: <%= totalQuestionsCount %>,
+    tabSwitches: <%= result.tabSwitchesCount || 0 %>,
+    fullscreenExits: <%= result.fullscreenExitsCount || 0 %>,
+    copyPaste: <%= result.copyPasteAttempts || 0 %>,
+    reportId: "<%= result._id %>"
+  };
+
+  const emailSubject = "BITZBOLT ASSESSMENT - " + reportData.candidateName + " - " + reportData.testTitle;
+
+  const emailBodyText = [
+    "======================================================",
+    "ICUBE WORLD (ICUBE INFO SOLUTION)",
+    "OFFICIAL ASSESSMENT REPORT CARD",
+    "Conducted for: Bitzbolt (https://bitzbolt.online)",
+    "======================================================",
+    "",
+    "CANDIDATE DETAILS:",
+    "• Name: " + reportData.candidateName,
+    "• Email: " + reportData.candidateEmail,
+    "• Phone: " + reportData.candidatePhone,
+    "• Reference ID: " + reportData.refId,
+    "• Company: " + reportData.company,
+    "",
+    "ASSESSMENT PERFORMANCE:",
+    "• Assessment: " + reportData.testTitle + " (" + reportData.track + ")",
+    "• Submitted At: " + reportData.submissionDate,
+    "• Duration: " + reportData.duration,
+    "• Marks Obtained: " + reportData.obtainedMarks + " / " + reportData.totalMarks + " (" + reportData.percentage + "%)",
+    "• Result Status: " + (reportData.isPassed ? "PASSED" : "NOT PASSED"),
+    "",
+    "QUESTION BREAKDOWN:",
+    "• Total Questions: " + reportData.totalQuestions,
+    "• Correct Answers: " + reportData.correctCount,
+    "• Wrong Answers: " + reportData.wrongCount,
+    "• Unanswered / Skipped: " + reportData.unansweredCount,
+    "",
+    "PROCTORING & ANTI-CHEAT AUDIT REPORT:",
+    "• Switching Window / Tab Blur: " + reportData.tabSwitches + " count",
+    "• Fullscreen Exits / Minimizes: " + reportData.fullscreenExits + " count",
+    "• Copy / Paste Attempts: " + reportData.copyPaste + " count",
+    "• Proctoring Integrity: " + ((reportData.tabSwitches === 0 && reportData.fullscreenExits === 0 && reportData.copyPaste === 0) ? "100% Clean (Zero violations recorded)" : "Violations Logged (" + (reportData.tabSwitches + reportData.fullscreenExits + reportData.copyPaste) + " incidents)"),
+    "",
+    "------------------------------------------------------",
+    "* NOTE: Please find attached the official Assessment Report Card PDF for the detailed question-by-question review and timestamped proctoring timeline.",
+    "",
+    "Verification Portal: https://bitzbolt.online",
+    "Evaluation Authority: ICUBE World (ICUBE Info Solution)",
+    "Verification Token: " + reportData.reportId,
+    "======================================================"
+  ].join("\n");
+
+  function openSendMailModal() {
+    document.getElementById('modalEmailSubject').value = emailSubject;
+    document.getElementById('modalEmailBody').value = emailBodyText;
+    document.getElementById('sendMailModal').style.display = 'flex';
+  }
+
+  function closeSendMailModal() {
+    document.getElementById('sendMailModal').style.display = 'none';
+  }
+
+  function launchEmailClient(type) {
+    const to = encodeURIComponent(document.getElementById('modalRecipientEmail').value.trim() || reportData.candidateEmail);
+    const sub = encodeURIComponent(emailSubject);
+    const body = encodeURIComponent(emailBodyText);
+
+    if (type === 'gmail') {
+      const gmailUrl = "https://mail.google.com/mail/?view=cm&fs=1&to=" + to + "&su=" + sub + "&body=" + body;
+      window.open(gmailUrl, '_blank');
+    } else {
+      const mailtoUrl = "mailto:" + to + "?subject=" + sub + "&body=" + body;
+      window.location.href = mailtoUrl;
+    }
+  }
+
+  function copyEmailSummary() {
+    const bodyField = document.getElementById('modalEmailBody');
+    bodyField.select();
+    bodyField.setSelectionRange(0, 99999);
+    navigator.clipboard.writeText(bodyField.value).then(() => {
+      alert("✅ Email assessment report copied to clipboard!");
+    }).catch(err => {
+      alert("Please copy manually from the box.");
+    });
+  }
+
+  function triggerPdfAndPrint() {
+    window.print();
+  }
+
+  // Close modal when clicking outside
+  window.addEventListener('click', function(e) {
+    const modal = document.getElementById('sendMailModal');
+    if (e.target === modal) {
+      closeSendMailModal();
+    }
+  });
+</script>
 
 <%- include('../partials/footer') %>

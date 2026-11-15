@@ -1202,7 +1202,7 @@ router.get('/payments', async (req, res) => {
 router.get('/results/:id', async (req, res) => {
   try {
     const result = await Result.findById(req.params.id)
-      .populate('student', 'name email course')
+      .populate('student', 'name email course phone refId company')
       .populate('test');
 
     if (!result) {
@@ -1211,7 +1211,7 @@ router.get('/results/:id', async (req, res) => {
     }
 
     res.render('admin/result-detail', {
-      title: 'Result Details -  I cube world',
+      title: 'Candidate Assessment Report Card - ICUBE World',
       result
     });
   } catch (err) {

@@ -1,7 +1,7 @@
 {
-  "name": " icube-info-testapp",
+  "name": "icube-info-testapp",
   "version": "1.0.0",
-  "description": "MCQ Test Application by Exam Pro",
+  "description": "Technical Assessment Application by ICUBE World (ICUBE Info Solution)",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

@@ -378,7 +378,7 @@ router.post('/test/:id/submit', async (req, res) => {
     if (req.session.activeAttempts) {
       delete req.session.activeAttempts[test._id.toString()];
     }
-    req.flash('success', 'Test submitted successfully!');
+    req.flash('success', 'Test submitted successfully! Your submission has been recorded and sent for recruiter evaluation.');
     res.redirect('/student/dashboard');
   } catch (err) {
     console.error('Submit Test Error:', err);
@@ -674,13 +674,19 @@ router.get('/pay/:id/return', async (req, res) => {
   }
 });
 
-router.get('/results', (req, res) => {
-  req.flash('info', 'Results are only visible to the admin.');
+// Results and report cards are restricted to admin only
+router.get('/report/:id', (req, res) => {
+  req.flash('info', 'Assessment evaluation results and report cards are confidential and only visible to the admin/recruiter.');
   res.redirect('/student/dashboard');
 });
 
 router.get('/results/:id', (req, res) => {
-  req.flash('info', 'Results are only visible to the admin.');
+  req.flash('info', 'Assessment evaluation results and report cards are confidential and only visible to the admin/recruiter.');
+  res.redirect('/student/dashboard');
+});
+
+router.get('/results', (req, res) => {
+  req.flash('info', 'Assessment evaluation results and report cards are confidential and only visible to the admin/recruiter.');
   res.redirect('/student/dashboard');
 });
 
