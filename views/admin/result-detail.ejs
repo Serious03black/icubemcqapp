@@ -49,6 +49,7 @@
         let wrongCount = 0;
         let unansweredCount = 0;
         let codingCount = 0;
+        let codingAttempted = 0;
 
         reviewQuestions.forEach(q => {
           const isCode = (q.type === 'coding' || q.type === 'code');
@@ -58,6 +59,7 @@
             codingCount++;
             const code = ans && (ans.codeAnswer || ans.selectedOption);
             if (code && code.trim()) {
+              codingAttempted++;
               if (ans.isCorrect) correctCount++;
             } else {
               unansweredCount++;
@@ -72,6 +74,20 @@
             }
           }
         });
+
+        let defaultInterviewQual = 'Rejected';
+        let defaultInterviewReason = 'student not attempt the programming question';
+
+        if (codingCount > 0 && codingAttempted === 0) {
+          defaultInterviewQual = 'Rejected';
+          defaultInterviewReason = 'student not attempt the programming question';
+        } else if (!result.isPassed) {
+          defaultInterviewQual = 'Rejected';
+          defaultInterviewReason = 'Did not meet minimum passing threshold';
+        } else {
+          defaultInterviewQual = 'Qualified';
+          defaultInterviewReason = 'Successfully cleared technical assessment criteria';
+        }
 
         if (reviewQuestions.length === 0 && result.answers && result.answers.length > 0) {
           result.answers.forEach(ans => {
@@ -252,6 +268,28 @@
               <span style="color: #ef4444;">● Wrong: <%= wrongCount %></span>
               <span style="color: #f59e0b;">● Unanswered: <%= unansweredCount %></span>
               <span>Total: <%= totalQuestionsCount %> Questions</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Interview Qualification Status Card -->
+        <div class="card" style="margin-bottom: 20px; border-left: 4px solid <%= defaultInterviewQual === 'Qualified' ? '#22c55e' : '#ef4444' %>;">
+          <div class="card-body" style="padding: 18px 22px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+            <div>
+              <div style="font-size: 0.78rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; letter-spacing: 0.5px;">
+                Interview Recommendation
+              </div>
+              <div style="font-size: 1.15rem; font-weight: 800; color: <%= defaultInterviewQual === 'Qualified' ? '#22c55e' : '#f87171' %>; margin-top: 2px;">
+                qualification for interview: <%= defaultInterviewQual %>
+              </div>
+              <div style="font-size: 0.86rem; color: #cbd5e1; margin-top: 4px;">
+                <strong>Reason:</strong> <%= defaultInterviewReason %>
+              </div>
+            </div>
+            <div>
+              <span class="badge <%= defaultInterviewQual === 'Qualified' ? 'badge-success' : 'badge-danger' %>" style="font-size: 0.88rem; padding: 6px 14px;">
+                <%= defaultInterviewQual === 'Qualified' ? '✅ Shortlist for Interview' : '❌ Rejected' %>
+              </span>
             </div>
           </div>
         </div>
@@ -498,6 +536,25 @@
         <input type="text" id="modalEmailSubject" readonly class="form-control" style="width: 100%; background: #1e293b; border: 1px solid #475569; color: #38bdf8; padding: 10px 12px; border-radius: 6px; font-size: 0.9rem; font-weight: 600;">
       </div>
 
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+        <div>
+          <label style="display: block; font-size: 0.8rem; font-weight: 600; color: #cbd5e1; margin-bottom: 6px; text-transform: uppercase;">
+            qualification for interview:
+          </label>
+          <select id="modalInterviewQual" onchange="refreshEmailBody()" class="form-control" style="width: 100%; background: #1e293b; border: 1px solid #475569; color: #fff; padding: 10px 12px; border-radius: 6px; font-size: 0.9rem; font-weight: 600;">
+            <option value="Rejected" <%= defaultInterviewQual === 'Rejected' ? 'selected' : '' %>>Rejected</option>
+            <option value="Qualified" <%= defaultInterviewQual === 'Qualified' ? 'selected' : '' %>>Qualified</option>
+            <option value="On Hold / Under Evaluation">On Hold / Under Evaluation</option>
+          </select>
+        </div>
+        <div>
+          <label style="display: block; font-size: 0.8rem; font-weight: 600; color: #cbd5e1; margin-bottom: 6px; text-transform: uppercase;">
+            Reason:
+          </label>
+          <input type="text" id="modalInterviewReason" oninput="refreshEmailBody()" value="<%= defaultInterviewReason %>" class="form-control" style="width: 100%; background: #1e293b; border: 1px solid #475569; color: #fff; padding: 10px 12px; border-radius: 6px; font-size: 0.88rem;">
+        </div>
+      </div>
+
       <div style="margin-bottom: 18px;">
         <label style="display: block; font-size: 0.8rem; font-weight: 600; color: #cbd5e1; margin-bottom: 6px; text-transform: uppercase;">
           Email Body Summary:
@@ -724,7 +781,7 @@
 
   function openSendMailModal() {
     document.getElementById('modalEmailSubject').value = emailSubject;
-    document.getElementById('modalEmailBody').value = emailBodyText;
+    refreshEmailBody();
     document.getElementById('sendMailModal').style.display = 'flex';
   }
 
@@ -764,7 +821,7 @@
   function launchEmailClient(type) {
     const to = encodeURIComponent(document.getElementById('modalRecipientEmail').value.trim() || reportData.candidateEmail);
     const sub = encodeURIComponent(emailSubject);
-    const body = encodeURIComponent(emailBodyText);
+    const body = encodeURIComponent(buildEmailBodyText());
 
     // Automatically trigger the PDF download so the user has the file ready to attach
     downloadPdfFile();
