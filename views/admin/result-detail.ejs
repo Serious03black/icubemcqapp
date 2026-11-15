@@ -17,7 +17,7 @@
         </div>
         <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
           <a href="/admin/results" class="btn btn-outline" style="font-size: 0.86rem;">← Back to All Results</a>
-          <button type="button" class="btn btn-outline" onclick="window.print()" style="font-size: 0.86rem; display: inline-flex; align-items: center; gap: 6px;">
+          <button type="button" class="btn btn-outline" onclick="downloadPdfFile()" style="font-size: 0.86rem; display: inline-flex; align-items: center; gap: 6px;">
             🖨️ Download / Save PDF
           </button>
           <button type="button" class="btn btn-primary" onclick="openSendMailModal()" style="font-size: 0.86rem; display: inline-flex; align-items: center; gap: 6px; background: #2563eb; border-color: #2563eb;">
@@ -473,8 +473,15 @@
       <button type="button" onclick="closeSendMailModal()" style="background: none; border: none; color: #94a3b8; font-size: 1.4rem; cursor: pointer; line-height: 1;">&times;</button>
     </div>
     <div style="padding: 20px 24px;">
-      <div style="background: rgba(37, 99, 235, 0.1); border: 1px solid rgba(37, 99, 235, 0.3); border-radius: 8px; padding: 12px 14px; margin-bottom: 16px; font-size: 0.84rem; color: #93c5fd;">
-        ℹ️ Clicking an email option opens your mail app with <strong>BITZBOLT ASSESSMENT</strong> pre-filled in the Subject line and the complete score and proctoring log in the body.
+      <div style="background: rgba(37, 99, 235, 0.12); border: 1px solid rgba(37, 99, 235, 0.35); border-radius: 8px; padding: 14px 16px; margin-bottom: 16px; font-size: 0.84rem; color: #bfdbfe;">
+        <div style="font-weight: 700; color: #fff; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+          ℹ️ Browser Attachment Policy &amp; Automated Flow:
+        </div>
+        <div style="line-height: 1.5; color: #cbd5e1;">
+          Browsers &amp; Gmail strictly prohibit websites from force-attaching local files through links for security.
+          <br>
+          ⚡ When you click <strong>Open in Gmail</strong> below: the official <strong>PDF is automatically downloaded</strong> to your computer and Gmail opens with the subject and body pre-filled. Simply <strong>drag the downloaded PDF into Gmail</strong> or click the paperclip (📎) icon to attach it!
+        </div>
       </div>
 
       <div style="margin-bottom: 14px;">
@@ -498,22 +505,31 @@
         <textarea id="modalEmailBody" rows="6" readonly style="width: 100%; background: #1e293b; border: 1px solid #475569; color: #e2e8f0; padding: 10px 12px; border-radius: 6px; font-size: 0.82rem; font-family: monospace; resize: vertical;"></textarea>
       </div>
 
-      <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+      <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px;">
         <button type="button" onclick="launchEmailClient('gmail')" class="btn btn-primary" style="flex: 1; min-width: 160px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: #dc2626; border-color: #dc2626; font-size: 0.88rem; padding: 10px;">
-          <span>🌐</span> Open in Gmail Web
+          <span>🌐</span> Open in Gmail &amp; Auto-Download PDF
         </button>
         <button type="button" onclick="launchEmailClient('mailto')" class="btn btn-primary" style="flex: 1; min-width: 160px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: #2563eb; border-color: #2563eb; font-size: 0.88rem; padding: 10px;">
-          <span>✉️</span> Default Mail Client
+          <span>✉️</span> Default Mail &amp; Auto-Download PDF
         </button>
-        <button type="button" onclick="copyEmailSummary()" class="btn btn-outline" style="min-width: 120px; font-size: 0.88rem; padding: 10px;">
-          📋 Copy Text
+      </div>
+      <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <button type="button" onclick="downloadPdfFile()" class="btn btn-outline" style="flex: 1; min-width: 140px; font-size: 0.86rem; padding: 9px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+          📥 Download PDF Report File
+        </button>
+        <button type="button" onclick="copyEmailSummary()" class="btn btn-outline" style="min-width: 120px; font-size: 0.86rem; padding: 9px;">
+          📋 Copy Text Summary
         </button>
       </div>
 
-      <div style="margin-top: 14px; text-align: center;">
-        <a href="javascript:void(0)" onclick="triggerPdfAndPrint()" style="color: #38bdf8; font-size: 0.82rem; text-decoration: underline;">
-          🖨️ Click here to download/save PDF now so you can attach it to the email
-        </a>
+      <!-- Attachment Guidance Banner -->
+      <div id="pdfDownloadToast" style="display: none; background: rgba(34, 197, 94, 0.15); border: 1.5px solid rgba(34, 197, 94, 0.4); border-radius: 8px; padding: 12px 14px; margin-top: 14px; font-size: 0.84rem; color: #86efac;">
+        <div style="font-weight: 700; display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+          ✅ PDF Downloaded Successfully!
+        </div>
+        <div style="color: #e2e8f0; line-height: 1.45;">
+          The report card has been saved to your computer. In your opened Gmail window, simply <strong>drag and drop the downloaded file</strong> into the email body, or click the paperclip (📎 <em>Attach files</em>) icon.
+        </div>
       </div>
     </div>
   </div>
@@ -716,10 +732,42 @@
     document.getElementById('sendMailModal').style.display = 'none';
   }
 
+  function downloadPdfFile(callback) {
+    const element = document.getElementById('reportCardPrintArea');
+    const safeName = (reportData.candidateName || 'Candidate').replace(/[^a-zA-Z0-9_-]/g, '_');
+    const filename = 'BITZBOLT_ASSESSMENT_' + safeName + '.pdf';
+
+    const toast = document.getElementById('pdfDownloadToast');
+    if (toast) toast.style.display = 'block';
+
+    if (typeof html2pdf !== 'undefined') {
+      const opt = {
+        margin:       [8, 8, 8, 8],
+        filename:     filename,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true, logging: false },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+      html2pdf().set(opt).from(element).save().then(() => {
+        if (callback) callback();
+      }).catch(err => {
+        console.warn('html2pdf fallback to print:', err);
+        window.print();
+        if (callback) callback();
+      });
+    } else {
+      window.print();
+      if (callback) callback();
+    }
+  }
+
   function launchEmailClient(type) {
     const to = encodeURIComponent(document.getElementById('modalRecipientEmail').value.trim() || reportData.candidateEmail);
     const sub = encodeURIComponent(emailSubject);
     const body = encodeURIComponent(emailBodyText);
+
+    // Automatically trigger the PDF download so the user has the file ready to attach
+    downloadPdfFile();
 
     if (type === 'gmail') {
       const gmailUrl = "https://mail.google.com/mail/?view=cm&fs=1&to=" + to + "&su=" + sub + "&body=" + body;
@@ -754,4 +802,5 @@
   });
 </script>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <%- include('../partials/footer') %>
