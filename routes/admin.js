@@ -1117,8 +1117,8 @@ router.get('/results', async (req, res) => {
   try {
     const results = await Result.find()
       .sort({ submittedAt: -1 })
-      .populate('student', 'name email course phone')
-      .populate('test', 'title course totalMarks passingMarks price');
+      .populate('student', 'name email course phone refId company')
+      .populate('test', 'title course totalMarks passingMarks price questions subTests');
 
     // Also get all payments to check candidates who paid but haven't submitted yet
     const payments = await Payment.find()

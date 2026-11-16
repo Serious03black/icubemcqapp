@@ -563,12 +563,12 @@
       </div>
 
       <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px;">
-        <button type="button" onclick="launchEmailClient('gmail')" class="btn btn-primary" style="flex: 1; min-width: 160px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: #dc2626; border-color: #dc2626; font-size: 0.88rem; padding: 10px;">
+        <a id="btnDetailOpenGmail" href="#" target="_blank" onclick="downloadPdfFile()" class="btn btn-primary" style="flex: 1; min-width: 160px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: #dc2626; border-color: #dc2626; font-size: 0.88rem; padding: 10px; text-decoration: none; font-weight: 600;">
           <span>🌐</span> Open in Gmail &amp; Auto-Download PDF
-        </button>
-        <button type="button" onclick="launchEmailClient('mailto')" class="btn btn-primary" style="flex: 1; min-width: 160px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: #2563eb; border-color: #2563eb; font-size: 0.88rem; padding: 10px;">
+        </a>
+        <a id="btnDetailOpenMailto" href="#" onclick="downloadPdfFile()" class="btn btn-primary" style="flex: 1; min-width: 160px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: #2563eb; border-color: #2563eb; font-size: 0.88rem; padding: 10px; text-decoration: none; font-weight: 600;">
           <span>✉️</span> Default Mail &amp; Auto-Download PDF
-        </button>
+        </a>
       </div>
       <div style="display: flex; gap: 10px; flex-wrap: wrap;">
         <button type="button" onclick="downloadPdfFile()" class="btn btn-outline" style="flex: 1; min-width: 140px; font-size: 0.86rem; padding: 9px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
@@ -732,61 +732,101 @@
     tabSwitches: <%= result.tabSwitchesCount || 0 %>,
     fullscreenExits: <%= result.fullscreenExitsCount || 0 %>,
     copyPaste: <%= result.copyPasteAttempts || 0 %>,
+    defaultQual: "<%= typeof defaultInterviewQual !== 'undefined' ? defaultInterviewQual : 'Rejected' %>",
+    defaultReason: "<%= typeof defaultInterviewReason !== 'undefined' ? defaultInterviewReason.replace(/"/g, '"') : 'student not attempt the programming question' %>",
     reportId: "<%= result._id %>"
   };
 
   const emailSubject = "BITZBOLT ASSESSMENT - " + reportData.candidateName + " - " + reportData.testTitle;
 
-  const emailBodyText = [
-    "======================================================",
-    "ICUBE WORLD (ICUBE INFO SOLUTION)",
-    "OFFICIAL ASSESSMENT REPORT CARD",
-    "Conducted for: Bitzbolt (https://bitzbolt.online)",
-    "======================================================",
-    "",
-    "CANDIDATE DETAILS:",
-    "• Name: " + reportData.candidateName,
-    "• Email: " + reportData.candidateEmail,
-    "• Phone: " + reportData.candidatePhone,
-    "• Reference ID: " + reportData.refId,
-    "• Company: " + reportData.company,
-    "",
-    "ASSESSMENT PERFORMANCE:",
-    "• Assessment: " + reportData.testTitle + " (" + reportData.track + ")",
-    "• Submitted At: " + reportData.submissionDate,
-    "• Duration: " + reportData.duration,
-    "• Marks Obtained: " + reportData.obtainedMarks + " / " + reportData.totalMarks + " (" + reportData.percentage + "%)",
-    "• Result Status: " + (reportData.isPassed ? "PASSED" : "NOT PASSED"),
-    "",
-    "QUESTION BREAKDOWN:",
-    "• Total Questions: " + reportData.totalQuestions,
-    "• Correct Answers: " + reportData.correctCount,
-    "• Wrong Answers: " + reportData.wrongCount,
-    "• Unanswered / Skipped: " + reportData.unansweredCount,
-    "",
-    "PROCTORING & ANTI-CHEAT AUDIT REPORT:",
-    "• Switching Window / Tab Blur: " + reportData.tabSwitches + " count",
-    "• Fullscreen Exits / Minimizes: " + reportData.fullscreenExits + " count",
-    "• Copy / Paste Attempts: " + reportData.copyPaste + " count",
-    "• Proctoring Integrity: " + ((reportData.tabSwitches === 0 && reportData.fullscreenExits === 0 && reportData.copyPaste === 0) ? "100% Clean (Zero violations recorded)" : "Violations Logged (" + (reportData.tabSwitches + reportData.fullscreenExits + reportData.copyPaste) + " incidents)"),
-    "",
-    "------------------------------------------------------",
-    "* NOTE: Please find attached the official Assessment Report Card PDF for the detailed question-by-question review and timestamped proctoring timeline.",
-    "",
-    "Verification Portal: https://bitzbolt.online",
-    "Evaluation Authority: ICUBE World (ICUBE Info Solution)",
-    "Verification Token: " + reportData.reportId,
-    "======================================================"
-  ].join("\n");
+  function buildEmailBodyText() {
+    const qualEl = document.getElementById('modalInterviewQual');
+    const reasonEl = document.getElementById('modalInterviewReason');
+    const qual = qualEl ? qualEl.value : (reportData.defaultQual || 'Rejected');
+    const reason = reasonEl ? reasonEl.value : (reportData.defaultReason || 'student not attempt the programming question');
+
+    const totalViolations = (reportData.tabSwitches + reportData.fullscreenExits + reportData.copyPaste);
+    const proctoringStatus = totalViolations === 0 
+      ? "100% Clean (Zero violations recorded)" 
+      : "Violations Logged (" + totalViolations + " incidents)";
+
+    return [
+      "======================================================",
+      "ICUBE WORLD (ICUBE INFO SOLUTION)",
+      "Conducted for: Bitzbolt (https://bitzbolt.online)",
+      "======================================================",
+      "CANDIDATE DETAILS:",
+      "• Name: " + reportData.candidateName,
+      "• Email: " + reportData.candidateEmail,
+      "• Phone: " + reportData.candidatePhone,
+      "• Reference ID: " + reportData.refId,
+      "• Company: " + reportData.company,
+      "",
+      "ASSESSMENT PERFORMANCE:",
+      "• Assessment: " + reportData.testTitle + " (" + reportData.track + ")",
+      "• Submitted At: " + reportData.submissionDate,
+      "• Duration: " + reportData.duration,
+      "• Marks Obtained: " + reportData.obtainedMarks + " / " + reportData.totalMarks + " (" + reportData.percentage + "%)",
+      "• MCQ Result: " + (reportData.isPassed ? "PASSED" : "NOT PASSED"),
+      "",
+      "QUESTION BREAKDOWN:",
+      "• Total Questions: " + reportData.totalQuestions,
+      "• Correct Answers: " + reportData.correctCount,
+      "• Wrong Answers: " + reportData.wrongCount,
+      "• Unanswered / Skipped: " + reportData.unansweredCount,
+      "",
+      "PROCTORING & ANTI-CHEAT AUDIT REPORT:",
+      "• Switching Window / Tab Blur: " + reportData.tabSwitches + " count",
+      "• Fullscreen Exits / Minimizes: " + reportData.fullscreenExits + " count",
+      "• Copy / Paste Attempts: " + reportData.copyPaste + " count",
+      "• Proctoring Integrity: " + proctoringStatus,
+      "",
+      "qualification for interview: " + qual,
+      "Reason: " + reason,
+      "------------------------------------------------------",
+      "* NOTE: Please find attached the official Assessment Report Card PDF for the detailed question-by-question review and timestamped proctoring timeline.",
+      "Verification Token: " + reportData.reportId
+    ].join("\n");
+  }
+
+  function refreshEmailBody() {
+    const bodyText = buildEmailBodyText();
+    const bodyField = document.getElementById('modalEmailBody');
+    if (bodyField) {
+      bodyField.value = bodyText;
+    }
+
+    const recInput = document.getElementById('modalRecipientEmail');
+    const to = encodeURIComponent((recInput ? recInput.value : reportData.candidateEmail || '').trim());
+    const sub = encodeURIComponent(emailSubject);
+    const bodyEncoded = encodeURIComponent(bodyText);
+
+    const gmailUrl = "https://mail.google.com/mail/?view=cm&fs=1&to=" + to + "&su=" + sub + "&body=" + bodyEncoded;
+    const mailtoUrl = "mailto:" + to + "?subject=" + sub + "&body=" + bodyEncoded;
+
+    const btnGmail = document.getElementById('btnDetailOpenGmail');
+    if (btnGmail) btnGmail.href = gmailUrl;
+
+    const btnMailto = document.getElementById('btnDetailOpenMailto');
+    if (btnMailto) btnMailto.href = mailtoUrl;
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    const recInput = document.getElementById('modalRecipientEmail');
+    if (recInput) recInput.addEventListener('input', refreshEmailBody);
+  });
 
   function openSendMailModal() {
-    document.getElementById('modalEmailSubject').value = emailSubject;
+    const subField = document.getElementById('modalEmailSubject');
+    if (subField) subField.value = emailSubject;
     refreshEmailBody();
-    document.getElementById('sendMailModal').style.display = 'flex';
+    const modal = document.getElementById('sendMailModal');
+    if (modal) modal.style.display = 'flex';
   }
 
   function closeSendMailModal() {
-    document.getElementById('sendMailModal').style.display = 'none';
+    const modal = document.getElementById('sendMailModal');
+    if (modal) modal.style.display = 'none';
   }
 
   function downloadPdfFile(callback) {
